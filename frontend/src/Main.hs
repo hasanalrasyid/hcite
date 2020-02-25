@@ -11,6 +11,7 @@ import           Data.Meteo.Swiss
 
 import Data.Witherable
 
+
 main :: IO ()
 main = mainWidgetWithCss css body
    where css = $(embedFile "css/tab.css")
