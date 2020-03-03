@@ -7,10 +7,10 @@ import qualified Data.Map as Map
 import           Data.Maybe (fromMaybe)
 import           Data.Monoid ((<>))
 import           Data.FileEmbed
-import           Data.Meteo.Swiss
 
 import Data.Witherable
 
+import Common
 
 main :: IO ()
 main = mainWidgetWithCss css body
