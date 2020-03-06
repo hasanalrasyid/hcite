@@ -17,10 +17,6 @@ cabal-version:       >=1.10
 library
   ghc-options:         -Wall -O2
   exposed-modules:     Common
-                     , Reflex.SDL2
-                     , Reflex.SDL2.Internal
-                     , Reflex.SDL2.Class
-                     , Reflex.SDL2.Base
   other-modules:   Data.Meteo.Swiss.Types
                     , Data.Meteo.Swiss.Urls
   other-extensions: OverloadedStrings
@@ -29,10 +25,6 @@ library
                      , time
                      , aeson
                      , data-default
-
-                     , sdl2
-                     , stm
-                     , reflex
 
   hs-source-dirs:      src
   default-language:    Haskell2010
