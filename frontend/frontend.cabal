@@ -26,5 +26,12 @@ executable frontend
                      , containers
                      , file-embed
                      , streamly
+
+--                     , GLUT
+                     , sdl2
+                     , linear
+
+                     , reflex-sdl2
+
   hs-source-dirs:      src
   default-language:    Haskell2010

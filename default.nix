@@ -1,8 +1,10 @@
 { reflex-platform ? import ./reflex-platform {
   config.android_sdk.accept_license = true;
+  config.allowBroken = true;
   } }:
 
-reflex-platform.project ({ pkgs, ... }: {
+reflex-platform.project ({ pkgs, ... }:
+{
   packages = {
     common = ./common;
     backend = ./backend;
