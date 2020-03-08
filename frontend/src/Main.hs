@@ -12,6 +12,9 @@ import Data.Witherable
 
 import Common
 
+import Control.Monad.Fix
+import Reflex.Dom.Xhr
+
 main :: IO ()
 main = mainWidgetWithCss css body
    where css = $(embedFile "css/tab.css")
@@ -20,8 +23,10 @@ main = mainWidgetWithCss css body
 data Page = PageData | PageError
    deriving Eq
 
+
 -- | Create the HTML body
-body :: MonadWidget t m => m ()
+--body :: MonadWidget t m => m ()
+body :: (MonadHold t m, PostBuild t m, DomBuilder t m, MonadFix m) => m ()
 body  = el "div" $ do
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
@@ -40,7 +45,7 @@ body  = el "div" $ do
   return ()
 
 -- | Display the meteo data in a tabbed display
-pageData :: MonadWidget t m => Event t XhrResponse -> Dynamic t Page -> m ()
+pageData :: Event t XhrResponse -> Dynamic t Page -> m ()
 pageData evOk dynPage = do
   evSmnRec :: (Event t SmnRecord) <- return $  fmapMaybe decodeXhrResponse evOk
   let evSmnStat = fmapMaybe smnStation evSmnRec
@@ -49,7 +54,7 @@ pageData evOk dynPage = do
     tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
 -- | Display the error page
-pageErr :: MonadWidget t m => Event t XhrResponse -> Dynamic t Page -> m ()
+--pageErr :: MonadWidget t m => Event t XhrResponse -> Dynamic t Page -> m ()
 pageErr evErr dynPage = do
   let dynAttr = visible <$> dynPage <*> pure PageError
   elDynAttr "div" dynAttr $ do
@@ -77,12 +82,12 @@ stations :: Map.Map T.Text T.Text
 stations = Map.fromList [("BIN", "Binn"), ("BER", "Bern"), ("KLO", "Zurich airport"), ("ZER", "Zermatt"), ("JUN", "Jungfraujoch")]
 
 -- | Create a tabbed display
-tabMap :: MonadWidget t m => Event t SmnRecord -> Event t SmnStation -> Map.Map Int (T.Text, m ())
+--tabMap :: MonadWidget t m => Event t SmnRecord -> Event t SmnStation -> Map.Map Int (T.Text, m ())
 tabMap evMeteo evStat = Map.fromList[ (1, ("Station", tabStat evStat)),
             (2, ("MeteoData", tabMeteo evMeteo))]
 
 -- | Create the DOM elements for the Station tab
-tabStat :: MonadWidget t m => Event t SmnStation -> m ()
+--tabStat :: MonadWidget t m => Event t SmnStation -> m ()
 tabStat evStat = do
   dispStatField "Code" staCode evStat
   dispStatField "Name" staName evStat
@@ -103,7 +108,7 @@ tabMeteo evMeteo = do
   return ()
 
 -- | Display a single field from the SmnStation record
-dispStatField :: MonadWidget t m => T.Text -> (SmnStation -> T.Text) -> Event t SmnStation -> m ()
+--dispStatField :: MonadWidget t m => T.Text -> (SmnStation -> T.Text) -> Event t SmnStation -> m ()
 dispStatField label rend evStat = do
   el "br" blank
   text $ label <> ": "
@@ -111,7 +116,7 @@ dispStatField label rend evStat = do
   return ()
 
 -- | Display a single field from the SmnRecord record
-dispMeteoField :: MonadWidget t m => T.Text -> (SmnRecord -> T.Text) -> Event t SmnRecord -> m ()
+--dispMeteoField :: MonadWidget t m => T.Text -> (SmnRecord -> T.Text) -> Event t SmnRecord -> m ()
 dispMeteoField label rend evRec = do
   el "br"blank
   text $ label <> ": "

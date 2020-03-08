@@ -18,6 +18,11 @@ executable frontend
   main-is:             Main.hs
   ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
   -- other-extensions:
+  default-extensions:
+    FlexibleInstances
+    OverloadedStrings
+    FlexibleContexts
+    GADTs
   build-depends:       base >=4.9 && <4.13
                      , common
                      , reflex-dom
