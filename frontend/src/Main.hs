@@ -4,7 +4,7 @@
 import           Reflex.Dom
 import qualified Data.Text as T
 import qualified Data.Map as Map
-import           Data.Maybe (fromMaybe)
+import           Data.Maybe (fromMaybe,fromJust)
 import           Data.Monoid ((<>))
 import           Data.FileEmbed
 
@@ -15,6 +15,9 @@ import Common
 import Control.Monad.Fix
 import Reflex.Dom.Xhr
 
+import Language.Javascript.JSaddle.Types
+import Control.Monad.IO.Class
+
 main :: IO ()
 main = mainWidgetWithCss css body
    where css = $(embedFile "css/tab.css")
@@ -23,10 +26,11 @@ main = mainWidgetWithCss css body
 data Page = PageData | PageError
    deriving Eq
 
-
+  {-
 -- | Create the HTML body
---body :: MonadWidget t m => m ()
-body :: (MonadHold t m, PostBuild t m, DomBuilder t m, MonadFix m) => m ()
+body :: (MonadHold t m, PostBuild t m, DomBuilder t m, MonadFix m, MonadIO m, MonadJSM (Performable m), PerformEvent t m, HasJSContext (Performable m), TriggerEvent t m, FromJSON a ) => m ()
+-}
+body :: MonadWidget t m => m ()
 body  = el "div" $ do
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
@@ -35,14 +39,31 @@ body  = el "div" $ do
   -- Build and send the request
   evStart <- getPostBuild
   let evCode = tagPromptlyDyn (value dd) $ leftmost [ () <$ _dropdown_change dd, evStart]
-  evRsp <- performRequestAsync $ buildReq <$> evCode
+  evRsp <- getAndDecode $ buildReq <$> evCode
   -- Check on HTML response code and remember state.
-  let (evOk, evErr) = checkXhrRsp evRsp
-  dynPage <- foldDyn ($) PageData $ leftmost [const PageData <$ evOk, const PageError <$ evErr]
+--  let (evOk, evErr) = checkXhrRsp' evRsp
+--  dynPage <- foldDyn ($) PageData $ leftmost [const PageData <$ evOk, const PageError <$ evErr]
+  dynPage <- foldDyn ($) PageData $ leftmost [const PageData <$ evRsp]
   -- Create the 2 pages
-  pageData evOk dynPage
-  pageErr evErr dynPage
+  pageData' evRsp dynPage
+--  pageErr  evRsp dynPage
   return ()
+
+pageData'' :: MonadWidget t m => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
+pageData''  evSmnRec dynPage = do
+  let dynAttr = visible <$> dynPage <*> pure PageError
+  elDynAttr "div" dynAttr $ do
+     el "h3" $ text "Error"
+     dynText =<< holdDyn "" ("Error happened" <$ evSmnRec )
+     --dynText =<< holdDyn "" (_xhrResponse_statusText <$> evErr)
+
+pageData' :: Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
+pageData' evSmnRec' dynPage = do
+  evSmnRec :: (Event t SmnRecord) <- return $ fmap fromJust evSmnRec'
+  let evSmnStat = fmapMaybe smnStation evSmnRec
+  let dynAttr = visible <$> dynPage <*> pure PageData
+  elDynAttr "div" dynAttr $
+    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
 -- | Display the meteo data in a tabbed display
 pageData :: Event t XhrResponse -> Dynamic t Page -> m ()
@@ -75,8 +96,15 @@ visible p1 p2 = "style" =: ("display: " <> choose (p1 == p2) "inline" "none")
     choose True  t _ = t
     choose False _ f = f
 
-buildReq :: T.Text -> XhrRequest ()
-buildReq code = XhrRequest "GET" (urlDataStat code) def
+  {-
+getEvRsp :: Event t T.Text -> m (Event t XhrResponse)
+getEvRsp evCode = performRequestAsync $ buildReq <$> evCode
+-}
+
+--buildReq :: T.Text -> XhrRequest ()
+--buildReq code = XhrRequest "GET" (urlDataStat code) def
+buildReq :: T.Text -> T.Text
+buildReq code = urlDataStat code
 
 stations :: Map.Map T.Text T.Text
 stations = Map.fromList [("BIN", "Binn"), ("BER", "Bern"), ("KLO", "Zurich airport"), ("ZER", "Zermatt"), ("JUN", "Jungfraujoch")]
