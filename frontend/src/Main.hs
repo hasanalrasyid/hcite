@@ -49,16 +49,6 @@ body  = el "div" $ do
   pageErr   evRsp dynPage
   return ()
 
-  {-
-pageData'' :: MonadWidget t m => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
-pageData''  evSmnRec dynPage = do
-  let dynAttr = visible <$> dynPage <*> pure PageError
-  elDynAttr "div" dynAttr $ do
-     el "h3" $ text "Error"
-     dynText =<< holdDyn "" ("Error happened" <$ evSmnRec )
-     --dynText =<< holdDyn "" (_xhrResponse_statusText <$> evErr)
--}
-
 pageData' :: (PostBuild t m, DomBuilder t m, MonadHold t m) => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
 pageData' evSmnRec' dynPage = do
   evSmnRec :: (Event t SmnRecord) <- return $ fmap fromJust evSmnRec'
