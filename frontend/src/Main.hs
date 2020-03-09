@@ -46,9 +46,10 @@ body  = el "div" $ do
   dynPage <- foldDyn ($) PageData $ leftmost [const PageData <$ evRsp]
   -- Create the 2 pages
   pageData' evRsp dynPage
---  pageErr  evRsp dynPage
+  pageErr   evRsp dynPage
   return ()
 
+  {-
 pageData'' :: MonadWidget t m => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
 pageData''  evSmnRec dynPage = do
   let dynAttr = visible <$> dynPage <*> pure PageError
@@ -56,23 +57,26 @@ pageData''  evSmnRec dynPage = do
      el "h3" $ text "Error"
      dynText =<< holdDyn "" ("Error happened" <$ evSmnRec )
      --dynText =<< holdDyn "" (_xhrResponse_statusText <$> evErr)
+-}
 
-pageData' :: Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
+pageData' :: (PostBuild t m, DomBuilder t m, MonadHold t m) => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
 pageData' evSmnRec' dynPage = do
   evSmnRec :: (Event t SmnRecord) <- return $ fmap fromJust evSmnRec'
   let evSmnStat = fmapMaybe smnStation evSmnRec
   let dynAttr = visible <$> dynPage <*> pure PageData
-  elDynAttr "div" dynAttr $
-    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
+  elDynAttr "div" dynAttr $ do
+    tabStat evSmnStat
+    tabMeteo evSmnRec
+--    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
 -- | Display the meteo data in a tabbed display
-pageData :: Event t XhrResponse -> Dynamic t Page -> m ()
+pageData :: (PostBuild t m, DomBuilder t m) => Event t XhrResponse -> Dynamic t Page -> m ()
 pageData evOk dynPage = do
   evSmnRec :: (Event t SmnRecord) <- return $  fmapMaybe decodeXhrResponse evOk
   let evSmnStat = fmapMaybe smnStation evSmnRec
   let dynAttr = visible <$> dynPage <*> pure PageData
-  elDynAttr "div" dynAttr $
-    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
+  elDynAttr "div" dynAttr $ text "PageData"
+--    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
 -- | Display the error page
 --pageErr :: MonadWidget t m => Event t XhrResponse -> Dynamic t Page -> m ()
@@ -80,7 +84,7 @@ pageErr evErr dynPage = do
   let dynAttr = visible <$> dynPage <*> pure PageError
   elDynAttr "div" dynAttr $ do
      el "h3" $ text "Error"
-     dynText =<< holdDyn "" (_xhrResponse_statusText <$> evErr)
+     dynText =<< holdDyn "" ( const "PageError" <$> evErr)
 
 -- | Split up good and bad response events
 checkXhrRsp :: (Filterable f, FunctorMaybe f) => f XhrResponse -> (f XhrResponse, f XhrResponse)
@@ -125,7 +129,7 @@ tabStat evStat = do
   return ()
 
 -- | Create the DOM elements for the Meteo data tab
-tabMeteo :: MonadWidget t m => Event t SmnRecord -> m ()
+--tabMeteo :: MonadWidget t m => Event t SmnRecord -> m ()
 tabMeteo evMeteo = do
   dispMeteoField "Date/Time" (tShow . smnDateTime) evMeteo
   dispMeteoField "Temperature" smnTemperature evMeteo
@@ -146,7 +150,7 @@ dispStatField label rend evStat = do
 -- | Display a single field from the SmnRecord record
 --dispMeteoField :: MonadWidget t m => T.Text -> (SmnRecord -> T.Text) -> Event t SmnRecord -> m ()
 dispMeteoField label rend evRec = do
-  el "br"blank
+--  el "br"blank
   text $ label <> ": "
   dynText =<< holdDyn "" (fmap rend evRec)
   return ()
