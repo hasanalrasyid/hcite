@@ -49,20 +49,21 @@ main1 = mainWidgetWithCss css body
 data Page = PageData | PageError
    deriving Eq
 
-body' :: MonadWidget t m => m ()
-body' =
+bodyNav :: MonadWidget t m => m ()
+bodyNav =
   elClass "nav" "navbar is-white topNav" $ do
     elClass "div" "container" $ do
       elClass "div" "navbar-brand" $ do
         elClass "a" "navbar-item" $ -- href="../">
-          elAttr "img" (("src" =: "inc/img/bulma.png") <> ("width" =: "112") <> ("height"=:"28")) blank
-        elClass "div" "navbar-burger burger" blank -- data-target="topNav">
---  <span></span>
---  <span></span>
---  <span></span>
+          el "h1" $ text "HCITE"
+          -- elAttr "img" (("src" =: "inc/img/bulma.png") <> ("width" =: "112") <> ("height"=:"28")) blank
+        elAttr "div" (("class" =: "navbar-burger burger") <> ("data-target" =: "topNav")) $ do
+          el "span" blank
+          el "span" blank
+          el "span" blank
 --      </div>
 --    </div>
-      elClass "div" "navbar-menu" $ do -- id="topNav" class="navbar-menu">
+      elAttr "div" (( "class" =: "navbar-menu") <> ("id" =: "topNav")) $ do
         elClass "div" "navbar-start" $ do
           elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "cover.html"          )) $ text "Home"
           elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "landing.html"        )) $ text "Landing"
@@ -97,7 +98,7 @@ body' =
   </nav>
     -}
 
-  {-
+  {- not needed
   <nav class="navbar is-white">
   <div class="container">
   <div class="navbar-menu">
@@ -114,48 +115,84 @@ body' =
   </div>
   </div>
   </nav>
-  <section class="container">
-  <div class="columns">
-  <div class="column is-3">
-  <a class="button is-primary is-block is-alt is-large" href="#">New Post</a>
-  <aside class="menu">
-  <p class="menu-label">
-  Tags
-  </p>
-  <ul class="menu-list">
-  <li><span class="tag is-primary is-medium ">Dashboard</span></li>
-  <li><span class="tag is-link is-medium ">Customers</span></li>
-  <li><span class="tag is-light is-danger is-medium ">Authentication</span></li>
-  <li><span class="tag is-dark is-medium ">Payments</span></li>
-  <li><span class="tag is-success is-medium ">Transfers</span></li>
-  <li><span class="tag is-warning is-medium ">Balance</span></li>
-  <li><span class="tag is-medium ">Question</span></li>
-  </ul>
-  </aside>
-  </div>
-  <div class="column is-9">
-  <div class="box content">
-  <article class="post">
-  <h4>Bulma: How do you center a button in a box?</h4>
-  <div class="media">
-  <div class="media-left">
-  <p class="image is-32x32">
-  <img src="http://bulma.io/images/placeholders/128x128.png">
-  </p>
-  </div>
-  <div class="media-content">
-  <div class="content">
-  <p>
-  <a href="#">@jsmith</a> replied 34 minutes ago &nbsp;
-  <span class="tag">Question</span>
-  </p>
-  </div>
-  </div>
-  <div class="media-right">
-  <span class="has-text-grey-light"><i class="fa fa-comments"></i> 1</span>
-  </div>
-  </div>
-  </article>
+  -}
+
+bodySection :: MonadWidget t m => m ()
+bodySection = do
+  elClass "section" "container" $ do
+    elClass "div" "columns" $ do
+      elClass "div" "column is-3" $ do
+        elAttr "a" (("class" =: "button is-primary is-block is-alt is-large") <> ("href" =: "#")) $ text "New Post"
+        elClass "aside" "menu" $ do
+          elClass "p" "menu-label" $ text "Tags"
+          elClass "ul" "menu-list" $ do
+            el "li" $ elClass "span" "tag is-primary is-medium "         $ text "Dashboard"
+            el "li" $ elClass "span" "tag is-link is-medium "            $ text "Customers"
+            el "li" $ elClass "span" "tag is-light is-danger is-medium " $ text "Authentication"
+            el "li" $ elClass "span" "tag is-dark is-medium "            $ text "Payments"
+            el "li" $ elClass "span" "tag is-success is-medium "         $ text "Transfers"
+            el "li" $ elClass "span" "tag is-warning is-medium "         $ text "Balance"
+            el "li" $ elClass "span" "tag is-medium "                    $ text "Question"
+--    </div>
+      elClass "div" "column is-9" $ do
+        elClass "div" "box content" $ do
+          bodySectionArticles
+          bodySectionArticles
+          bodySectionArticles
+          bodySectionArticles
+          bodySectionArticles
+          bodySectionArticles
+          bodySectionArticles
+
+bodySectionArticles :: MonadWidget t m => m ()
+bodySectionArticles = do
+          elClass "article" "post" $ do
+            el "h4" $ text "Bulma: How do you center a button in a box?"
+            elClass "div" "media" $ do
+              elClass "div" "media-left" $ do
+                elClass "p" "image is-32x32" $ do
+                  elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
+--            </div>
+              elClass "div" "media-content" $ do
+                elClass "div" "content" $ do
+                  el "p" $ do
+                    elAttr "a" ("href" =: "#") $ text "@jsmith"
+                    text " replied 34 minutes ago &nbsp;"
+                    elClass "span" "tag" $ text "Question"
+--                </p>
+--              </div>
+--            </div>
+              elClass "div" "media-right" $ do
+                elClass "span" "has-text-grey-light" $ do
+                  elClass "i" "fa fa-comments" blank
+                  text "1"
+--            </div>
+--          </div>
+--        </article>
+          elClass "article" "post" $ do
+            el "h4" $ text "This is second article?"
+            elClass "div" "media" $ do
+              elClass "div" "media-left" $ do
+                elClass "p" "image is-32x32" $ do
+                  elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
+--            </div>
+              elClass "div" "media-content" $ do
+                elClass "div" "content" $ do
+                  el "p" $ do
+                    elAttr "a" ("href" =: "#") $ text "@jsmith"
+                    text " replied 34 minutes ago &nbsp;"
+                    elClass "span" "tag" $ text "Question"
+--                </p>
+--              </div>
+--            </div>
+              elClass "div" "media-right" $ do
+                elClass "span" "has-text-grey-light" $ do
+                  elClass "i" "fa fa-comments" blank
+                  text "1"
+--            </div>
+--          </div>
+--        </article>
+        {-
   <article class="post">
   <h4>How can I make a bulma button go full width?</h4>
   <div class="media">
@@ -265,6 +302,9 @@ body' =
   </div>
   </div>
   </section>
+-}
+
+    {-
   <footer class="footer">
   <div class="container">
   <div class="content has-text-centered">
@@ -539,7 +579,8 @@ body :: (MonadHold t m, PostBuild t m, DomBuilder t m, MonadFix m, MonadIO m, Mo
 -}
 body :: MonadWidget t m => m ()
 body  = el "div" $ do
-  body'
+  bodyNav
+  bodySection
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
   dd <- dropdown "BER" (constDyn stations) def

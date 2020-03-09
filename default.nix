@@ -15,6 +15,7 @@ reflex-platform.project ({ pkgs, ... }:
     executableName = "frontend";
     applicationId = "org.example.frontend";
     displayName = "Example Android App";
+    assets = ./frontend/static;
   };
 
   ios.frontend = {
