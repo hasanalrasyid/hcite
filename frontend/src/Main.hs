@@ -280,9 +280,132 @@ bodyFooter = do
   </body>
 -}
 
+bodyModal :: MonadWidget t m => Modal -> m () -> m ()
+bodyModal ty b = do
+  elClass "div" "modal" $ do
+    elClass "div" "modal-background" blank
+    elClass "div" (mode ty) b
+  where
+    mode ModalSimple = "modal-content"
+    mode ModalCard   = "modal-card"
+
+pageLogin :: MonadWidget t m => m ()
+pageLogin = do
+  elClass "div" "hero is-success is-fullheight" $ do
+    elClass "div" "hero-body" $ do
+      elClass "div" "container has-text-centered" $ do
+        elClass "div" "column is-4 is-offset-4" $ do
+          elClass "h3" "title has-text-black" $ text "Login"
+          elClass "hr" "login-hr" blank
+          elClass "p" "subtitle has-text-black" $ text "Please login to proceed"
+          elClass "div" "box" $ do
+            elClass "figure" "avatar" $ do
+              elAttr "img" ("src" =: "https://placehold.it/128x128") blank
+            el "form" $ do
+              elClass "div" "field" $ do
+                elClass "div" "control" $ do
+                  elAttr "input" (Map.fromList [("class","input is-large"),("type","email"),("placeholder","Your Email"),("autofocus","")]) blank
+              elClass "div" "field" $ do
+                elClass "div" "control" $ do
+                  elAttr "input" (Map.fromList [("class","input is-large"),("type","password"),("placeholder","Your Password")]) blank
+              elClass "div" "field" $ do
+                elClass "div" "checkbox" $ do
+                  elAttr "input" ("type" =: "password") $ text "Remember me"
+              elClass "button" "button is-block is-info is-large is-fullwidth" $ do
+                text "Login"
+                elAttr "i" (Map.fromList [("class", "fa fa-sign-in"),("aria-hidden","true")]) $ text "::before"
+          elClass "p" "has-text-grey" $ do
+            el "a" $ text "Sign up"
+            el "a" $ text "Forgot Password"
+            el "a" $ text "Need Help?"
+
+
+pageDetail :: MonadWidget t m => m ()
+pageDetail = do
+    elClass "header" "modal-card-head" $ do
+      elClass "p" "modal-card-title" $ text "Modal title"
+      elAttr "button" (("class" =: "delete") <> ("aria-label" =: "close")) blank
+    elClass "section" "modal-card-body" $ do
+      elClass "div" "content" $ do
+        el "h1" $ text "Hello World"
+        el "p" $ text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla accumsan, metus ultrices eleifend gravida, nulla nunc varius lectus, nec rutrum justo nibh eu lectus. Ut vulputate semper dui. Fusce erat odio, sollicitudin vel erat vel, interdum mattis neque."
+        el "h2" $ text "Second level_/h2 $ do"
+        el "p" $ text "Curabitur accumsan turpis pharetra elClass <strong>augue tincidunt_/strong> blandit. Quisque condimentum maximus mi, sit amet commodo arcu rutrum id. Proin pretium urna vel cursus venenatis. Suspendisse potenti. Etiam mattis sem rhoncus lacus dapibus facilisis. Donec at dignissim dui. Ut et neque nisl._/p $ do"
+        el "ul" $ do
+          el "li" $ text "In fermentum leo eu lectus mollis, quis dictum mi aliquet._/li $ do"
+          el "li" $ text "Morbi eu nulla lobortis, lobortis est in, fringilla felis._/li $ do"
+          el "li" $ text "Aliquam nec felis in sapien venenatis viverra fermentum nec lectus._/li $ do"
+          el "li" $ text "Ut non enim metus._/li $ do"
+        el "h3" $ text " Third level_/h3 $ do"
+        el "p" $ text "Quisque ante lacus, malesuada ac auctor vitae, congue elClass "
+        el "ol" $ do
+          el "li" $ text ">Donec blandit a lorem id convallis._/li $ do"
+          el "li" $ text ">Cras gravida arcu at diam gravida gravida._/li $ do"
+          el "li" $ text ">Integer in volutpat libero._/li $ do"
+          el "li" $ text ">Donec a diam tellus._/li $ do"
+          el "li" $ text ">Aenean nec tortor orci._/li $ do"
+          el "li" $ text ">Quisque aliquam cursus urna, non bibendum massa viverra eget._/li $ do"
+          el "li" $ text ">Vivamus maximus ultricies pulvinar._/li $ do"
+        el "blockquote" $ text " Ut venenatis, nisl scelerisque sollicitudin fermentum, quam libero hendrerit ipsum, ut blandit est tellus sit amet turpis._/blockquote $ do"
+        el "p" $ text "Quisque at semper enim, eu hendrerit odio. Etiam auctor nisl et elClass"
+        el "p" $ text " Sed sagittis enim ac tortor maximus rutrum. Nulla facilisi. Donec mattis vulputate risus in luctus. Maecenas vestibulum interdum commodo._/p $ do"
+        el "p" $ text " Suspendisse egestas sapien non felis placerat elementum. Morbi tortor nisl, suscipit sed mi sit amet, mollis malesuada nulla. Nulla facilisi. Nullam ac erat ante._/p $ do"
+        el "h4"$ text ">Fourth level_/h4 $ do"
+        el "p" $ text ">Nulla efficitur eleifend nisi, sit amet bibendum sapien fringilla ac. Mauris euismod metus a tellus laoreet, at elementum ex efficitur._/p $ do"
+        el "p" $ text ">Maecenas eleifend sollicitudin dui, faucibus sollicitudin augue cursus non. Ut finibus eleifend arcu ut vehicula. Mauris eu est maximus est porta condimentum in eu justo. Nulla id iaculis sapien._/p $ do"
+        el "p" $ text ">Phasellus porttitor enim id metus volutpat ultricies. Ut nisi nunc, blandit sed dapibus at, vestibulum in felis. Etiam iaculis lorem ac nibh bibendum rhoncus. Nam interdum efficitur ligula sit amet ullamcorper. Etiam tristique, leo vitae porta faucibus, mi lacus laoreet metus, at cursus leo est vel tellus. Sed ac posuere est. Nunc ultricies nunc neque, vitae ultricies ex sodales quis. Aliquam eu nibh in libero accumsan pulvinar. Nullam nec nisl placerat, pretium metus vel, euismod ipsum. Proin tempor cursus nisl vel condimentum. Nam pharetra varius metus non pellentesque._/p $ do"
+        el "h5"$ text ">Fifth level_/h5 $ do"
+        el "p" $ text ">Aliquam sagittis rhoncus vulputate. Cras non luctus sem, sed tincidunt ligula. Vestibulum at nunc elit. Praesent aliquet ligula mi, in luctus elit volutpat porta. Phasellus molestie diam vel nisi sodales, a eleifend augue laoreet. Sed nec eleifend justo. Nam et sollicitudin odio._/p $ do"
+        el "h6"$ text ">Sixth level_/h6 $ do"
+        el "p" $ text ">Cras in nibh lacinia, venenatis nisi et, auctor urna. Donec pulvinar lacus sed diam dignissim, ut eleifend eros accumsan. Phasellus non tortor eros. Ut sed rutrum lacus. Etiam purus nunc, scelerisque quis enim vitae, malesuada ultrices turpis. Nunc vitae maximus purus, nec consectetur dui. Suspendisse euismod, elit vel rutrum commodo, ipsum tortor maximus dui, sed varius sapien odio vitae est. Etiam at cursus metus._/p $ do"
+    elClass "footer" "modal-card-foot" $ do
+      elClass "button" "button is-success" $ text "Save changes"
+      elClass "button" "button" $ text "Cancel"
+
+pageNotification :: MonadWidget t m => m ()
+pageNotification = do
+    elClass "div" "box" $ do
+      elClass "article" "media" $ do
+        elClass "div" "media-left" $ do
+          elClass "figure" "image is-64x64" $ do
+            elAttr "img" (("src" =: "https://bulma.io/images/placeholders/128x128.png") <> ("alt" =: "Image")) blank
+        elClass "div" "media-content" $ do
+          elClass "div" "content" $ do
+            el "p" $ do
+              text "John Smith"
+              el "br" blank
+              text "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean efficitur sit amet massa fringilla egestas. Nullam condimentum luctus turpis."
+          elClass "nav" "level is-mobile" $ do
+            elClass "div" "level-left" $ do
+              elAttr "a" (("class" =: "level-item") <> ("aria-label" =: "retweet")) $ do
+                  elClass "span" "icon is-small" blank {- $ do
+                    elAttr "svg" (Map.fromList [("class", "svg-inline--fa fa-retweet fa-w-20")
+                                               ,("aria-hidden" =: "true"),("data-prefix","fas"),("data-icon", "retweet"),("role","img")
+                                               ,("xmlns","http://www.w3.org/2000/svg"),( "viewBox","0 0 640 512"),("data-fa-i2svg","")
+                                               ]) $ do
+                      elAttr "path" (Map.fromList [("fill","currentColor")
+                                                  ,("d","M629.657 343.598L528.971 444.284c-9.373 9.372-24.568 9.372-33.941 0L394.343 343.598c-9.373-9.373-9.373-24.569 0-33.941l10.823-10.823c9.562-9.562 25.133-9.34 34.419.492L480 342.118V160H292.451a24.005 24.005 0 0 1-16.971-7.029l-16-16C244.361 121.851 255.069 96 276.451 96H520c13.255 0 24 10.745 24 24v222.118l40.416-42.792c9.285-9.831 24.856-10.054 34.419-.492l10.823 10.823c9.372 9.372 9.372 24.569-.001 33.941zm-265.138 15.431A23.999 23.999 0 0 0 347.548 352H160V169.881l40.416 42.792c9.286 9.831 24.856 10.054 34.419.491l10.822-10.822c9.373-9.373 9.373-24.569 0-33.941L144.971 67.716c-9.373-9.373-24.569-9.373-33.941 0L10.343 168.402c-9.373 9.373-9.373 24.569 0 33.941l10.822 10.822c9.562 9.562 25.133 9.34 34.419-.491L96 169.881V392c0 13.255 10.745 24 24 24h243.549c21.382 0 32.09-25.851 16.971-40.971l-16.001-16z")
+                                                  ,("style","--darkreader-inline-fill:currentColor;")
+                                                  ,("data-darkreader-inline-fill","")
+                                                  ]) blank
+                elAttr "a" (("class" =: "level-item") <> ("aria-label" =: "like")) $ do
+                  elClass "span" "icon is-small" $ do
+                    elAttr "svg" (Map.fromList [("class", "svg-inline--fa fa-heart fa-w-16")
+                                               ,("aria-hidden" =: "true"),("data-prefix","fas"),("data-icon", "heart"),("role","img")
+                                               ,("xmlns","http://www.w3.org/2000/svg"),( "viewBox","0 0 512 512"),("data-fa-i2svg","")
+                                               ]) $ do
+                      elAttr "path" (Map.fromList [("fill","currentColor")
+                                                  ,("d","M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z")
+                                                  ,("style","--darkreader-inline-fill:currentColor;")
+                                                  ,("data-darkreader-inline-fill","")
+                                                  ]) blank
+-}
+
+
+data Modal = ModalSimple | ModalCard deriving Show
+
 body :: MonadWidget t m => m ()
 body  = el "div" $ do
-
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
   dd <- dropdown "BER" (constDyn stations) def
@@ -293,6 +416,9 @@ body  = el "div" $ do
 --  dynToggleTopNav <- toggle False evToggleTopNav
   dynActiveNav <- bodyNav
   bodySection
+  bodyModal ModalSimple pageLogin
+  bodyModal ModalCard   pageDetail
+  bodyModal ModalSimple pageNotification
   bodyFooter
 
   let evCode = tagPromptlyDyn (value dd) $ leftmost [ () <$ _dropdown_change dd, evStart]
@@ -421,263 +547,3 @@ tShow :: Show a => Maybe a -> T.Text
 tShow Nothing = ""
 tShow (Just x) = (T.pack . show) x
 
-  {-
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Forum - Free Bulma template</title>
-<link rel="shortcut icon" href="../images/favicon.png" type="image/x-icon">
-<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-<link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700" rel="stylesheet">
-<!-- Bulma Version 0.8.x-->
-<link rel="stylesheet" href="https://unpkg.com/bulma@0.8.0/css/bulma.min.css" />
-<link rel="stylesheet" type="text/css" href="../css/forum.css">
-</head>
-
-
-<body>
-<nav class="navbar is-white topNav">
-<div class="container">
-<div class="navbar-brand">
-<a class="navbar-item" href="../">
-<img src="../images/bulma.png" width="112" height="28">
-</a>
-<div class="navbar-burger burger" data-target="topNav">
-<span></span>
-<span></span>
-<span></span>
-</div>
-</div>
-<div id="topNav" class="navbar-menu">
-<div class="navbar-start">
-<a class="navbar-item" href="cover.html">Home</a>
-<a class="navbar-item" href="landing.html">Landing</a>
-<a class="navbar-item" href="blog.html">Blog</a>
-<a class="navbar-item" href="instaAlbum.html">Album</a>
-<a class="navbar-item" href="kanban[search].html">Kanban</a>
-<a class="navbar-item" href="search.html">Search</a>
-<a class="navbar-item" href="tabs.html">Tabs</a>
-</div>
-<div class="navbar-end">
-<div class="navbar-item">
-<div class="field is-grouped">
-<p class="control">
-<a class="button is-small">
-<span class="icon">
-<i class="fa fa-user-plus"></i>
-</span>
-<span>
-Register
-</span>
-</a>
-</p>
-<p class="control">
-<a class="button is-small is-info is-outlined">
-<span class="icon">
-<i class="fa fa-user"></i>
-</span>
-<span>Login</span>
-</a>
-</p>
-</div>
-</div>
-</div>
-</div>
-</div>
-</nav>
-<nav class="navbar is-white">
-<div class="container">
-<div class="navbar-menu">
-<div class="navbar-start">
-<a class="navbar-item is-active" href="#">Popular</a>
-<a class="navbar-item" href="#">Recent</a>
-<a class="navbar-item" href="#">Rising</a>
-</div>
-<div class="navbar-end">
-<div class="navbar-item">
-<input class="input" type="search" placeholder="Search forum...">
-</div>
-</div>
-</div>
-</div>
-</nav>
-<section class="container">
-<div class="columns">
-<div class="column is-3">
-<a class="button is-primary is-block is-alt is-large" href="#">New Post</a>
-<aside class="menu">
-<p class="menu-label">
-Tags
-</p>
-<ul class="menu-list">
-<li><span class="tag is-primary is-medium ">Dashboard</span></li>
-<li><span class="tag is-link is-medium ">Customers</span></li>
-<li><span class="tag is-light is-danger is-medium ">Authentication</span></li>
-<li><span class="tag is-dark is-medium ">Payments</span></li>
-<li><span class="tag is-success is-medium ">Transfers</span></li>
-<li><span class="tag is-warning is-medium ">Balance</span></li>
-<li><span class="tag is-medium ">Question</span></li>
-</ul>
-</aside>
-</div>
-<div class="column is-9">
-<div class="box content">
-<article class="post">
-<h4>Bulma: How do you center a button in a box?</h4>
-<div class="media">
-<div class="media-left">
-<p class="image is-32x32">
-<img src="http://bulma.io/images/placeholders/128x128.png">
-</p>
-</div>
-<div class="media-content">
-<div class="content">
-<p>
-<a href="#">@jsmith</a> replied 34 minutes ago &nbsp;
-<span class="tag">Question</span>
-</p>
-</div>
-</div>
-<div class="media-right">
-<span class="has-text-grey-light"><i class="fa fa-comments"></i> 1</span>
-</div>
-</div>
-</article>
-<article class="post">
-<h4>How can I make a bulma button go full width?</h4>
-<div class="media">
-<div class="media-left">
-<p class="image is-32x32">
-<img src="http://bulma.io/images/placeholders/128x128.png">
-</p>
-</div>
-<div class="media-content">
-<div class="content">
-<p>
-<a href="#">@red</a> replied 40 minutes ago &nbsp;
-<span class="tag">Question</span>
-</p>
-</div>
-</div>
-<div class="media-right">
-<span class="has-text-grey-light"><i class="fa fa-comments"></i> 0</span>
-</div>
-</div>
-</article>
-<article class="post">
-<h4>TypeError: Data must be a string or a buffer when trying touse vue-bulma-tabs</h4>
-<div class="media">
-<div class="media-left">
-<p class="image is-32x32">
-<img src="http://bulma.io/images/placeholders/128x128.png">
-</p>
-</div>
-<div class="media-content">
-<div class="content">
-<p>
-<a href="#">@jsmith</a> replied 53 minutes ago &nbsp;
-<span class="tag">Question</span>
-</p>
-</div>
-</div>
-<div class="media-right">
-<span class="has-text-grey-light"><i class="fa fa-comments"></i> 13</span>
-</div>
-</div>
-</article>
-<article class="post">
-<h4>How to vertically center elements in Bulma?</h4>
-<div class="media">
-<div class="media-left">
-<p class="image is-32x32">
-<img src="http://bulma.io/images/placeholders/128x128.png">
-</p>
-</div>
-<div class="media-content">
-<div class="content">
-<p>
-<a href="#">@brown</a> replied 3 hours ago &nbsp;
-<span class="tag">Question</span>
-</p>
-</div>
-</div>
-<div class="media-right">
-<span class="has-text-grey-light"><i class="fa fa-comments"></i> 2</span>
-</div>
-</div>
-</article>
-<article class="post">
-<h4>I'm trying to use hamburger menu on bulma css, but it doesn't work. What is wrong?</h4>
-<div class="media">
-<div class="media-left">
-<p class="image is-32x32">
-<img src="http://bulma.io/images/placeholders/128x128.png">
-</p>
-</div>
-<div class="media-content">
-<div class="content">
-<p>
-<a href="#">@hamburgler</a> replied 5 hours ago &nbsp;
-<span class="tag">Question</span>
-</p>
-</div>
-</div>
-<div class="media-right">
-<span class="has-text-grey-light"><i class="fa fa-comments"></i> 2</span>
-</div>
-</div>
-</article>
-<article class="post">
-<h4>How to make tiles wrap with Bulma CSS?</h4>
-<div class="media">
-<div class="media-left">
-<p class="image is-32x32">
-<img src="http://bulma.io/images/placeholders/128x128.png">
-</p>
-</div>
-<div class="media-content">
-<div class="content">
-<p>
-<a href="#">@rapper</a> replied 3 hours ago &nbsp;
-<span class="tag">Question</span>
-</p>
-</div>
-</div>
-<div class="media-right">
-<span class="has-text-grey-light"><i class="fa fa-comments"></i> 2</span>
-</div>
-</div>
-</article>
-</div>
-</div>
-</div>
-</section>
-<footer class="footer">
-<div class="container">
-<div class="content has-text-centered">
-<div class="columns is-mobile is-centered">
-<div class="field is-grouped is-grouped-multiline">
-<div class="control">
-<div class="tags has-addons">
-<a class="tag is-link" href="https://github.com/BulmaTemplates/bulma-templates">Bulma Templates</a>
-<span class="tag is-light">Daniel Supernault</span>
-</div>
-</div>
-<div class="control">
-<div class="tags has-addons">
-<a class="tag is-link">The source code is licensed</a>
-<span class="tag is-light">MIT &nbsp;<i class="fa fa-github"></i></span>
-</div>
-</div>
-</div>
-</div>
-</div>
-</div>
-</footer>
-<script async type="text/javascript" src="../js/bulma.js"></script>
-</body>
-</html>
--}
