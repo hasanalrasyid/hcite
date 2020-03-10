@@ -1,0 +1,1 @@
+GIO_MODULE_DIR=/nix/store/iapl4ykz0clq4i8js0halvpfdkkx72c6-glib-networking-2.60.3/lib/gio/modules/ ./native-frontend-result/bin/frontend

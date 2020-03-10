@@ -24,6 +24,7 @@ executable frontend
     FlexibleContexts
     GADTs
     TypeApplications
+    RecursiveDo
   build-depends:       base >=4.9 && <4.13
                      , common
                      , reflex-dom
