@@ -5,19 +5,18 @@
 import           Reflex.Dom
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromMaybe,fromJust)
+import           Data.Maybe (fromJust)
 import           Data.Monoid ((<>))
-import           Data.FileEmbed
+--import           Data.FileEmbed
 
-import Data.Witherable
+--import Data.Witherable
 
 import Common
 
-import Control.Monad.Fix
-import Reflex.Dom.Xhr
+--import Reflex.Dom.Xhr
 
-import Language.Javascript.JSaddle.Types
-import Control.Monad.IO.Class
+--import Language.Javascript.JSaddle.Types
+--import Control.Monad.IO.Class
 
 main :: IO ()
 main = mainWidgetWithHead headElement body
@@ -35,10 +34,10 @@ headElement = do
   stylesheet "inc/css/bulma.min.css"
   stylesheet "inc/css/forum.css"
   where
-    stylesheet link = elAttr "link" (Map.fromList [
+    stylesheet l = elAttr "link" (Map.fromList [
           ("rel", "stylesheet")
         , ("type", "text/css")
-        , ("href", link)
+        , ("href", l)
       ]) $ return ()
 
   {-
@@ -50,15 +49,22 @@ main1 = mainWidgetWithCss css body
 data Page = PageData | PageError
    deriving Eq
 
-toButtonDiv t = do
-  (e, _) <- el' "div" t
-  return $ domEvent Click e
+data Nav = NavHome
+         | NavLanding
+         | NavBlog
+         | NavAlbum
+         | NavKanban
+         | NavSearch
+         | NavTabs
+         deriving (Enum, Show) -- remember, Enum start from 0
 
+--genDynAttrs :: MonadWidget t m => Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
+genDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
 genDynAttrs initAttrs b =
   Map.adjust (<> isActive b)  "class" initAttrs
     where isActive True = " is-active"
           isActive _    = ""
-
+            {-
 divToggleTopNav :: MonadWidget t m => m (Event t ())
 divToggleTopNav = do
   evC <-  toButtonDiv $ do
@@ -67,18 +73,22 @@ divToggleTopNav = do
               el "span" blank
   return evC
 
+toButtonDiv t = do
+  (e, _) <- el' "div" t
+  return $ domEvent Click e
+-}
+
+toButton :: MonadWidget t m => T.Text -> Dynamic t (Map.Map T.Text T.Text) -> m a -> m (Event t ())
 toButton d a t = do
   (e,_) <- elDynAttr' d a t
   return $ domEvent Click e
 
-bodyNav :: MonadWidget t m => m ()
-bodyNav = do
+bodyNav :: MonadWidget t m => m (Dynamic t Nav)
+bodyNav =
   elClass "nav" "navbar is-white topNav" $ do
     elClass "div" "container" $ do
      rec
       dynToggleTopNav <- toggle False evToggleTopNav
---    evToggleTopNav <- divToggleTopNav
-
       evToggleTopNav <- elClass "div" "navbar-brand" $ do
         elClass "a" "navbar-item" $ -- href="../">
           el "h1" $ text "HCITE"
@@ -90,16 +100,32 @@ bodyNav = do
 --        </div>
 --      </div>
 --    </div>
-      elDynAttr "div" (genDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
-        elClass "div" "navbar-start" $ do
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "cover.html"          )) $ text "Home"
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "landing.html"        )) $ text "Landing"
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "blog.html"           )) $ text "Blog"
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "instaAlbum.html"     )) $ text "Album"
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "kanban[search].html" )) $ text "Kanban"
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "search.html"         )) $ text "Search"
-          elAttr "a" ( ("class" =: "navbar-item") <> ( "href" =: "tabs.html"           )) $ text "Tabs"
+      evNav <- elDynAttr "div" (genDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
+        evNav1 <- elClass "div" "navbar-start" $ do
+          evNavR0 <- mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t)
+            [ "Home"
+            , "Landing"
+            , "Blog"
+            , "Album"
+            , "Kanban"
+            , "Search"
+            , "Tabs"
+            ]
+          holdDyn NavHome $ fmap toEnum $ leftmost $ zipWith (<$) [0..] evNavR0
+
+
+
+
+          {-
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "cover.html"          ) -} ) $ text "Home"
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "landing.html"        ) -} ) $ text "Landing"
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "blog.html"           ) -} ) $ text "Blog"
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "instaAlbum.html"     ) -} ) $ text "Album"
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "kanban[search].html" ) -} ) $ text "Kanban"
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "search.html"         ) -} ) $ text "Search"
+          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "tabs.html"           ) -} ) $ text "Tabs"
 --      </div>
+--      -}
 
         elClass "div" "navbar-end" $ do
           elClass "div" "navbar-item" $ do
@@ -119,10 +145,11 @@ bodyNav = do
 --          </div>
 --        </div>
 --      </div>
+        return evNav1
 --    </div>
-     blank
 --  </div>
 -- /nav>
+     return evNav
 
   {- not needed
   <nav class="navbar is-white">
@@ -264,7 +291,7 @@ body  = el "div" $ do
   evStart <- getPostBuild
 
 --  dynToggleTopNav <- toggle False evToggleTopNav
-  bodyNav
+  dynActiveNav <- bodyNav
   bodySection
   bodyFooter
 
@@ -291,27 +318,30 @@ pageData' evSmnRec' dynPage = do
 
 -- | Display the meteo data in a tabbed display
 pageData :: (PostBuild t m, DomBuilder t m) => Event t XhrResponse -> Dynamic t Page -> m ()
-pageData evOk dynPage = do
-  evSmnRec :: (Event t SmnRecord) <- return $  fmapMaybe decodeXhrResponse evOk
-  let evSmnStat = fmapMaybe smnStation evSmnRec
+--pageData evOk dynPage = do
+pageData _ dynPage = do
+--  evSmnRec :: (Event t SmnRecord) <- return $  fmapMaybe decodeXhrResponse evOk
+--  let evSmnStat = fmapMaybe smnStation evSmnRec
   let dynAttr = visible <$> dynPage <*> pure PageData
   elDynAttr "div" dynAttr $ text "PageData"
 --    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
 -- | Display the error page
---pageErr :: MonadWidget t m => Event t XhrResponse -> Dynamic t Page -> m ()
+pageErr :: MonadWidget t m => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
 pageErr evErr dynPage = do
   let dynAttr = visible <$> dynPage <*> pure PageError
   elDynAttr "div" dynAttr $ do
      el "h3" $ text "Error"
      dynText =<< holdDyn "" ( const "PageError" <$> evErr)
 
+  {-
 -- | Split up good and bad response events
 checkXhrRsp :: (Filterable f, FunctorMaybe f) => f XhrResponse -> (f XhrResponse, f XhrResponse)
 checkXhrRsp evRsp = (evOk, evErr)
   where
     evOk = ffilter (\rsp -> _xhrResponse_status rsp == 200) evRsp
     evErr = ffilter (\rsp -> _xhrResponse_status rsp /= 200) evRsp
+-}
 
 -- | Helper function to create a dynamic attribute map for the visibility of an element
 visible :: Eq p => p -> p -> Map.Map T.Text T.Text
@@ -333,13 +363,17 @@ buildReq code = urlDataStat code
 stations :: Map.Map T.Text T.Text
 stations = Map.fromList [("BIN", "Binn"), ("BER", "Bern"), ("KLO", "Zurich airport"), ("ZER", "Zermatt"), ("JUN", "Jungfraujoch")]
 
+  {-
 -- | Create a tabbed display
 --tabMap :: MonadWidget t m => Event t SmnRecord -> Event t SmnStation -> Map.Map Int (T.Text, m ())
 tabMap evMeteo evStat = Map.fromList[ (1, ("Station", tabStat evStat)),
             (2, ("MeteoData", tabMeteo evMeteo))]
 
+-}
 -- | Create the DOM elements for the Station tab
 --tabStat :: MonadWidget t m => Event t SmnStation -> m ()
+tabStat :: (DomBuilder t m, PostBuild t m, MonadHold t m) =>
+           Event t SmnStation -> m ()
 tabStat evStat = do
   dispStatField "Code" staCode evStat
   dispStatField "Name" staName evStat
@@ -350,6 +384,8 @@ tabStat evStat = do
 
 -- | Create the DOM elements for the Meteo data tab
 --tabMeteo :: MonadWidget t m => Event t SmnRecord -> m ()
+tabMeteo :: (DomBuilder t m, PostBuild t m, MonadHold t m) =>
+            Event t SmnRecord -> m ()
 tabMeteo evMeteo = do
   dispMeteoField "Date/Time" (tShow . smnDateTime) evMeteo
   dispMeteoField "Temperature" smnTemperature evMeteo
@@ -361,6 +397,8 @@ tabMeteo evMeteo = do
 
 -- | Display a single field from the SmnStation record
 --dispStatField :: MonadWidget t m => T.Text -> (SmnStation -> T.Text) -> Event t SmnStation -> m ()
+dispStatField :: (DomBuilder t m, PostBuild t m, MonadHold t m) =>
+                 T.Text -> (a -> T.Text) -> Event t a -> m ()
 dispStatField label rend evStat = do
   el "br" blank
   text $ label <> ": "
@@ -369,6 +407,8 @@ dispStatField label rend evStat = do
 
 -- | Display a single field from the SmnRecord record
 --dispMeteoField :: MonadWidget t m => T.Text -> (SmnRecord -> T.Text) -> Event t SmnRecord -> m ()
+dispMeteoField :: (DomBuilder t m, PostBuild t m, MonadHold t m) =>
+                  T.Text -> (a -> T.Text) -> Event t a -> m ()
 dispMeteoField label rend evRec = do
 --  el "br"blank
   text $ label <> ": "
