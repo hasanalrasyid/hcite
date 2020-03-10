@@ -50,7 +50,7 @@ main1 = mainWidgetWithCss css body
 data Page = PageData | PageError
    deriving Eq
 
-divButton t = do
+toButtonDiv t = do
   (e, _) <- el' "div" t
   return $ domEvent Click e
 
@@ -61,32 +61,32 @@ genDynAttrs initAttrs b =
 
 divToggleTopNav :: MonadWidget t m => m (Event t ())
 divToggleTopNav = do
-  evC <-  divButton $ do
+  evC <-  toButtonDiv $ do
               el "span" blank
               el "span" blank
               el "span" blank
   return evC
+
+toButton d a t = do
+  (e,_) <- elDynAttr' d a t
+  return $ domEvent Click e
 
 bodyNav :: MonadWidget t m => m ()
 bodyNav = do
   elClass "nav" "navbar is-white topNav" $ do
     elClass "div" "container" $ do
      rec
-      dynToggleTopNav <- toggle True evToggleTopNav
+      dynToggleTopNav <- toggle False evToggleTopNav
 --    evToggleTopNav <- divToggleTopNav
 
       evToggleTopNav <- elClass "div" "navbar-brand" $ do
         elClass "a" "navbar-item" $ -- href="../">
           el "h1" $ text "HCITE"
           -- elAttr "img" (("src" =: "inc/img/bulma.png") <> ("width" =: "112") <> ("height"=:"28")) blank
---      elAttr "div" (("class" =: "navbar-burger burger") <> ("data-target" =: "topNav")) $ do
-        elDynAttr "div" (genDynAttrs (("class" =: "navbar-burger burger") <> ("data-target" =: "topNav")) <$> dynToggleTopNav) divToggleTopNav -- $ do
-          {-
-          return $ divButton $ do
+        toButton "div" (genDynAttrs (("class" =: "navbar-burger burger") <> ("data-target" =: "topNav")) <$> dynToggleTopNav) $ do
               el "span" blank
               el "span" blank
               el "span" blank
-              -}
 --        </div>
 --      </div>
 --    </div>
