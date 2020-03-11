@@ -1,0 +1,10 @@
+Workflow:
+
+Menu ->
+  ModalicLogin
+  ModalicUnimplemented
+  Home
+    ToggleAbstract
+    ModalicDetailed
+      Submit
+      Cancel

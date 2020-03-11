@@ -1,0 +1,25 @@
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
+module Routing where
+
+import           Data.Proxy
+import           Servant.API
+import           Servant.Utils.Links
+
+import           Action
+import           Model
+
+
+--type TopRoute = View Action
+
+type JsonApi =
+         "api" :> "record" :> Get '[JSON] [Reference]
+    :<|> "api" :> "record" :> Capture "ident" Int :> Get '[JSON] [Reference]
+    :<|> "api" :> "record" :> Capture "ident" Int
+            :> ReqBody '[JSON] Reference :> Put '[JSON] NoContent
+
+  {-
+listLink :: URI
+listLink = linkURI $ safeLink (Proxy :: Proxy Route) (Proxy :: Proxy TopRoute)
+-}
+

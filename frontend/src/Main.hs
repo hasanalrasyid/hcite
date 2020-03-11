@@ -70,9 +70,9 @@ navMenu =   [ "Home"
             ]
 
 
---genDynAttrs :: MonadWidget t m => Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
-genDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
-genDynAttrs initAttrs b =
+--activateDynAttrs :: MonadWidget t m => Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
+activateDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
+activateDynAttrs initAttrs b =
   Map.adjust (<> isActive b)  "class" initAttrs
     where isActive True = " is-active"
           isActive _    = ""
@@ -104,14 +104,14 @@ bodyNav =
         elClass "a" "navbar-item" $ -- href="../">
           el "h1" $ text "HCITE"
           -- elAttr "img" (("src" =: "inc/img/bulma.png") <> ("width" =: "112") <> ("height"=:"28")) blank
-        toButton "div" (genDynAttrs (("class" =: "navbar-burger burger") <> ("data-target" =: "topNav")) <$> dynToggleTopNav) $ do
+        toButton "div" (activateDynAttrs (("class" =: "navbar-burger burger") <> ("data-target" =: "topNav")) <$> dynToggleTopNav) $ do
               el "span" blank
               el "span" blank
               el "span" blank
 --        </div>
 --      </div>
 --    </div>
-      elDynAttr "div" (genDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
+      elDynAttr "div" (activateDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
         evNav1 <- elClass "div" "navbar-start" $ do
           evNavR0 <- mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t) navMenu
           holdDyn NavHome $ fmap toEnum $ leftmost $ zipWith (<$) [0..] evNavR0
@@ -262,7 +262,7 @@ bodyFooter = do
 
 bodyModal :: MonadWidget t m => Dynamic t Bool -> Modal -> m () -> m ()
 bodyModal dynToggleModal ty b = do
-  elDynAttr "div" (genDynAttrs ("class" =: "modal") <$> dynToggleModal) $ do
+  elDynAttr "div" (activateDynAttrs ("class" =: "modal") <$> dynToggleModal) $ do
     elClass "div" "modal-background" blank
     elClass "div" (mode ty) b
   where
@@ -385,7 +385,7 @@ pageNotification = do
 data Modal = ModalSimple | ModalCard deriving Show
 
 body :: MonadWidget t m => m ()
-body  = do
+body  = mdo
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
   dd <- dropdown "BER" (constDyn stations) def
@@ -393,13 +393,18 @@ body  = do
   -- Build and send the request
   evStart <- getPostBuild
 
-  dynActiveNav <- bodyNav
+  dynSelectedNav <- bodyNav
+
   bodySection
+
+
+
+
 --  bodyModal ModalSimple pageLogin
 --  bodyModal ModalCard   pageDetail
-  display dynActiveNav
-  let evNotification = never
-  dynToggleModal <- toggle False evNotification
+  display dynSelectedNav
+  let evModal = never
+  dynToggleModal <- toggle False evModal
   bodyModal dynToggleModal ModalSimple pageNotification
   bodyFooter
 
