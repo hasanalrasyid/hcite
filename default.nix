@@ -9,6 +9,7 @@ reflex-platform.project ({ pkgs, ... }:
     common = ./common;
     backend = ./backend;
     frontend = ./frontend;
+    otherlibs = ./otherlibs;
   };
 
   android.frontend = {
@@ -25,7 +26,7 @@ reflex-platform.project ({ pkgs, ... }:
   };
 
   shells = {
-    ghc = ["common" "backend" "frontend"];
-    ghcjs = ["common" "frontend"];
+    ghc = ["otherlibs" "common" "backend" "frontend"];
+    ghcjs = ["otherlibs" "common" "frontend"];
   };
 })

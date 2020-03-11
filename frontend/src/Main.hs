@@ -12,11 +12,15 @@ import           Data.Monoid ((<>))
 --import Data.Witherable
 
 import Common
+import Routing
+import Model
 
 --import Reflex.Dom.Xhr
 
 --import Language.Javascript.JSaddle.Types
 --import Control.Monad.IO.Class
+
+import Servant.Links
 
 main :: IO ()
 main = mainWidgetWithHead headElement body
@@ -388,13 +392,16 @@ body :: MonadWidget t m => m ()
 body  = mdo
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
-  dd <- dropdown "BER" (constDyn stations) def
+  (dd :: Dropdown t T.Text) <- dropdown "BER" (constDyn stations) def
   el "p" blank
   -- Build and send the request
   evStart <- getPostBuild
 
   dynSelectedNav <- bodyNav
 
+  (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://127.0.0.1:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
+  dynRefList <- holdDyn Nothing evRefList
+  display dynRefList
   bodySection
 
 

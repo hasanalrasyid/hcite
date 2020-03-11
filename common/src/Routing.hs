@@ -18,6 +18,8 @@ type JsonApi =
     :<|> "api" :> "record" :> Capture "ident" Int
             :> ReqBody '[JSON] Reference :> Put '[JSON] NoContent
 
+(jsonApiGetList :<|> jsonApiGetSingle :<|> jsonApiPutSingle) = allLinks (Proxy :: Proxy JsonApi)
+
   {-
 listLink :: URI
 listLink = linkURI $ safeLink (Proxy :: Proxy Route) (Proxy :: Proxy TopRoute)

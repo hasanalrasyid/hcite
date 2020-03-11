@@ -43,6 +43,8 @@ import Network.HTTP.Types
 
 import Database.Persist
 
+import Network.Wai.Middleware.Cors
+
 -- | Enter infinite loop of processing requests for pdf-master-server.
 --
 -- Starts new Warp server with initialised threads for serving the master server.
@@ -53,7 +55,7 @@ runExampleServer config = liftIO $ do
 
 -- | WAI application of server
 exampleServerApp :: ServerEnv -> Application
-exampleServerApp e = serve api myImpl
+exampleServerApp e = simpleCors $ serve api myImpl
   where
     myImpl = authImpl e :<|> exampleImpl e
                         :<|> jsonImpl e
