@@ -1,0 +1,9 @@
+host: localhost
+port: 3000
+db-host: localhost
+db-port: 5432
+db-user: postgres
+db-pass: ""
+db-base: auth-test
+db-size: 10
+init-db: false

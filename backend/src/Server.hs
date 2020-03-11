@@ -33,11 +33,11 @@ import qualified Data.Map as Map
 import Action
 import Model
 import Routing
-import View
-import Record.List
-import Record.Edit
+--import View
+--import Record.List
+--import Record.Edit
 
-import Html
+--import Html
 
 import Network.HTTP.Types
 

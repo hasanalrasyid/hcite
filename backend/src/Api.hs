@@ -6,7 +6,6 @@ module Api where
 import           Servant
 
 import           Action
-import           Html
 import           Model
 import           Routing
 

@@ -17,24 +17,78 @@ cabal-version:       >=1.10
 executable backend
   main-is:             Main.hs
   ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
-  -- other-modules:
+  other-modules:
+    Api
+    Auth.Monad
+    Config
+    Monad
+    Server
+
+    Servant.API.Auth.Token
+    Servant.API.Auth.Token.Internal.DeriveJson
+    Servant.API.Auth.Token.Internal.Schema
+    Servant.API.Auth.Token.Pagination
+
+    Servant.Server.Auth.Token.Persistent
+    Servant.Server.Auth.Token.Persistent.Schema
+
+    Servant.Server.Auth.Token
+    Servant.Server.Auth.Token.Combinator
+    Servant.Server.Auth.Token.Common
+    Servant.Server.Auth.Token.Config
+    Servant.Server.Auth.Token.Error
+    Servant.Server.Auth.Token.Model
+    Servant.Server.Auth.Token.Monad
+    Servant.Server.Auth.Token.Pagination
+    Servant.Server.Auth.Token.Patch
+    Servant.Server.Auth.Token.Restore
+    Servant.Server.Auth.Token.SingleUse
+
   -- other-extensions:
+  cpp-options: -DFLAT_SYMBOLS
+  default-extensions:
+    CPP
+    TemplateHaskell
+    RecordWildCards
+    OverloadedStrings
+    DataKinds
+    TypeSynonymInstances
+    FlexibleInstances
+    DeriveGeneric
+
+    GeneralizedNewtypeDeriving
+    KindSignatures
+    RankNTypes
+    ScopedTypeVariables
+    TypeFamilies
+    TypeOperators
+
+    QuasiQuotes
+
+    BangPatterns
+    UndecidableInstances
+    TupleSections
+    MultiParamTypeClasses
+    FlexibleContexts
+    GADTs
+    FunctionalDependencies
+    ConstraintKinds
+
   build-depends:       base
                      , common
                      , aeson
                      , aeson-injector
                      --, bibtex
                      --, bytestring
-                     --, containers
                      --, ekg-core
-                     --, exceptions
+                     , exceptions
                      --, fast-logger
                      --, http-types
                      --, katip
                      --, lucid
                      --, microlens
                      ---- , miso
-                     --, monad-control
+                     , monad-control
                      , monad-logger
                      --, monad-metrics
                      , mtl
@@ -49,7 +103,7 @@ executable backend
                      --, safe
                      , servant
                      --, servant-auth-token
-                     --, servant-auth-token-api
+                     --, servant-auth-token-api >= 0.5.4.0
                      --, servant-auth-token-persistent
                      --, servant-js
                      , servant-server
@@ -57,9 +111,9 @@ executable backend
                      --, stm
                      --, taggy
                      , text
-                     --, time
+                     , time
                      --, transformers
-                     --, transformers-base
+                     , transformers-base
                      --, unordered-containers
                      --, utf8-string
                      --, wai
@@ -67,6 +121,27 @@ executable backend
                      --, wai-logger
                      --, warp
                      , yaml
+
+                     , swagger2
+                     , servant-docs
+                     , servant-swagger
+                     , raw-strings-qq
+                     , lens
+
+                     , bytestring
+                     , transformers
+                     , uuid
+                     , wai
+                     , http-api-data
+                     , containers
+                     , pwstore-fast
+                     , byteable
+                     , unliftio-core
+
+                     , http-types
+                     , wai-extra
+                     , warp
+                     , optparse-applicative
 
   hs-source-dirs:
     app
