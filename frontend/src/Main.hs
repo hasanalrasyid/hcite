@@ -5,7 +5,7 @@
 import           Reflex.Dom
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromJust)
+import           Data.Maybe (fromJust,fromMaybe)
 import           Data.Monoid ((<>))
 --import           Data.FileEmbed
 
@@ -154,12 +154,12 @@ bodyNav =
   </nav>
   -}
 
-bodySection :: MonadWidget t m => m ()
-bodySection = do
+bodySection :: MonadWidget t m => Dynamic t (Maybe [Reference]) -> m ()
+bodySection dynRefList = do
   elClass "section" "container" $ do
     elClass "div" "columns" $ do
+      {-
       elClass "div" "column is-3" $ blank -- do
-        {-
         elAttr "a" (("class" =: "button is-primary is-block is-alt is-large") <> ("href" =: "#")) $ text "New Post"
         elClass "aside" "menu" $ do
           elClass "p" "menu-label" $ text "Tags"
@@ -175,14 +175,41 @@ bodySection = do
 --    </div>
       elClass "div" "column is-9" $ do
         elClass "div" "box content" $ do
-          bodySectionArticles
-          bodySectionArticles
-          bodySectionArticles
-          bodySectionArticles
-          bodySectionArticles
-          bodySectionArticles
-          bodySectionArticles
+          retDyn <- flip simpleList dynViewArticle $ fromMaybe [] <$> dynRefList
+          blank
 
+dynViewArticle :: MonadWidget t m => Dynamic t Reference -> m ()
+dynViewArticle dynRef = do
+          elClass "article" "post" $ do
+            el "h4" $ dynText $ T.pack . referenceTitle <$> dynRef
+            elClass "div" "media" $ do
+              elClass "div" "media-left" $ do
+                elClass "p" "image is-32x32" $ do
+                  elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
+--            </div>
+              elClass "div" "media-content" $ do
+                elClass "div" "content" $ do
+                  el "p" $ do
+                    dynText $ T.pack . referenceAuthor <$> dynRef
+                    text " "
+                    dynText $ T.pack . fromMaybe "" . referencePublication <$> dynRef
+                    text " "
+                    dynText $ T.pack . show . fromMaybe 9999 . referenceYear <$> dynRef
+                    text " "
+                    -- "(Vol. Volume 170, pp. 926\8211\&933). Elsevier."
+
+--                </p>
+--              </div>
+--            </div>
+              elClass "div" "media-right" $ do
+                elClass "span" "has-text-grey-light" $ do
+                  elClass "i" "fa fa-link" blank
+                  --text "1"
+--            </div>
+--          </div>
+--        </article>
+
+  {-
 bodySectionArticles :: MonadWidget t m => m ()
 bodySectionArticles = do
           elClass "article" "post" $ do
@@ -231,6 +258,7 @@ bodySectionArticles = do
 --            </div>
 --          </div>
 --        </article>
+-}
 
 bodyFooter :: MonadWidget t m => m ()
 bodyFooter = do
@@ -399,10 +427,10 @@ body  = mdo
 
   dynSelectedNav <- bodyNav
 
-  (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://127.0.0.1:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
+  (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
   dynRefList <- holdDyn Nothing evRefList
-  display dynRefList
-  bodySection
+--  display dynRefList
+  bodySection dynRefList
 
 
 
