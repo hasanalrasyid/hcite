@@ -166,7 +166,7 @@ bodySection dynRefList = do
             el "li" $ elClass "span" "tag is-medium "                    $ text "Question"
             -}
 --    </div>
-      elClass "div" "column is-9" $ do
+      elClass "div" "column" $ do -- "column is-9"
         elClass "div" "box content" $ do
           retDyn <- flip simpleList dynViewArticle $ fromMaybe [] <$> dynRefList
           blank
