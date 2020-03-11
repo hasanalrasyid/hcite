@@ -74,25 +74,18 @@ navMenu =   [ "Home"
             ]
 
 
+hiddenDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
+hiddenDynAttrs initAttrs b =
+  Map.adjust (<> isActive b)  "class" initAttrs
+    where isActive True = " is-hidden"
+          isActive _    = ""
+
 --activateDynAttrs :: MonadWidget t m => Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
 activateDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
 activateDynAttrs initAttrs b =
   Map.adjust (<> isActive b)  "class" initAttrs
     where isActive True = " is-active"
           isActive _    = ""
-            {-
-divToggleTopNav :: MonadWidget t m => m (Event t ())
-divToggleTopNav = do
-  evC <-  toButtonDiv $ do
-              el "span" blank
-              el "span" blank
-              el "span" blank
-  return evC
-
-toButtonDiv t = do
-  (e, _) <- el' "div" t
-  return $ domEvent Click e
--}
 
 toButton :: MonadWidget t m => T.Text -> Dynamic t (Map.Map T.Text T.Text) -> m a -> m (Event t ())
 toButton d a t = do
@@ -183,7 +176,7 @@ dynViewArticle dynRef = do
           elClass "article" "post" $ do
             el "h4" $ dynText $ T.pack . referenceTitle <$> dynRef
             elClass "div" "media" $ do
-              elClass "div" "media-left" $ do
+              (evToggleAbstract :: Event t ()) <- toButton "div" (constDyn $ "class" =: "media-left") $ do
                 elClass "p" "image is-32x32" $ do
                   elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
 --            </div>
@@ -197,6 +190,11 @@ dynViewArticle dynRef = do
                     dynText $ T.pack . show . fromMaybe 9999 . referenceYear <$> dynRef
                     text " "
                     -- "(Vol. Volume 170, pp. 926\8211\&933). Elsevier."
+                  dynToggleAbstract <- toggle True evToggleAbstract
+                  elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dynToggleAbstract) $ do
+                    elClass "hr" "login-hr" blank
+                    el "p" $ do
+                      dynText $ T.pack . fromMaybe "" . referenceAbstract <$> dynRef
 
 --                </p>
 --              </div>
