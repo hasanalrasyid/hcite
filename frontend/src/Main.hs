@@ -33,6 +33,7 @@ headElement = do
   stylesheet "inc/css/OpenSans.css"
   stylesheet "inc/css/bulma.min.css"
   stylesheet "inc/css/forum.css"
+--  stylesheet "inc/css/bulma-docs.min.css"
   where
     stylesheet l = elAttr "link" (Map.fromList [
           ("rel", "stylesheet")
@@ -57,6 +58,17 @@ data Nav = NavHome
          | NavSearch
          | NavTabs
          deriving (Enum, Show) -- remember, Enum start from 0
+
+navMenu :: [T.Text]
+navMenu =   [ "Home"
+            , "Landing"
+            , "Blog"
+            , "Album"
+            , "Kanban"
+            , "Search"
+            , "Tabs"
+            ]
+
 
 --genDynAttrs :: MonadWidget t m => Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
 genDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
@@ -85,9 +97,8 @@ toButton d a t = do
 
 bodyNav :: MonadWidget t m => m (Dynamic t Nav)
 bodyNav =
-  elClass "nav" "navbar is-white topNav" $ do
-    elClass "div" "container" $ do
-     rec
+  elClass "nav" "navbar topNav" $ do
+    elClass "div" "container" $ mdo
       dynToggleTopNav <- toggle False evToggleTopNav
       evToggleTopNav <- elClass "div" "navbar-brand" $ do
         elClass "a" "navbar-item" $ -- href="../">
@@ -100,32 +111,10 @@ bodyNav =
 --        </div>
 --      </div>
 --    </div>
-      evNav <- elDynAttr "div" (genDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
+      elDynAttr "div" (genDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
         evNav1 <- elClass "div" "navbar-start" $ do
-          evNavR0 <- mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t)
-            [ "Home"
-            , "Landing"
-            , "Blog"
-            , "Album"
-            , "Kanban"
-            , "Search"
-            , "Tabs"
-            ]
+          evNavR0 <- mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t) navMenu
           holdDyn NavHome $ fmap toEnum $ leftmost $ zipWith (<$) [0..] evNavR0
-
-
-
-
-          {-
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "cover.html"          ) -} ) $ text "Home"
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "landing.html"        ) -} ) $ text "Landing"
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "blog.html"           ) -} ) $ text "Blog"
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "instaAlbum.html"     ) -} ) $ text "Album"
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "kanban[search].html" ) -} ) $ text "Kanban"
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "search.html"         ) -} ) $ text "Search"
-          elAttr "a" ( ("class" =: "navbar-item") {- <> ( "href" =: "tabs.html"           ) -} ) $ text "Tabs"
---      </div>
---      -}
 
         elClass "div" "navbar-end" $ do
           elClass "div" "navbar-item" $ do
@@ -135,21 +124,12 @@ bodyNav =
                   elClass "span" "icon" $ do
                     elClass "i" "fa fa-user-plus" blank
                   el "span" $ text "Register"
---            </p>
               elClass "p" "control" $ do
                 elClass "a" "button is-small is-info is-outlined" $ do
                   elClass "span" "icon" $ do
                     elClass "i" "fa fa-user" blank
                   el "span" $ text "Login"
---            </p>
---          </div>
---        </div>
---      </div>
         return evNav1
---    </div>
---  </div>
--- /nav>
-     return evNav
 
   {- not needed
   <nav class="navbar is-white">
@@ -258,13 +238,13 @@ bodyFooter = do
             elClass "div" "control" $ do
               elClass "div" "tags has-addons" $ do
                 elAttr "a" (("class" =: "tag is-link") <> ("href" =: "https://github.com/BulmaTemplates/bulma-templates")) $ text "Bulma Templates"
-                elClass "span" "tag is-light" $ text "Daniel Supernault"
+                elClass "span" "tag " $ text "Daniel Supernault"
 --            </div>
 --          </div>
             elClass "div" "control" $ do
               elClass "div" "tags has-addons" $ do
                 elAttr "a" (("class" =: "tag is-link")) $ text "The source code is licensed"
-                elClass "span" "tag is-light" $ text "MIT &nbsp;"
+                elClass "span" "tag " $ text "MIT &nbsp;"
                 elClass "i" "fa fa-github" blank
                   {-
               </div>
@@ -280,9 +260,9 @@ bodyFooter = do
   </body>
 -}
 
-bodyModal :: MonadWidget t m => Modal -> m () -> m ()
-bodyModal ty b = do
-  elClass "div" "modal" $ do
+bodyModal :: MonadWidget t m => Dynamic t Bool -> Modal -> m () -> m ()
+bodyModal dynToggleModal ty b = do
+  elDynAttr "div" (genDynAttrs ("class" =: "modal") <$> dynToggleModal) $ do
     elClass "div" "modal-background" blank
     elClass "div" (mode ty) b
   where
@@ -405,7 +385,7 @@ pageNotification = do
 data Modal = ModalSimple | ModalCard deriving Show
 
 body :: MonadWidget t m => m ()
-body  = el "div" $ do
+body  = do
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
   dd <- dropdown "BER" (constDyn stations) def
@@ -413,12 +393,14 @@ body  = el "div" $ do
   -- Build and send the request
   evStart <- getPostBuild
 
---  dynToggleTopNav <- toggle False evToggleTopNav
   dynActiveNav <- bodyNav
   bodySection
-  bodyModal ModalSimple pageLogin
-  bodyModal ModalCard   pageDetail
-  bodyModal ModalSimple pageNotification
+--  bodyModal ModalSimple pageLogin
+--  bodyModal ModalCard   pageDetail
+  display dynActiveNav
+  let evNotification = never
+  dynToggleModal <- toggle False evNotification
+  bodyModal dynToggleModal ModalSimple pageNotification
   bodyFooter
 
   let evCode = tagPromptlyDyn (value dd) $ leftmost [ () <$ _dropdown_change dd, evStart]
@@ -442,6 +424,7 @@ pageData' evSmnRec' dynPage = do
     tabMeteo evSmnRec
 --    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
+    {-
 -- | Display the meteo data in a tabbed display
 pageData :: (PostBuild t m, DomBuilder t m) => Event t XhrResponse -> Dynamic t Page -> m ()
 --pageData evOk dynPage = do
@@ -451,6 +434,7 @@ pageData _ dynPage = do
   let dynAttr = visible <$> dynPage <*> pure PageData
   elDynAttr "div" dynAttr $ text "PageData"
 --    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
+-}
 
 -- | Display the error page
 pageErr :: MonadWidget t m => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
