@@ -63,13 +63,16 @@ data Nav = Home
          | Acknowledgements
          | Register
          | Login
-         deriving (Enum, Show) -- remember, Enum start from 0
+         deriving (Eq, Enum, Show) -- remember, Enum start from 0
 
 showNav :: Nav -> T.Text
 showNav = T.pack . show
 
 navMenu :: [T.Text]
 navMenu = map showNav $ enumFrom $ toEnum 0
+
+navMenuImplemented :: [Nav]
+navMenuImplemented = [Home]
 
 hiddenDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
 hiddenDynAttrs initAttrs b =
@@ -250,11 +253,27 @@ bodyFooter = do
   </body>
 -}
 
-bodyModal :: MonadWidget t m => Dynamic t Bool -> Modal -> m () -> m ()
-bodyModal dynToggleModal ty b = do
-  elDynAttr "div" (activateDynAttrs ("class" =: "modal") <$> dynToggleModal) $ do
+bodyModal :: MonadWidget t m => Modal -> m () -> m ()
+bodyModal ty b = do
+  elAttr "div" (("class" =: "modal is-active") <>("id" =: "modal-card")) $ do
     elClass "div" "modal-background" blank
     elClass "div" (mode ty) b
+    elAttr "button" (("class" =: "modal-close is-large")<>("aria-label" =: "close")) $ do
+      text "::before"
+      text "::after"
+  where
+    mode ModalSimple = "modal-content"
+    mode ModalCard   = "modal-card"
+
+bodyModal1 :: MonadWidget t m => Event t Bool -> Modal -> m () -> m ()
+bodyModal1 evToggleModal ty b = mdo
+  dynToggleModal <- holdDyn False $ leftmost [evToggleModal, False <$ evModalClose]
+  evModalClose <- elDynAttr "div" (activateDynAttrs ("class" =: "modal") <$> dynToggleModal) $ do
+    (evModalCloseR :: Event t ()) <- toButton "div" (constDyn $ "class" =: "modal-background") blank
+    elClass "div" (mode ty) b
+    return evModalCloseR
+  blank
+
   where
     mode ModalSimple = "modal-content"
     mode ModalCard   = "modal-card"
@@ -384,25 +403,27 @@ body  = mdo
   evStart <- getPostBuild
 
   (evNav :: Event t Nav) <- bodyNav
+
+  let evUnimplemented = (flip notElem) navMenuImplemented <$> evNav
+  dynUnimplemented <- holdDyn False evUnimplemented
   dynNav <- holdDyn Home evNav
   display dynNav
-
+  display dynUnimplemented
   (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
   dynRefList <- holdDyn Nothing evRefList
 
   bodySectionHome dynRefList
 
+  let evModal = leftmost [evUnimplemented,never]
 
-
-
---  bodyModal ModalSimple pageLogin
---  bodyModal ModalCard   pageDetail
---  display $ holdDyn "" $ show <$> dynSelectedNav
-  let evModal = never
-  dynToggleModal <- toggle False evModal
-  bodyModal dynToggleModal ModalSimple pageNotification
   bodyFooter
 
+  bodyModal ModalSimple pageNotification
+--  bodyModal evModal ModalSimple pageNotification
+
+
+
+    {-
   let evCode = tagPromptlyDyn (value dd) $ leftmost [ () <$ _dropdown_change dd, evStart]
   evRsp <- getAndDecode $ buildReq <$> evCode
   -- Check on HTML response code and remember state.
@@ -412,6 +433,7 @@ body  = mdo
   -- Create the 2 pages
   pageData' evRsp dynPage
   pageErr   evRsp dynPage
+  -}
   return ()
 
 pageData' :: (PostBuild t m, DomBuilder t m, MonadHold t m) => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
