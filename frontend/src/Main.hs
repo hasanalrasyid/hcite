@@ -2,7 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
-import           Reflex.Dom
+import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import           Data.Maybe (fromJust,fromMaybe)
@@ -54,25 +54,22 @@ main1 = mainWidgetWithCss css body
 data Page = PageData | PageError
    deriving Eq
 
-data Nav = NavHome
-         | NavLanding
-         | NavBlog
-         | NavAlbum
-         | NavKanban
-         | NavSearch
-         | NavTabs
+data Nav = Home
+         | Landing
+         | Blog
+         | Album
+         | Kanban
+         | Search
+         | Acknowledgements
+         | Register
+         | Login
          deriving (Enum, Show) -- remember, Enum start from 0
 
-navMenu :: [T.Text]
-navMenu =   [ "Home"
-            , "Landing"
-            , "Blog"
-            , "Album"
-            , "Kanban"
-            , "Search"
-            , "Tabs"
-            ]
+showNav :: Nav -> T.Text
+showNav = T.pack . show
 
+navMenu :: [T.Text]
+navMenu = map showNav $ enumFrom $ toEnum 0
 
 hiddenDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
 hiddenDynAttrs initAttrs b =
@@ -92,8 +89,8 @@ toButton d a t = do
   (e,_) <- elDynAttr' d a t
   return $ domEvent Click e
 
-bodyNav :: MonadWidget t m => m (Dynamic t Nav)
-bodyNav =
+bodyNav :: MonadWidget t m => m (Event t Nav)
+bodyNav = do
   elClass "nav" "navbar topNav" $ do
     elClass "div" "container" $ mdo
       dynToggleTopNav <- toggle False evToggleTopNav
@@ -109,24 +106,26 @@ bodyNav =
 --      </div>
 --    </div>
       elDynAttr "div" (activateDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
-        evNav1 <- elClass "div" "navbar-start" $ do
-          evNavR0 <- mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t) navMenu
-          holdDyn NavHome $ fmap toEnum $ leftmost $ zipWith (<$) [0..] evNavR0
+        let (navMenuStart,(navMenuRegister:navMenuLogin:_)) = splitAt 7 navMenu
+        (evNavStart :: [Event t ()]) <- elClass "div" "navbar-start" $ do
+          mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t) $ navMenuStart
+          --return $ fmap toEnum $ leftmost $ zipWith (<$) [0..] evNavR0
 
-        elClass "div" "navbar-end" $ do
+        (evNavEnd :: [Event t ()]) <- elClass "div" "navbar-end" $ do
           elClass "div" "navbar-item" $ do
             elClass "div" "field is-grouped"$ do
-              elClass "p" "control" $ do
+              evNavR0 <- toButton "p" (constDyn $ "class" =: "control") $ do
                 elClass "a" "button is-small" $ do
                   elClass "span" "icon" $ do
                     elClass "i" "fa fa-user-plus" blank
-                  el "span" $ text "Register"
-              elClass "p" "control" $ do
+                  el "span" $ text navMenuRegister
+              evNavR1 <- toButton "p" (constDyn $ "class" =: "control") $ do
                 elClass "a" "button is-small is-info is-outlined" $ do
                   elClass "span" "icon" $ do
                     elClass "i" "fa fa-user" blank
-                  el "span" $ text "Login"
-        return evNav1
+                  el "span" $ text navMenuLogin
+              return $ [evNavR0,evNavR1]
+        return $ fmap toEnum $ leftmost $ zipWith (<$) [0..] $ evNavStart ++ evNavEnd
 
   {- not needed
   <nav class="navbar is-white">
@@ -147,8 +146,19 @@ bodyNav =
   </nav>
   -}
 
-bodySection :: MonadWidget t m => Dynamic t (Maybe [Reference]) -> m ()
-bodySection dynRefList = do
+bodySection :: MonadWidget t m => Dynamic t (Maybe [Reference]) -> Nav -> m ()
+bodySection r nav = do
+  elClass "section" "container" $ do
+    case nav of
+      Home  -> bodySectionHome r
+      _     -> bodySectionUnimplemented
+
+bodySectionUnimplemented :: MonadWidget t m => m ()
+bodySectionUnimplemented = do
+  elClass "div" "unimplemented" $ text "Not yet implemented"
+
+bodySectionHome :: MonadWidget t m => Dynamic t (Maybe [Reference]) -> m ()
+bodySectionHome dynRefList = do
   elClass "section" "container" $ do
     elClass "div" "columns" $ do
       {-
@@ -170,6 +180,7 @@ bodySection dynRefList = do
         elClass "div" "box content" $ do
           retDyn <- flip simpleList dynViewArticle $ fromMaybe [] <$> dynRefList
           blank
+  blank
 
 dynViewArticle :: MonadWidget t m => Dynamic t Reference -> m ()
 dynViewArticle dynRef = do
@@ -206,57 +217,6 @@ dynViewArticle dynRef = do
 --            </div>
 --          </div>
 --        </article>
-
-  {-
-bodySectionArticles :: MonadWidget t m => m ()
-bodySectionArticles = do
-          elClass "article" "post" $ do
-            el "h4" $ text "Bulma: How do you center a button in a box?"
-            elClass "div" "media" $ do
-              elClass "div" "media-left" $ do
-                elClass "p" "image is-32x32" $ do
-                  elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
---            </div>
-              elClass "div" "media-content" $ do
-                elClass "div" "content" $ do
-                  el "p" $ do
-                    elAttr "a" ("href" =: "#") $ text "@jsmith"
-                    text " replied 34 minutes ago &nbsp;"
-                    elClass "span" "tag" $ text "Question"
---                </p>
---              </div>
---            </div>
-              elClass "div" "media-right" $ do
-                elClass "span" "has-text-grey-light" $ do
-                  elClass "i" "fa fa-comments" blank
-                  text "1"
---            </div>
---          </div>
---        </article>
-          elClass "article" "post" $ do
-            el "h4" $ text "This is second article?"
-            elClass "div" "media" $ do
-              elClass "div" "media-left" $ do
-                elClass "p" "image is-32x32" $ do
-                  elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
---            </div>
-              elClass "div" "media-content" $ do
-                elClass "div" "content" $ do
-                  el "p" $ do
-                    elAttr "a" ("href" =: "#") $ text "@jsmith"
-                    text " replied 34 minutes ago &nbsp;"
-                    elClass "span" "tag" $ text "Question"
---                </p>
---              </div>
---            </div>
-              elClass "div" "media-right" $ do
-                elClass "span" "has-text-grey-light" $ do
-                  elClass "i" "fa fa-comments" blank
-                  text "1"
---            </div>
---          </div>
---        </article>
--}
 
 bodyFooter :: MonadWidget t m => m ()
 bodyFooter = do
@@ -423,19 +383,21 @@ body  = mdo
   -- Build and send the request
   evStart <- getPostBuild
 
-  dynSelectedNav <- bodyNav
+  (evNav :: Event t Nav) <- bodyNav
+  dynNav <- holdDyn Home evNav
+  display dynNav
 
   (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
   dynRefList <- holdDyn Nothing evRefList
---  display dynRefList
-  bodySection dynRefList
+
+  bodySectionHome dynRefList
 
 
 
 
 --  bodyModal ModalSimple pageLogin
 --  bodyModal ModalCard   pageDetail
-  display dynSelectedNav
+--  display $ holdDyn "" $ show <$> dynSelectedNav
   let evModal = never
   dynToggleModal <- toggle False evModal
   bodyModal dynToggleModal ModalSimple pageNotification

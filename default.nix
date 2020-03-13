@@ -1,6 +1,10 @@
 { reflex-platform ? import ./reflex-platform {
   config.android_sdk.accept_license = true;
   config.allowBroken = true;
+  config.extraoptions = "
+    keep-outputs = true
+    keep-derivations = true
+  ";
   } }:
 
 reflex-platform.project ({ pkgs, ... }:
