@@ -22,6 +22,9 @@ import Model
 
 import Servant.Links
 
+import Reflex.Bulmex.Modal
+import Reflex.Bulmex.Tag.Bulma
+
 main :: IO ()
 main = mainWidgetWithHead headElement body
 
@@ -36,7 +39,7 @@ headElement = do
   stylesheet "inc/css/font-awesome.min.css"
   stylesheet "inc/css/OpenSans.css"
   stylesheet "inc/css/bulma.min.css"
-  stylesheet "inc/css/forum.css"
+--  stylesheet "inc/css/forum.css"
 --  stylesheet "inc/css/bulma-docs.min.css"
   where
     stylesheet l = elAttr "link" (Map.fromList [
@@ -95,7 +98,7 @@ toButton d a t = do
 bodyNav :: MonadWidget t m => m (Event t Nav)
 bodyNav = do
   elClass "nav" "navbar topNav" $ do
-    elClass "div" "container" $ mdo
+    container $ mdo
       dynToggleTopNav <- toggle False evToggleTopNav
       evToggleTopNav <- elClass "div" "navbar-brand" $ do
         elClass "a" "navbar-item" $ -- href="../">
@@ -195,7 +198,7 @@ dynViewArticle dynRef = do
                   elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
 --            </div>
               elClass "div" "media-content" $ do
-                elClass "div" "content" $ do
+                content $ do
                   el "p" $ do
                     dynText $ T.pack . referenceAuthor <$> dynRef
                     text " "
@@ -215,7 +218,7 @@ dynViewArticle dynRef = do
 --            </div>
               elClass "div" "media-right" $ do
                 elClass "span" "has-text-grey-light" $ do
-                  elClass "i" "fa fa-link" blank
+                  elDynAttr "a" (fmap ("href" =:) ((T.pack . fromMaybe "www.google.com" . referenceUrl) <$> dynRef)) $ elClass "i" "fa fa-link" $ blank
                   --text "1"
 --            </div>
 --          </div>
@@ -224,7 +227,7 @@ dynViewArticle dynRef = do
 bodyFooter :: MonadWidget t m => m ()
 bodyFooter = do
   elClass "footer" "footer" $ do
-    elClass "div" "container" $ do
+    container $ do
       elClass "div" "content has-text-centered" $ do
         elClass "div" "columns is-mobile is-centered" $ do
           elClass "div" "field is-grouped is-grouped-multiline" $ do
@@ -258,9 +261,7 @@ bodyModal ty b = do
   elAttr "div" (("class" =: "modal is-active") <>("id" =: "modal-card")) $ do
     elClass "div" "modal-background" blank
     elClass "div" (mode ty) b
-    elAttr "button" (("class" =: "modal-close is-large")<>("aria-label" =: "close")) $ do
-      text "::before"
-      text "::after"
+    elAttr "button" (("class" =: "modal-close is-large")<>("aria-label" =: "close")) blank
   where
     mode ModalSimple = "modal-content"
     mode ModalCard   = "modal-card"
@@ -353,7 +354,7 @@ pageDetail = do
 
 pageNotification :: MonadWidget t m => m ()
 pageNotification = do
-    elClass "div" "box" $ do
+    box $ do
       elClass "article" "media" $ do
         elClass "div" "media-left" $ do
           elClass "figure" "image is-64x64" $ do
@@ -395,30 +396,36 @@ data Modal = ModalSimple | ModalCard deriving Show
 
 body :: MonadWidget t m => m ()
 body  = mdo
+  {-
   el "h2" $ text "Swiss Weather Data (Tab display)"
   text "Choose station: "
   (dd :: Dropdown t T.Text) <- dropdown "BER" (constDyn stations) def
   el "p" blank
   -- Build and send the request
+  -- -}
+  --
   evStart <- getPostBuild
 
   (evNav :: Event t Nav) <- bodyNav
 
-  let evUnimplemented = (flip notElem) navMenuImplemented <$> evNav
-  dynUnimplemented <- holdDyn False evUnimplemented
+  let evUnimplemented =  ffilter (\e -> notElem e navMenuImplemented) evNav -- (flip notElem) navMenuImplemented <$> evNav
   dynNav <- holdDyn Home evNav
-  display dynNav
-  display dynUnimplemented
+--  display dynUnimplemented
+--  display dynNav
   (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
   dynRefList <- holdDyn Nothing evRefList
 
   bodySectionHome dynRefList
 
-  let evModal = leftmost [evUnimplemented,never]
-
   bodyFooter
 
-  bodyModal ModalSimple pageNotification
+  --evModal <- toButton "button" mempty $ text "showModal"
+
+  let evModal = () <$ evUnimplemented  -- leftmost $ [() <$ evUnimplemented,evStart]
+  (_, evModalClose) <- modal evModal $ do -- pageNotification
+      box $ text "this is a box in modal"
+
+--  bodyModal ModalSimple pageNotification
 --  bodyModal evModal ModalSimple pageNotification
 
 

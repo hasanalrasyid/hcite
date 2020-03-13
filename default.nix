@@ -14,6 +14,7 @@ reflex-platform.project ({ pkgs, ... }:
     backend = ./backend;
     frontend = ./frontend;
     otherlibs = ./otherlibs;
+    bulmex = ./bulmex-4.0.0;
   };
 
   android.frontend = {
@@ -30,7 +31,7 @@ reflex-platform.project ({ pkgs, ... }:
   };
 
   shells = {
-    ghc = ["otherlibs" "common" "backend" "frontend"];
-    ghcjs = ["otherlibs" "common" "frontend"];
+    ghc = ["common" "backend" "frontend"];
+    ghcjs = ["common" "frontend"];
   };
 })
