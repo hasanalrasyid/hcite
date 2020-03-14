@@ -189,12 +189,21 @@ bodySectionHome dynRefList = do
           blank
   blank
 
+getAbstract :: MonadWidget t m => Event t () -> Dynamic t Int -> m (Dynamic t T.Text)
+getAbstract eTrigger dynSerial = do
+  a0 <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract 37 ) <$ eTrigger
+  let a1 = fromMaybe NoAbstract <$> a0
+  holdDyn "In Progress ..." $ genAbstract <$> a1
+  where
+    genAbstract NoAbstract = "Unavailable"
+    genAbstract a = absAbstract a
+
 dynViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m ()
 dynViewArticle dynRef = do
           elClass "article" "post" $ do
             el "h4" $ dynText $ refTitle <$> dynRef
             elClass "div" "media" $ do
-              (evToggleAbstract :: Event t ()) <- toButton "div" (constDyn $ "class" =: "media-left") $ do
+              (evAbstract :: Event t ()) <- toButton "div" (constDyn $ "class" =: "media-left") $ do
                 elClass "p" "image is-32x32" $ do
                   elAttr "img" ("src" =: "http://bulma.io/images/placeholders/128x128.png") blank
 --            </div>
@@ -208,12 +217,12 @@ dynViewArticle dynRef = do
                     dynText $ T.pack . show . refYear <$> dynRef
                     text " "
                     -- "(Vol. Volume 170, pp. 926\8211\&933). Elsevier."
-                  dynToggleAbstract <- toggle True evToggleAbstract
+                  dynToggleAbstract <- toggle True evAbstract
+                  dynAbstract <- getAbstract evAbstract $ refSerial <$> dynRef
                   elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dynToggleAbstract) $ do
                     elClass "hr" "login-hr" blank
                     el "p" $ do
-                      text "Abstract holder"
---                      dynText $ T.pack . fromMaybe "" . referenceAbstract <$> dynRef
+                      dynText $ dynAbstract
 
 --                </p>
 --              </div>

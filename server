@@ -1,0 +1,1 @@
+./native-backend-result/bin/backend --conf backend/config.yaml
