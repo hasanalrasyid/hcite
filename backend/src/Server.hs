@@ -83,9 +83,12 @@ getRecord e i = do
   p <- withDB e $ selectList [ ReferenceSerial ==. i ] []
   return $ map entityVal p
 
-getRecords e = do
-  p <- withDB e $ selectList [] [LimitTo 5]
-  return $ map entityVal p
+resPerPage = 5
+
+getRecords e iPage = do
+  p <- withDB e $ selectList [] [ LimitTo resPerPage
+                                , OffsetBy $ (iPage - 1) * resPerPage ]
+  return $ map (fromReference . entityVal) p
 
 
 putRecordById e i p = do

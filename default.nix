@@ -5,6 +5,7 @@
     keep-outputs = true
     keep-derivations = true
   ";
+  config.doHaddock = false;
   } }:
 
 reflex-platform.project ({ pkgs, ... }:

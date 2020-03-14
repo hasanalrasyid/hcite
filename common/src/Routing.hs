@@ -13,7 +13,7 @@ import           Model
 --type TopRoute = View Action
 
 type JsonApi =
-         "api" :> "record" :> Get '[JSON] [Reference]
+         "api" :> "record" :> "list" :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
     :<|> "api" :> "record" :> Capture "ident" Int :> Get '[JSON] [Reference]
     :<|> "api" :> "record" :> Capture "ident" Int
             :> ReqBody '[JSON] Reference :> Put '[JSON] NoContent

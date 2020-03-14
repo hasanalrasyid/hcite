@@ -152,7 +152,7 @@ bodyNav = do
   </nav>
   -}
 
-bodySection :: MonadWidget t m => Dynamic t (Maybe [Reference]) -> Nav -> m ()
+bodySection :: MonadWidget t m => Dynamic t (Maybe [SimpleRef]) -> Nav -> m ()
 bodySection r nav = do
   elClass "section" "container" $ do
     case nav of
@@ -163,7 +163,7 @@ bodySectionUnimplemented :: MonadWidget t m => m ()
 bodySectionUnimplemented = do
   elClass "div" "unimplemented" $ text "Not yet implemented"
 
-bodySectionHome :: MonadWidget t m => Dynamic t (Maybe [Reference]) -> m ()
+bodySectionHome :: MonadWidget t m => Dynamic t (Maybe [SimpleRef]) -> m ()
 bodySectionHome dynRefList = do
   elClass "section" "container" $ do
     elClass "div" "columns" $ do
@@ -184,14 +184,15 @@ bodySectionHome dynRefList = do
 --    </div>
       elClass "div" "column" $ do -- "column is-9"
         elClass "div" "box content" $ do
+          elAttr "img" ("src" =: "inc/img/DSC02084.JPG") blank
           retDyn <- flip simpleList dynViewArticle $ fromMaybe [] <$> dynRefList
           blank
   blank
 
-dynViewArticle :: MonadWidget t m => Dynamic t Reference -> m ()
+dynViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m ()
 dynViewArticle dynRef = do
           elClass "article" "post" $ do
-            el "h4" $ dynText $ T.pack . referenceTitle <$> dynRef
+            el "h4" $ dynText $ refTitle <$> dynRef
             elClass "div" "media" $ do
               (evToggleAbstract :: Event t ()) <- toButton "div" (constDyn $ "class" =: "media-left") $ do
                 elClass "p" "image is-32x32" $ do
@@ -200,25 +201,27 @@ dynViewArticle dynRef = do
               elClass "div" "media-content" $ do
                 content $ do
                   el "p" $ do
-                    dynText $ T.pack . referenceAuthor <$> dynRef
+                    dynText $ refAuthor <$> dynRef
                     text " "
-                    dynText $ T.pack . fromMaybe "" . referencePublication <$> dynRef
+                    dynText $ refPublication <$> dynRef
                     text " "
-                    dynText $ T.pack . show . fromMaybe 9999 . referenceYear <$> dynRef
+                    dynText $ T.pack . show . refYear <$> dynRef
                     text " "
                     -- "(Vol. Volume 170, pp. 926\8211\&933). Elsevier."
                   dynToggleAbstract <- toggle True evToggleAbstract
                   elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dynToggleAbstract) $ do
                     elClass "hr" "login-hr" blank
                     el "p" $ do
-                      dynText $ T.pack . fromMaybe "" . referenceAbstract <$> dynRef
+                      text "Abstract holder"
+--                      dynText $ T.pack . fromMaybe "" . referenceAbstract <$> dynRef
 
 --                </p>
 --              </div>
 --            </div>
               elClass "div" "media-right" $ do
                 elClass "span" "has-text-grey-light" $ do
-                  elDynAttr "a" (fmap ("href" =:) ((T.pack . fromMaybe "www.google.com" . referenceUrl) <$> dynRef)) $ elClass "i" "fa fa-link" $ blank
+                  -- elDynAttr "a" (fmap ("href" =:) ((T.pack . fromMaybe "www.google.com" . referenceUrl) <$> dynRef)) $ elClass "i" "fa fa-link" $ blank
+                  elClass "i" "fa fa-edit" $ blank
                   --text "1"
 --            </div>
 --          </div>
@@ -412,7 +415,7 @@ body  = mdo
   dynNav <- holdDyn Home evNav
 --  display dynUnimplemented
 --  display dynNav
-  (evRefList :: Event t (Maybe [Reference])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI jsonApiGetList) <$ evStart
+  (evRefList :: Event t (Maybe [SimpleRef])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetList 1 ) <$ evStart
   dynRefList <- holdDyn Nothing evRefList
 
   bodySectionHome dynRefList

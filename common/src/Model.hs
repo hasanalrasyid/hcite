@@ -10,9 +10,10 @@
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE DeriveGeneric              #-}
 module Model where
 
---import           Data.Aeson
+import           Data.Aeson
 import           Network.URI
 
 --import           Control.Monad.IO.Class  (liftIO)
@@ -27,87 +28,114 @@ import           Database.Persist.TH
 --import           Text.Parsec.Prim hiding ((<|>))
 --import Text.Parsec
 import Data.Time
---import Data.Maybe
+import Data.Maybe
 --import Data.List.Split
 --import Control.Concurrent
 --import qualified Data.ByteString.Char8 as B
 --import Data.Text.Encoding
---import qualified Data.Text as Tx
+import qualified Data.Text as T
 --import System.Environment (getArgs)
+
+import GHC.Generics
 
 -- | Taken from http://www.yesodweb.com/book/persistent.
 
 share [mkPersist sqlSettings, mkMigrate "migrateRefs"] [persistLowerCase|
 ThesisType
-  thesis String
+  thesis T.Text
   deriving Show
 Reference json
-     author                String
-     address               String     Maybe
-     corporateAuthor       String Maybe    sqltype=varchar(255)
-     firstAuthor           String     sqltype=varchar(100)
+     author                T.Text
+     address               T.Text     Maybe
+     corporateAuthor       T.Text Maybe    sqltype=varchar(255)
+     firstAuthor           T.Text     sqltype=varchar(100)
      authorCount           Int        sqltype=tinyint(3)
-     title                 String
-     origTitle             String Maybe
-     publication            String     Maybe                      sqltype=varchar(255)
-     abbrevJournal          String     Maybe                      sqltype=varchar(100)
+     title                 T.Text
+     origTitle             T.Text Maybe
+     publication            T.Text     Maybe                      sqltype=varchar(255)
+     abbrevJournal          T.Text     Maybe                      sqltype=varchar(100)
      year                   Int        Maybe                      sqltype=smallint(6)
-     volume                 String     Maybe                      sqltype=varchar(50)
+     volume                 T.Text     Maybe                      sqltype=varchar(50)
      volumeNumeric          Int        Maybe                      sqltype=smallint(5)
-     issue                  String     Maybe                      sqltype=varchar(50)
-     pages                  String     Maybe                      sqltype=varchar(50)
+     issue                  T.Text     Maybe                      sqltype=varchar(50)
+     pages                  T.Text     Maybe                      sqltype=varchar(50)
      firstPage              Int        Maybe                      sqltype=mediumint(8)
-     keywords              String Maybe
-     abstract              String Maybe
-     edition               String      Maybe                      sqltype=varchar(50)
-     editor                String  Maybe
-     publisher             String      Maybe                      sqltype=varchar(255)
-     place                 String      Maybe                      sqltype=varchar(100)
-     medium                String      Maybe                      sqltype=varchar(50)
-     seriesEditor          String Maybe
-     seriesTitle           String Maybe
-     abbrevSeriesTitle     String      Maybe                      sqltype=varchar(100)
-     seriesVolume          String      Maybe                      sqltype=varchar(50)
+     keywords              T.Text Maybe
+     abstract              T.Text Maybe
+     edition               T.Text      Maybe                      sqltype=varchar(50)
+     editor                T.Text  Maybe
+     publisher             T.Text      Maybe                      sqltype=varchar(255)
+     place                 T.Text      Maybe                      sqltype=varchar(100)
+     medium                T.Text      Maybe                      sqltype=varchar(50)
+     seriesEditor          T.Text Maybe
+     seriesTitle           T.Text Maybe
+     abbrevSeriesTitle     T.Text      Maybe                      sqltype=varchar(100)
+     seriesVolume          T.Text      Maybe                      sqltype=varchar(50)
      seriesVolumeNumeric   Int         Maybe                      sqltype=smallint(5)
-     seriesIssue           String      Maybe                      sqltype=varchar(50)
-     issn                  String      Maybe                      sqltype=varchar(100)
-     isbn                  String      Maybe                      sqltype=varchar(100)
-     language              String      Maybe                      sqltype=varchar(100)
-     summaryLanguage       String      Maybe                      sqltype=varchar(100)
-     area                  String      Maybe                      sqltype=varchar(255)
-     type                  String      Maybe                      sqltype=varchar(100)
-     thesis String Maybe sqltype=enum('Bachelor_thesis','Honours_thesis','Master_thesis','Ph.D._thesis','Diploma_thesis','Doctoral_thesis','Habilitation_thesis')
-     expedition            String      Maybe                      sqltype=varchar(255)
-     doi                   String      Maybe                      sqltype=varchar(100)
-     conference            String      Maybe                      sqltype=varchar(255)
-     url                   String      Maybe                      sqltype=varchar(255)
-     callNumber            String
-     location              String
-     contributionId        String     Maybe                       sqltype=varchar(100)
-     onlinePublication     String sqltype=enum('no','yes') default='no'
-     onlineCitation        String     Maybe                       sqltype=varchar(255)
-     file                  String     Maybe                       sqltype=varchar(255)
-     notes                 String Maybe
+     seriesIssue           T.Text      Maybe                      sqltype=varchar(50)
+     issn                  T.Text      Maybe                      sqltype=varchar(100)
+     isbn                  T.Text      Maybe                      sqltype=varchar(100)
+     language              T.Text      Maybe                      sqltype=varchar(100)
+     summaryLanguage       T.Text      Maybe                      sqltype=varchar(100)
+     area                  T.Text      Maybe                      sqltype=varchar(255)
+     type                  T.Text      Maybe                      sqltype=varchar(100)
+     thesis T.Text Maybe sqltype=enum('Bachelor_thesis','Honours_thesis','Master_thesis','Ph.D._thesis','Diploma_thesis','Doctoral_thesis','Habilitation_thesis')
+     expedition            T.Text      Maybe                      sqltype=varchar(255)
+     doi                   T.Text      Maybe                      sqltype=varchar(100)
+     conference            T.Text      Maybe                      sqltype=varchar(255)
+     url                   T.Text      Maybe                      sqltype=varchar(255)
+     callNumber            T.Text
+     location              T.Text
+     contributionId        T.Text     Maybe                       sqltype=varchar(100)
+     onlinePublication     T.Text sqltype=enum('no','yes') default='no'
+     onlineCitation        T.Text     Maybe                       sqltype=varchar(255)
+     file                  T.Text     Maybe                       sqltype=varchar(255)
+     notes                 T.Text Maybe
      serial                Int sqltype=mediumint(8)
      origRecord            Int Maybe               sqltype=mediumint(9)
-     approved              String sqltype=enum('no','yes') default='no'
+     approved              T.Text sqltype=enum('no','yes') default='no'
      createdDate           Day Maybe
      createdTime           TimeOfDay  Maybe sqltype=time
-     createdBy             String   Maybe                         sqltype=varchar(100)
+     createdBy             T.Text   Maybe                         sqltype=varchar(100)
      modifiedDate          Day Maybe
      modifiedTime          TimeOfDay Maybe sqltype=time
-     modifiedBy            String   Maybe                         sqltype=varchar(100)
+     modifiedBy            T.Text   Maybe                         sqltype=varchar(100)
      version               Int sqltype=mediumint(8)  default=1
      Primary serial
      deriving Eq Show
 |]
 
+data SimpleRef = SimpleRef { refSerial      :: Int
+                           , refAuthor      :: T.Text
+                           , refTitle       :: T.Text
+                           , refPublication :: T.Text
+                           , refYear        :: Int
+                           , refVolume      :: T.Text
+                           , refPages       :: T.Text
+                           , refPublisher   :: T.Text
+                           } deriving (Generic)
+
+instance ToJSON SimpleRef
+instance FromJSON SimpleRef
+
+fromReference :: Reference -> SimpleRef
+fromReference r = SimpleRef ( referenceSerial       r)
+                            ( referenceAuthor       r)
+                            ( referenceTitle        r)
+                            ( fromMaybe ""    $ referencePublication  r)
+                            ( fromMaybe 9999  $ referenceYear         r)
+                            ( fromMaybe ""    $ referenceVolume       r)
+                            ( fromMaybe ""    $ referencePages        r)
+                            ( fromMaybe ""    $ referencePublisher    r)
+
+
+
 data Model = Model
-  { records :: Either String [Reference]
+  { records :: Either T.Text [Reference]
   , currentURI :: URI
   , abstractOn :: Int
-  , activePanel :: String
-  , previousPanel :: String
+  , activePanel :: T.Text
+  , previousPanel :: T.Text
   } deriving (Eq, Show)
 
 initialModel :: URI -> Model
