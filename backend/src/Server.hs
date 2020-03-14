@@ -77,11 +77,13 @@ exampleImpl e = hoistServer exampleApi (runServerM e) exampleServer
 
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
-jsonImpl e = getRecords e :<|> getRecord e :<|> putRecordById e
+jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e :<|> putRecordById e
 
 getRecord e i = do
   p <- withDB e $ selectList [ ReferenceSerial ==. i ] []
-  return $ map entityVal p
+  return $ entityVal $ head p
+
+getAbstract e i = fromReference <$> getRecord e i
 
 resPerPage = 5
 

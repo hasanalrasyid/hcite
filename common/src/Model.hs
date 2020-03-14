@@ -118,15 +118,29 @@ data SimpleRef = SimpleRef { refSerial      :: Int
 instance ToJSON SimpleRef
 instance FromJSON SimpleRef
 
-fromReference :: Reference -> SimpleRef
-fromReference r = SimpleRef ( referenceSerial       r)
-                            ( referenceAuthor       r)
-                            ( referenceTitle        r)
-                            ( fromMaybe ""    $ referencePublication  r)
-                            ( fromMaybe 9999  $ referenceYear         r)
-                            ( fromMaybe ""    $ referenceVolume       r)
-                            ( fromMaybe ""    $ referencePages        r)
-                            ( fromMaybe ""    $ referencePublisher    r)
+data Abstract = Abstract { absSerial   :: Int
+                         , absAbstract :: T.Text
+                         } deriving (Generic)
+
+instance ToJSON Abstract
+instance FromJSON Abstract
+
+class FromReference a where
+  fromReference :: Reference -> a
+
+instance FromReference Abstract where
+  fromReference r = Abstract  (referenceSerial r)
+                              (fromMaybe "" $ referenceAbstract r)
+
+instance FromReference SimpleRef where
+  fromReference r = SimpleRef ( referenceSerial       r)
+                              ( referenceAuthor       r)
+                              ( referenceTitle        r)
+                              ( fromMaybe ""    $ referencePublication  r)
+                              ( fromMaybe 9999  $ referenceYear         r)
+                              ( fromMaybe ""    $ referenceVolume       r)
+                              ( fromMaybe ""    $ referencePages        r)
+                              ( fromMaybe ""    $ referencePublisher    r)
 
 
 
