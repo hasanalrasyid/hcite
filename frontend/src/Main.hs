@@ -189,14 +189,26 @@ bodySectionHome dynRefList = do
           blank
   blank
 
+getAbstract :: MonadWidget t m => Event t (Int,Bool) -> m (Event t T.Text)
+getAbstract evSerialAbstract = do
+  a0 <- getAndDecode (absAddress <$> evSerialAbstract)
+  return $ genAbstract <$> a0
+  where
+    genAbstract Nothing  = "Unavailable "
+    genAbstract (Just a) = absAbstract a
+    absAddress (i,_) = (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
+
+    {-
 getAbstract :: MonadWidget t m => Event t () -> Dynamic t Int -> m (Dynamic t T.Text)
 getAbstract eTrigger dynSerial = do
-  a0 <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract 37 ) <$ eTrigger
-  let a1 = fromMaybe NoAbstract <$> a0
-  holdDyn "In Progress ..." $ genAbstract <$> a1
+
+  a0 <- getAndDecode ( absAddress 37 <$ eTrigger)
+  holdDyn "In Progress ..." $ genAbstract <$> a0
   where
-    genAbstract NoAbstract = "Unavailable"
-    genAbstract a = absAbstract a
+    absAddress i = (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
+    genAbstract Nothing  = "Unavailable"
+    genAbstract (Just a) = absAbstract a
+-}
 
 dynViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m ()
 dynViewArticle dynRef = do
@@ -218,11 +230,16 @@ dynViewArticle dynRef = do
                     text " "
                     -- "(Vol. Volume 170, pp. 926\8211\&933). Elsevier."
                   dynToggleAbstract <- toggle True evAbstract
-                  dynAbstract <- getAbstract evAbstract $ refSerial <$> dynRef
+                  let evGetAbstract = ffilter not $ updated dynToggleAbstract
+                  evAbstractT <- (getAbstract $ attachPromptlyDyn (refSerial <$> dynRef) evGetAbstract)
+                  dynAbstractT <- holdDyn "Fetching abstract ..." evAbstractT
+--                  dynAbstract <- getAbstract $ attachPromptlyDyn (refSerial <$> dynRef) evAbstract
+--                  dynAbstract <- getAbstract $ (refSerial <$> dynRef) <$ evAbstract
+                  --dynAbstract <- getAbstract evAbstract $ refSerial <$> dynRef
                   elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dynToggleAbstract) $ do
                     elClass "hr" "login-hr" blank
                     el "p" $ do
-                      dynText $ dynAbstract
+                      display $  dynAbstractT
 
 --                </p>
 --              </div>

@@ -120,7 +120,7 @@ instance FromJSON SimpleRef
 
 data Abstract = NoAbstract | Abstract { absSerial   :: Int
                                       , absAbstract :: T.Text
-                                      } deriving (Generic)
+                                      } deriving (Generic,Show)
 
 instance ToJSON Abstract
 instance FromJSON Abstract
