@@ -2,6 +2,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
@@ -230,17 +231,25 @@ dynViewArticle dynRef = do
                     text " "
                     -- "(Vol. Volume 170, pp. 926\8211\&933). Elsevier."
                   dynToggleAbstract <- toggle True evAbstract
-                  let evGetAbstract = ffilter not $ updated dynToggleAbstract
-                  evAbstractT <- (getAbstract $ attachPromptlyDyn (refSerial <$> dynRef) evGetAbstract)
-                  dynAbstractT <- holdDyn "Fetching abstract ..." evAbstractT
+--                  let evGetAbstract = ffilter not $ updated dynToggleAbstract
+                  let evAbstractI = attachPromptlyDyn dynToggleAbstract $ attachPromptlyDyn (refSerial <$> dynRef) evAbstract
+                  --evAbstractT <- (getAbstract $ attachPromptlyDyn (refSerial <$> dynRef) evAbstract)
+                  --dynAbstractT <- holdDyn "Fetching abstract ..." evAbstractT
 --                  dynAbstract <- getAbstract $ attachPromptlyDyn (refSerial <$> dynRef) evAbstract
 --                  dynAbstract <- getAbstract $ (refSerial <$> dynRef) <$ evAbstract
                   --dynAbstract <- getAbstract evAbstract $ refSerial <$> dynRef
+                  --evAbstractT <- getAbstract1 evAbstractI
+                  evAbstractT <- getAbstract2 evAbstractI
+                  dynAbstractI <- holdDyn "test" evAbstractT
+                  --display dynAbstractI
+                  --display dynToggleAbstract
+--                  display $ dynToggleAbstract
+
                   elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dynToggleAbstract) $ do
                     elClass "hr" "login-hr" blank
                     el "p" $ do
-                      display $  dynAbstractT
-
+                      dynText dynAbstractI
+--                  genAbstract evAbstractI
 --                </p>
 --              </div>
 --            </div>
@@ -252,6 +261,36 @@ dynViewArticle dynRef = do
 --            </div>
 --          </div>
 --        </article>
+
+getAbstract2 :: MonadWidget t m => Event t (Bool, (Int, ())) -> m (Event t T.Text)
+getAbstract2 e = do
+  d1 <- holdDyn (True,(0,())) e
+  let e1 = ffilter (\(t,_) -> not t) $ updated d1
+  e2 :: (Event t (Maybe Abstract)) <- getAndDecode (absAddress <$> e1)
+  return $ cekR3 <$> e2
+    where
+      cekR3 Nothing = "Unavailable"
+      cekR3 (Just a) = absAbstract a
+      absAddress (_,(i,_)) = (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
+      absAddress _ = "noURL"
+      cekR1 (False,_) = "FalseCek,NeedAbstract"
+      cekR1 (True,_) = "TrueCek,NoNeedAbstract"
+      cekR2 e (False,_) = "FalseCek,NeedAbstract2"
+      cekR2 e (True,_) = "TrueCek,NoNeedAbstract2"
+  {-
+getAbstract2 False _ = pure  "UndefinedFalse"
+getAbstract2 True iSerial = pure "UndefinedTrue"
+-}
+
+getAbstract1 :: MonadWidget t m => Event t (Bool, (Int, ())) -> m (Event t T.Text)
+getAbstract1 evToggleSerialClick = do
+  dynToggleSerialClick <- holdDyn (False,(0,())) evToggleSerialClick
+  a0 <- getAndDecode ( absAddress 37 <$ evToggleSerialClick)
+  return $ genAbstract <$> a0
+    where
+    absAddress i = (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
+    genAbstract Nothing  = "Unavailable"
+    genAbstract (Just a) = absAbstract a
 
 bodyFooter :: MonadWidget t m => m ()
 bodyFooter = do
@@ -472,6 +511,7 @@ body  = mdo
   -}
   return ()
 
+  {-
 pageData' :: (PostBuild t m, DomBuilder t m, MonadHold t m) => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()
 pageData' evSmnRec' dynPage = do
   evSmnRec :: (Event t SmnRecord) <- return $ fmap fromJust evSmnRec'
@@ -482,7 +522,7 @@ pageData' evSmnRec' dynPage = do
     tabMeteo evSmnRec
 --    tabDisplay "tab" "tabact" $ tabMap evSmnRec evSmnStat
 
-    {-
+
 -- | Display the meteo data in a tabbed display
 pageData :: (PostBuild t m, DomBuilder t m) => Event t XhrResponse -> Dynamic t Page -> m ()
 --pageData evOk dynPage = do
@@ -522,6 +562,7 @@ visible p1 p2 = "style" =: ("display: " <> choose (p1 == p2) "inline" "none")
 getEvRsp :: Event t T.Text -> m (Event t XhrResponse)
 getEvRsp evCode = performRequestAsync $ buildReq <$> evCode
 -}
+  {-
 
 --buildReq :: T.Text -> XhrRequest ()
 --buildReq code = XhrRequest "GET" (urlDataStat code) def
@@ -531,13 +572,13 @@ buildReq code = urlDataStat code
 stations :: Map.Map T.Text T.Text
 stations = Map.fromList [("BIN", "Binn"), ("BER", "Bern"), ("KLO", "Zurich airport"), ("ZER", "Zermatt"), ("JUN", "Jungfraujoch")]
 
-  {-
 -- | Create a tabbed display
 --tabMap :: MonadWidget t m => Event t SmnRecord -> Event t SmnStation -> Map.Map Int (T.Text, m ())
 tabMap evMeteo evStat = Map.fromList[ (1, ("Station", tabStat evStat)),
             (2, ("MeteoData", tabMeteo evMeteo))]
 
 -}
+  {-
 -- | Create the DOM elements for the Station tab
 --tabStat :: MonadWidget t m => Event t SmnStation -> m ()
 tabStat :: (DomBuilder t m, PostBuild t m, MonadHold t m) =>
@@ -588,4 +629,4 @@ dispMeteoField label rend evRec = do
 tShow :: Show a => Maybe a -> T.Text
 tShow Nothing = ""
 tShow (Just x) = (T.pack . show) x
-
+-}
