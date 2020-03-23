@@ -100,7 +100,7 @@ bodyNav :: MonadWidget t m => m (Event t Nav)
 bodyNav = do
   elClass "nav" "navbar topNav" $ do
     container $ mdo
-      dynToggleTopNav <- toggle False evToggleTopNav
+      dynToggleTopNav <- toggle False $ leftmost [evToggleTopNav, () <$ evNav]
       evToggleTopNav <- elClass "div" "navbar-brand" $ do
         elClass "a" "navbar-item" $ -- href="../">
           el "h1" $ text "HCITE"
@@ -112,7 +112,7 @@ bodyNav = do
 --        </div>
 --      </div>
 --    </div>
-      elDynAttr "div" (activateDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
+      evNav <- elDynAttr "div" (activateDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
         let (navMenuStart,(navMenuRegister:navMenuLogin:_)) = splitAt 7 navMenu
         (evNavStart :: [Event t ()]) <- elClass "div" "navbar-start" $ do
           mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t) $ navMenuStart
@@ -133,6 +133,7 @@ bodyNav = do
                   el "span" $ text navMenuLogin
               return $ [evNavR0,evNavR1]
         return $ fmap toEnum $ leftmost $ zipWith (<$) [0..] $ evNavStart ++ evNavEnd
+      return evNav
 
   {- not needed
   <nav class="navbar is-white">
@@ -462,6 +463,8 @@ pageNotification = do
 
 data Modal = ModalSimple | ModalCard deriving Show
 
+
+
 body :: MonadWidget t m => m ()
 body  = mdo
   {-
@@ -480,35 +483,22 @@ body  = mdo
   dynNav <- holdDyn Home evNav
 --  display dynUnimplemented
 --  display dynNav
-  (evRefList :: Event t (Maybe [SimpleRef])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetList 1 ) <$ evStart
-  dynRefList <- holdDyn Nothing evRefList
 
-  bodySectionHome dynRefList
+  let xx = False
+  if xx then bodySectionUnimplemented
+        else do
+          let evHome = ffilter (== Home) evNav
+          (evRefList :: Event t (Maybe [SimpleRef])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetList 1 ) <$ leftmost [evHome, Home <$ evStart]
+          dynRefList <- holdDyn Nothing evRefList
+
+          bodySectionHome dynRefList
 
   bodyFooter
-
-  --evModal <- toButton "button" mempty $ text "showModal"
-
+  {-
   let evModal = () <$ evUnimplemented  -- leftmost $ [() <$ evUnimplemented,evStart]
   (_, evModalClose) <- modal evModal $ do -- pageNotification
       box $ text "this is a box in modal"
-
---  bodyModal ModalSimple pageNotification
---  bodyModal evModal ModalSimple pageNotification
-
-
-
-    {-
-  let evCode = tagPromptlyDyn (value dd) $ leftmost [ () <$ _dropdown_change dd, evStart]
-  evRsp <- getAndDecode $ buildReq <$> evCode
-  -- Check on HTML response code and remember state.
---  let (evOk, evErr) = checkXhrRsp' evRsp
---  dynPage <- foldDyn ($) PageData $ leftmost [const PageData <$ evOk, const PageError <$ evErr]
-  dynPage <- foldDyn ($) PageData $ leftmost [const PageData <$ evRsp]
-  -- Create the 2 pages
-  pageData' evRsp dynPage
-  pageErr   evRsp dynPage
-  -}
+-}
   return ()
 
   {-
