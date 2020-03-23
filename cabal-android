@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+
+nix-shell -Q $DIR/default.nix -A android.frontend --add-root $DIR/dist-android/gc-roots/gc-root --indirect --run "cabal --project-file=$DIR/cabal-android.project --builddir=dist-android $(printf "%q " "$@")"
