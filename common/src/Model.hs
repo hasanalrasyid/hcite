@@ -113,7 +113,7 @@ data SimpleRef = SimpleRef { refSerial      :: Int
                            , refVolume      :: T.Text
                            , refPages       :: T.Text
                            , refPublisher   :: T.Text
-                           } deriving (Generic)
+                           } deriving (Generic,Show)
 
 instance ToJSON SimpleRef
 instance FromJSON SimpleRef

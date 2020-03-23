@@ -1,7 +1,9 @@
 v implement "Not yet Implemented"
 v implement links: but we need to remove it, because android and gtk cannot handle it well
+v implement Abstract dynamic
+implement pagedHome
+implement EditRecords
 implement Login
 implement Search
 implement Acknowledgements
 implement DetailedView
-implement EditRecords
