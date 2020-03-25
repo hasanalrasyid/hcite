@@ -7,7 +7,7 @@
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromJust,fromMaybe)
+import           Data.Maybe --(fromJust,fromMaybe)
 import           Data.Monoid ((<>))
 --import           Data.FileEmbed
 
@@ -22,6 +22,7 @@ import Model
 --import Language.Javascript.JSaddle.Types
 --import Control.Monad.IO.Class
 import Control.Monad
+import Control.Monad.Trans
 
 import Servant.Links
 
@@ -96,6 +97,16 @@ unimplementedWidget = mdo
 homeWidget :: MonadWidget t m => m (Event t Int) -- referenceSerial
 homeWidget = el "div" $ mdo
   text "homeWidget"
+  (evN, evNAction) <- newTriggerEvent
+  ePerform <- performEvent $ (\v -> liftIO $ evNAction v) <$> evN
+  let tGetList = mappend "http://192.168.43.175:300/" $ T.pack $ show $ linkURI $ jsonApiGetList 1
+  eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ tGetList <$ evN
+--    (mappend "http://192.168.43.175:300/" $ T.pack $ show $ linkURI $ jsonApiGetList 1)
+  {-
+  eeRefList <- dyn eRefList
+  eRefs <- switchHold never eeRefList -}
+  dRefList <- holdDyn Nothing eRefList
+  display dRefList
   eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
   eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
   return ( 1 <$ eEdit)
