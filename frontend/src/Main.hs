@@ -28,7 +28,7 @@ import Reflex.Bulmex.Modal
 import Reflex.Bulmex.Tag.Bulma
 
 import Proto hiding (main,headElement,body)
-import Home  hiding (main,headElement,body)
+import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
 
 main :: IO ()
 main = mainWidgetWithHead headElement body
@@ -55,6 +55,8 @@ headElement = do
 
 body :: MonadWidget t m => m ()
 body = mdo
+  eStart <- getPostBuild
+    {-
   eNav :: Event t Nav <- bodyNav
   let eHome = ffilter (== Home) eNav
   let eLogin = ffilter (== Login) eNav
@@ -66,12 +68,11 @@ body = mdo
 
   dNav <- holdDyn Home eNav
   display dNav
-
+  -}
   -- Builds up a `Dynamic` of widgets that return `Event t Text`:
   dWidget <- holdDyn homeWidget . leftmost $ [
-      homeWidget <$ eHome
-      loginWidget <$ eLogin
-    , unimplementedWidget <$ eUnimplemented
+      homeWidget <$ eStart
+    --, unimplementedWidget <$ eUnimplemented
     ]
 
 -- di sini, textWidget dan textWidget2 return Event t Int from referenceSerial.
@@ -95,7 +96,7 @@ body = mdo
   -- dText hanya untuk penguat saja. sapa tahu event perubahan ini diperlukan
   dText <- holdDyn "" . leftmost $ [
                "eText" <$  eDetail
-             , "eSwitch" <$ eNav
+             , "eSwitch" <$ eStart
              ]
 
   el "div" $
@@ -108,3 +109,51 @@ body = mdo
     text "Current page is: "
     dynText r
 -}
+
+homeWidget :: MonadWidget t m => m (Event t T.Text)
+homeWidget = do
+  r <- workflow homePage
+  display r
+  return $ updated r
+
+noPage :: (MonadWidget t m) => Workflow t m T.Text
+noPage = Workflow . el "div" $ do
+  el "div" $ text "No Page So Far"
+  e <- button "Home"
+  return ("noPage", homePage <$ e)
+
+homePage :: (MonadWidget t m) => Workflow t m T.Text
+homePage = Workflow $ do
+  eNav <- bodyNav
+  let eHome = ffilter (== Home) eNav
+  el "div" $ mdo
+    text "home"
+    eStart <- getPostBuild
+    let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
+    eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
+    dRefList <- holdDyn Nothing eRefList
+    --display dRefList
+    --eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
+
+    delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
+    let deEdit = fmap leftmost delEdit
+        eEdit = switchDyn deEdit
+    dEdit <- holdDyn 0 eEdit
+    let thePage = leftmost $ [detailPage dEdit <$ eEdit,homePage <$ eHome, noPage <$ eNav]
+    return ("HomePage", thePage)
+    --return ("HomePage", detailPage dEdit <$ eEdit)
+
+
+detailPage :: (MonadWidget t m) => Dynamic t Int -> Workflow t m T.Text
+detailPage dSerial = Workflow . el "div" $ do
+  el "div" $ text "You have arrived on page 3"
+  let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
+
+  eStart <- getPostBuild
+  display $ tGetSingle <$> dSerial
+  eRef :: Event t (Maybe Reference) <- getAndDecode $
+    tGetSingle <$> tag (current dSerial) eStart
+  display =<< holdDyn Nothing eRef
+  pg1 <- toButton "div" mempty $ text "Back"
+  return ("DetailPage", homePage <$ pg1)
+
