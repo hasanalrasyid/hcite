@@ -122,13 +122,21 @@ noPage = Workflow . el "div" $ do
   e <- button "Home"
   return ("noPage", homePage <$ e)
 
+loginPage :: (MonadWidget t m) => Workflow t m T.Text
+loginPage = Workflow . el "div" $ do
+  el "div" $ text "LoginPage"
+  e <- button "Home"
+  return ("LoginPage", homePage <$ e)
+
 homePage :: (MonadWidget t m) => Workflow t m T.Text
 homePage = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
+  let eLogin = ffilter (== Login) eNav
   el "div" $ mdo
     text "home"
     eStart <- getPostBuild
+
     let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
     eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
     dRefList <- holdDyn Nothing eRefList
@@ -139,7 +147,7 @@ homePage = Workflow $ do
     let deEdit = fmap leftmost delEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
-    let thePage = leftmost $ [detailPage dEdit <$ eEdit,homePage <$ eHome, noPage <$ eNav]
+    let thePage = leftmost $ [detailPage dEdit <$ eEdit,homePage <$ eHome, loginPage <$ eLogin, noPage <$ eNav]
     return ("HomePage", thePage)
     --return ("HomePage", detailPage dEdit <$ eEdit)
 
