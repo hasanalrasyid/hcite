@@ -86,20 +86,30 @@ textWidget,unimplementedWidget :: MonadWidget t m => m (Event t Int)
 textWidget = mdo
   eClick <- toButton "div" (constDyn ("class" =: "navbar-item")) $
     text "textWidget"
-  return (11 <$ eClick)
+  return (0 <$ eClick)
 
 
 unimplementedWidget = mdo
   eClick <- toButton "div" (constDyn ("class" =: "navbar-item")) $
     text "Unimplemented"
-  return (22 <$ eClick)
+  return (0 <$ eClick)
 
-homeWidget :: MonadWidget t m => Dynamic t Nav -> m (Event t Int) -- referenceSerial
-homeWidget dNav = el "div" $ mdo
+detailWidget dDetail = mdo
+  text "detailWidget"
+  el "hr" blank
+  display dDetail
+  eStart <- getPostBuild
+  let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
+  eRef :: Event t (Maybe Reference) <- getAndDecode $ updated $ tGetSingle <$> dDetail
+  display =<< holdDyn Nothing eRef
+  eEdit <- toButton "button" (constDyn mempty) $ text "Send"
+  return ( 0 <$ eEdit)
+
+homeWidget :: MonadWidget t m => m (Event t Int) -- referenceSerial
+homeWidget = el "div" $ mdo
   text "homeWidget"
 
   eStart <- getPostBuild
-  dHome <- holdDyn Nothing $ fmap Just $ leftmost [updated dNav, Home <$ eStart]
   let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
   eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
   dRefList <- holdDyn Nothing eRefList
@@ -110,7 +120,7 @@ homeWidget dNav = el "div" $ mdo
 -}
   eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
   eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
-  return ( 1 <$ eEdit)
+  return ( 32 <$ eEdit)
 
 
 body :: MonadWidget t m => m ()
@@ -123,31 +133,12 @@ body = mdo
   dUnimplemented <- holdDyn Nothing $ fmap Just eUnimplemented
   dCurrent <- holdDyn (Left Home) $ eCurrent
 
-  {-
-  dynText $ (T.pack . show) <$> dHome
-  dynText $ (T.pack . show) <$> dUnimplemented
-  dynText $ (T.pack . show) <$> dCurrent
-
-  eSwitch <- el "div" $
-    button "Switch"
-
-  dToggle <- toggle True eSwitch
-
-  let
-    eShow1  = ffilter id  . updated $ dToggle
-    eShow2  = ffilter not . updated $ dToggle
-
-  eTest <- homeWidget dNav
-  dTest <- holdDyn 1 eTest
-  display dTest
--}
-
   dNav <- holdDyn Home eNav
   display dNav
 
   -- Builds up a `Dynamic` of widgets that return `Event t Text`:
-  dWidget <- holdDyn (homeWidget dNav) . leftmost $ [
-      (homeWidget dNav) <$ eHome
+  dWidget <- holdDyn homeWidget . leftmost $ [
+      homeWidget <$ eHome
     , unimplementedWidget <$ eUnimplemented
     ]
 
@@ -163,13 +154,14 @@ body = mdo
 --
 
   -- Using `dyn` on this gives us an `Event t (Event t Text)`:
-  eeText <- dyn dWidget
-  -- and we can use `switchHold` to turn that into an `Event t Text`:
-  eText  <- switchHold never eeText
+  eeDetail <- dyn dWidget
+  -- and we can use `switchHold` to turn that into an `Event t Int`:
+  eDetail <- switchHold never eeDetail
+  dDetail <- holdDyn 0 eDetail
 
   -- dText hanya untuk penguat saja. sapa tahu event perubahan ini diperlukan
   dText <- holdDyn "" . leftmost $ [
-               "eText" <$  eText
+               "eText" <$  eDetail
              , "eSwitch" <$ eNav
              ]
 
