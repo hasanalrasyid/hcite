@@ -108,13 +108,14 @@ detailPage :: (MonadWidget t m) => Dynamic t Int -> Workflow t m T.Text
 detailPage dSerial = Workflow . el "div" $ do
   el "div" $ text "You have arrived on page 3"
   let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
+
   eStart <- getPostBuild
-  eRef :: Event t (Maybe Reference) <- getAndDecode $ tGetSingle 22 <$  eStart
-  --eRef :: Event t (Maybe Reference) <- getAndDecode $ tGetSingle 22 <$  eStart
-  display dSerial
+  display $ tGetSingle <$> dSerial
+  eRef :: Event t (Maybe Reference) <- getAndDecode $
+    tGetSingle <$> tag (current dSerial) eStart
   display =<< holdDyn Nothing eRef
-  pg1 <- button "Close"
-  return ("Home", homePage <$ pg1)
+  pg1 <- button "Back"
+  return ("DetailPage", homePage <$ pg1)
 homePage :: (MonadWidget t m) => Workflow t m T.Text
 homePage = Workflow . el "div" $ mdo
   text "home"
@@ -123,14 +124,10 @@ homePage = Workflow . el "div" $ mdo
   eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
   dRefList <- holdDyn Nothing eRefList
   display dRefList
-    {-
-  eeRefList <- dyn eRefList
-  eRefs <- switchHold never eeRefList
--}
   eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
   eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
-  dEdit <- holdDyn 0 $ 32 <$ eEdit
-  return ("Home", detailPage dEdit <$ eEdit)
+  dEdit <- holdDyn 0 $ 22 <$ eEdit
+  return ("HomePage", detailPage dEdit <$ eEdit)
 
 
 body :: MonadWidget t m => m ()
