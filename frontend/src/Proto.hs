@@ -491,7 +491,7 @@ body  = mdo
   if xx then bodySectionUnimplemented
         else do
           let evHome = ffilter (== Home) evNav
-          (evRefList :: Event t (Maybe [SimpleRef])) <- getAndDecode $ (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetList 1 ) <$ leftmost [evHome, Home <$ evStart]
+          (evRefList :: Event t (Maybe [SimpleRef])) <- getAndDecode $ (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1 ) <$ leftmost [evHome, Home <$ evStart]
           dynRefList <- holdDyn Nothing evRefList
 
           bodySectionHome dynRefList
@@ -503,6 +503,9 @@ body  = mdo
       box $ text "this is a box in modal"
 -}
   return ()
+
+serverBackend :: T.Text
+serverBackend = "http://127.0.0.1:3000/"
 
   {-
 pageData' :: (PostBuild t m, DomBuilder t m, MonadHold t m) => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()

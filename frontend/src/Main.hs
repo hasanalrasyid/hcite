@@ -94,19 +94,20 @@ unimplementedWidget = mdo
     text "Unimplemented"
   return (22 <$ eClick)
 
-homeWidget :: MonadWidget t m => m (Event t Int) -- referenceSerial
-homeWidget = el "div" $ mdo
+homeWidget :: MonadWidget t m => Dynamic t Nav -> m (Event t Int) -- referenceSerial
+homeWidget dNav = el "div" $ mdo
   text "homeWidget"
-  (evN, evNAction) <- newTriggerEvent
-  ePerform <- performEvent $ (\v -> liftIO $ evNAction v) <$> evN
-  let tGetList = mappend "http://192.168.43.175:300/" $ T.pack $ show $ linkURI $ jsonApiGetList 1
-  eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ tGetList <$ evN
---    (mappend "http://192.168.43.175:300/" $ T.pack $ show $ linkURI $ jsonApiGetList 1)
-  {-
-  eeRefList <- dyn eRefList
-  eRefs <- switchHold never eeRefList -}
+
+  eStart <- getPostBuild
+  dHome <- holdDyn Nothing $ fmap Just $ leftmost [updated dNav, Home <$ eStart]
+  let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
+  eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
   dRefList <- holdDyn Nothing eRefList
   display dRefList
+    {-
+  eeRefList <- dyn eRefList
+  eRefs <- switchHold never eeRefList
+-}
   eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
   eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
   return ( 1 <$ eEdit)
@@ -118,10 +119,9 @@ body = mdo
   let eHome = ffilter (== Home) eNav
       eUnimplemented = ffilter (/= Home) eNav
       eCurrent = leftmost [Right <$> eHome, Left <$> eUnimplemented]
-  dHome <- holdDyn Nothing $ fmap Just eHome
+
   dUnimplemented <- holdDyn Nothing $ fmap Just eUnimplemented
   dCurrent <- holdDyn (Left Home) $ eCurrent
-
 
   {-
   dynText $ (T.pack . show) <$> dHome
@@ -136,11 +136,18 @@ body = mdo
   let
     eShow1  = ffilter id  . updated $ dToggle
     eShow2  = ffilter not . updated $ dToggle
+
+  eTest <- homeWidget dNav
+  dTest <- holdDyn 1 eTest
+  display dTest
 -}
 
+  dNav <- holdDyn Home eNav
+  display dNav
+
   -- Builds up a `Dynamic` of widgets that return `Event t Text`:
-  dWidget <- holdDyn homeWidget . leftmost $ [
-      homeWidget <$ eHome
+  dWidget <- holdDyn (homeWidget dNav) . leftmost $ [
+      (homeWidget dNav) <$ eHome
     , unimplementedWidget <$ eUnimplemented
     ]
 
@@ -168,6 +175,7 @@ body = mdo
 
   el "div" $
     dynText dText
+
   {-
 
   r <- workflow page1
