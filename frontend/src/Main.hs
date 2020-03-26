@@ -137,19 +137,25 @@ homePage = Workflow . el "div" $ mdo
 dViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m (Event t Int)
 dViewArticle dRef = el "div" $ do
   dynText $ refTitle <$> dRef
+
   eAbstract <- button "Abstract"
   dToggleAbstract <- toggle True eAbstract
   let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
-  eAbstractT <- getAbstract3 eAbstractI
-  display =<< holdDyn "Init" eAbstractT
+  dAbstractI <- holdDyn (True,0) eAbstractI
+  eAbstractT <- getAbstract3 dAbstractI
+  elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dToggleAbstract) $ do
+    elClass "hr" "login-hr" blank
+    el "p" $ dynText =<< holdDyn "Init" eAbstractT
+
   eSerial <- toButton "div" mempty $
                 elClass "i" "fa fa-edit" $ blank
   let serial = refSerial <$> dRef
   return (tag (current serial) eSerial)
 
-getAbstract3 :: MonadWidget t m => Event t (Bool,Int) -> m (Event t T.Text)
-getAbstract3 e = do
-  e2 <- getAndDecode (absAddress <$> e)
+getAbstract3 :: MonadWidget t m => Dynamic t (Bool,Int) -> m (Event t T.Text)
+getAbstract3 d = do
+  let e1 = ffilter (not . fst) $ updated d
+  e2 <- getAndDecode (absAddress <$> e1)
   return $ cekR3 <$> e2
     where
       absAddress (_,i) = (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
