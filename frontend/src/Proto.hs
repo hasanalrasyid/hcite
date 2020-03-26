@@ -9,7 +9,7 @@ module Proto where
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromJust,fromMaybe)
+import           Data.Maybe (fromMaybe)
 import           Data.Monoid ((<>))
 --import           Data.FileEmbed
 
@@ -26,7 +26,6 @@ import Model
 
 import Servant.Links
 
-import Reflex.Bulmex.Modal
 import Reflex.Bulmex.Tag.Bulma
 
 main :: IO ()
@@ -190,7 +189,7 @@ bodySectionHome dynRefList = do
       elClass "div" "column" $ do -- "column is-9"
         elClass "div" "box content" $ do
           elAttr "img" ("src" =: "inc/img/DSC02084.JPG") blank
-          retDyn <- flip simpleList dynViewArticle $ fromMaybe [] <$> dynRefList
+          _ <- flip simpleList dynViewArticle $ fromMaybe [] <$> dynRefList
           blank
   blank
 
@@ -276,11 +275,6 @@ getAbstract2 e = do
       cekR3 Nothing = "Unavailable"
       cekR3 (Just a) = absAbstract a
       absAddress (_,(i,_)) = (mappend "http://192.168.43.175:3000/" $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
-      absAddress _ = "noURL"
-      cekR1 (False,_) = "FalseCek,NeedAbstract"
-      cekR1 (True,_) = "TrueCek,NoNeedAbstract"
-      cekR2 e (False,_) = "FalseCek,NeedAbstract2"
-      cekR2 e (True,_) = "TrueCek,NoNeedAbstract2"
   {-
 getAbstract2 False _ = pure  "UndefinedFalse"
 getAbstract2 True iSerial = pure "UndefinedTrue"
@@ -288,7 +282,6 @@ getAbstract2 True iSerial = pure "UndefinedTrue"
 
 getAbstract1 :: MonadWidget t m => Event t (Bool, (Int, ())) -> m (Event t T.Text)
 getAbstract1 evToggleSerialClick = do
-  dynToggleSerialClick <- holdDyn (False,(0,())) evToggleSerialClick
   a0 <- getAndDecode ( absAddress 37 <$ evToggleSerialClick)
   return $ genAbstract <$> a0
     where
@@ -482,10 +475,6 @@ body  = mdo
 
   (evNav :: Event t Nav) <- bodyNav
 
-  let evUnimplemented =  ffilter (\e -> notElem e navMenuImplemented) evNav -- (flip notElem) navMenuImplemented <$> evNav
-  dynNav <- holdDyn  Home evNav
---  display dynUnimplemented
---  display dynNav
 
   let xx = False
   if xx then bodySectionUnimplemented
