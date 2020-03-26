@@ -183,9 +183,10 @@ body = mdo
 
 -- di sini, textWidget dan textWidget2 return Event t Int from referenceSerial.
 -- Sebab isi textWidget* adalah:
--- 1. HomePage
+-- v. HomePage
 -- 2. LoginPage
--- 3. DetailPage (bisa edited bisa static)
+-- v. DetailPage (bisa static)
+-- 3. DetailPage (bisa edited)
 -- 4. DetailedSearchPage
 -- 5. SearchResultPage (seperti HomePage tapi dengan content yang berbeda)
 -- 6. ImportPage (ini yang paling penting sebenarnya)
