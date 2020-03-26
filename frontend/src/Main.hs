@@ -116,6 +116,7 @@ detailPage dSerial = Workflow . el "div" $ do
   display =<< holdDyn Nothing eRef
   pg1 <- button "Back"
   return ("DetailPage", homePage <$ pg1)
+
 homePage :: (MonadWidget t m) => Workflow t m T.Text
 homePage = Workflow . el "div" $ mdo
   text "home"
@@ -125,10 +126,21 @@ homePage = Workflow . el "div" $ mdo
   dRefList <- holdDyn Nothing eRefList
   display dRefList
   eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
-  eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
-  dEdit <- holdDyn 0 $ 22 <$ eEdit
+  --eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
+  --dEdit <- holdDyn 0 $ 22 <$ eEdit
+  delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
+  let deEdit = fmap leftmost delEdit
+      eEdit = switchDyn deEdit
+  dEdit <- holdDyn 0 eEdit
   return ("HomePage", detailPage dEdit <$ eEdit)
 
+dViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m (Event t Int)
+dViewArticle dRef = el "div" $ do
+  dynText $ refTitle <$> dRef
+  eSerial <- toButton "div" mempty $
+                elClass "i" "fa fa-edit" $ blank
+  let serial = refSerial <$> dRef
+  return (tag (current serial) eSerial)
 
 body :: MonadWidget t m => m ()
 body = mdo
