@@ -72,28 +72,19 @@ page3 = Workflow . el "div" $ do
   pg1 <- button "Start over"
   return ("Page 3", page1 <$ pg1)
 
-  {-
-pageHome :: MonadWidget t m => m ()
-pageHome = mdo
-  evStart <- getPostBuild
-  evRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $
-    (mappend "http://192.168.43.175:300/" $ T.pack $ show $ linkURI $ jsonApiGetList 1) <$ evStart
-  dynRefList <- holdDyn Nothing evRefList
-  display dynRefList
--}
-
-textWidget,unimplementedWidget :: MonadWidget t m => m (Event t Int)
+textWidget,unimplementedWidget :: MonadWidget t m => m (Event t T.Text)
 textWidget = mdo
   eClick <- toButton "div" (constDyn ("class" =: "navbar-item")) $
     text "textWidget"
-  return (0 <$ eClick)
+  return ("textWidget" <$ eClick)
 
 
 unimplementedWidget = mdo
   eClick <- toButton "div" (constDyn ("class" =: "navbar-item")) $
     text "Unimplemented"
-  return (0 <$ eClick)
+  return ("Unimplemented" <$ eClick)
 
+  {-
 detailWidget dDetail = mdo
   text "detailWidget"
   el "hr" blank
@@ -104,11 +95,29 @@ detailWidget dDetail = mdo
   display =<< holdDyn Nothing eRef
   eEdit <- toButton "button" (constDyn mempty) $ text "Send"
   return ( 0 <$ eEdit)
+-}
 
-homeWidget :: MonadWidget t m => m (Event t Int) -- referenceSerial
-homeWidget = el "div" $ mdo
-  text "homeWidget"
+homeWidget :: MonadWidget t m => m (Event t T.Text)
+homeWidget = mdo
+  r <- workflow homePage
+  display r
+  return $ updated r
 
+
+detailPage :: (MonadWidget t m) => Dynamic t Int -> Workflow t m T.Text
+detailPage dSerial = Workflow . el "div" $ do
+  el "div" $ text "You have arrived on page 3"
+  let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
+  eStart <- getPostBuild
+  eRef :: Event t (Maybe Reference) <- getAndDecode $ tGetSingle 22 <$  eStart
+  --eRef :: Event t (Maybe Reference) <- getAndDecode $ tGetSingle 22 <$  eStart
+  display dSerial
+  display =<< holdDyn Nothing eRef
+  pg1 <- button "Close"
+  return ("Home", homePage <$ pg1)
+homePage :: (MonadWidget t m) => Workflow t m T.Text
+homePage = Workflow . el "div" $ mdo
+  text "home"
   eStart <- getPostBuild
   let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
   eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
@@ -120,7 +129,8 @@ homeWidget = el "div" $ mdo
 -}
   eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
   eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
-  return ( 32 <$ eEdit)
+  dEdit <- holdDyn 0 $ 32 <$ eEdit
+  return ("Home", detailPage dEdit <$ eEdit)
 
 
 body :: MonadWidget t m => m ()
@@ -157,7 +167,7 @@ body = mdo
   eeDetail <- dyn dWidget
   -- and we can use `switchHold` to turn that into an `Event t Int`:
   eDetail <- switchHold never eeDetail
-  dDetail <- holdDyn 0 eDetail
+  dDetail <- holdDyn "" eDetail
 
   -- dText hanya untuk penguat saja. sapa tahu event perubahan ini diperlukan
   dText <- holdDyn "" . leftmost $ [
