@@ -124,23 +124,37 @@ homePage = Workflow . el "div" $ mdo
   let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
   eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
   dRefList <- holdDyn Nothing eRefList
-  display dRefList
-  eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
-  --eEdit <- toButton "button" (constDyn mempty) $ text "Edit"
-  --dEdit <- holdDyn 0 $ 22 <$ eEdit
+  --display dRefList
+  --eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
+
   delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
   let deEdit = fmap leftmost delEdit
       eEdit = switchDyn deEdit
   dEdit <- holdDyn 0 eEdit
+
   return ("HomePage", detailPage dEdit <$ eEdit)
 
 dViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m (Event t Int)
 dViewArticle dRef = el "div" $ do
   dynText $ refTitle <$> dRef
+  eAbstract <- button "Abstract"
+  dToggleAbstract <- toggle True eAbstract
+  let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
+  eAbstractT <- getAbstract3 eAbstractI
+  display =<< holdDyn "Init" eAbstractT
   eSerial <- toButton "div" mempty $
                 elClass "i" "fa fa-edit" $ blank
   let serial = refSerial <$> dRef
   return (tag (current serial) eSerial)
+
+getAbstract3 :: MonadWidget t m => Event t (Bool,Int) -> m (Event t T.Text)
+getAbstract3 e = do
+  e2 <- getAndDecode (absAddress <$> e)
+  return $ cekR3 <$> e2
+    where
+      absAddress (_,i) = (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
+      cekR3 Nothing = "Unavailable"
+      cekR3 (Just a) = absAbstract a
 
 body :: MonadWidget t m => m ()
 body = mdo
