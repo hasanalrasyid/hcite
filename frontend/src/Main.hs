@@ -123,7 +123,7 @@ homeWidget = do
   display r
   return $ updated r
 
-noPage :: (MonadWidget t m) => Dynamic t (Maybe Token) -> Workflow t m T.Text
+noPage :: (MonadWidget t m) => Dynamic t Env -> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   el "div" $ text "No Page So Far"
   display dEnv
@@ -146,7 +146,7 @@ loginPage dEnv = Workflow . el "div" $ do
   e <- button "Back"
   return ("LoginPage", homePage dEnv' <$ e)
 
-homePage :: MonadWidget t m => Dynamic t (Maybe Token) ->  Workflow t m T.Text
+homePage :: MonadWidget t m => Dynamic t Env ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
@@ -173,7 +173,7 @@ homePage dEnv = Workflow $ do
 
 type Env = Maybe Token
 
-detailPage :: (MonadWidget t m) => Dynamic t (Maybe Token) -> Dynamic t Int -> Workflow t m T.Text
+detailPage :: (MonadWidget t m) => Dynamic t Env -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
   display dEnv
   el "div" $ text "You have arrived on page 3"
