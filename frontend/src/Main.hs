@@ -8,7 +8,8 @@
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe --(fromJust,fromMaybe)
+import           Data.Maybe (fromMaybe)
+
 --import           Data.FileEmbed
 
 --import Data.Witherable
@@ -34,6 +35,7 @@ import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
 import Control.Monad.Reader
 import Control.Lens
 import Data.Default
+--import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
@@ -181,8 +183,6 @@ homePage dEnv = Workflow $ do
     return ("HomePage", thePage)
     --return ("HomePage", detailPage dEdit <$ eEdit)
 
-
-
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
   display (dEnv ^. auth)
@@ -192,8 +192,12 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
 
   eStart <- getPostBuild
   display $ tGetSingle <$> dSerial
-  eRef :: Event t (Maybe Reference) <- getAndDecode $
+  eRef1 :: Event t (Maybe Reference) <- getAndDecode $
     tGetSingle <$> tag (current dSerial) eStart
-  display =<< holdDyn Nothing eRef
+  let eRef = mapMaybe id eRef1
+  dRefs <- holdDyn [] $ (:[]) <$> eRef
+  eTitle <- inputElement $ def & inputElementConfig_setValue .~ (referenceTitle <$> eRef)
+  dynText $ value eTitle
+  display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
 
