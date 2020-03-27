@@ -3,6 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
@@ -31,9 +32,19 @@ import Proto hiding (main,headElement,body)
 import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
 
 import Control.Monad.Reader
+import Control.Lens
+import Data.Default
 
-initAuth :: T.Text
-initAuth = "nothing"
+data Env t = Env  { _history :: [String]
+                  , _auth :: Dynamic t (Maybe Token)
+               }
+
+$(makeLenses ''Env)
+
+instance Reflex t => Default (Env t) where
+  def = Env { _history = []
+            , _auth = constDyn Nothing
+            }
 
 main :: IO ()
 main = mainWidgetWithHead headElement body
@@ -118,22 +129,21 @@ body = mdo
 homeWidget :: MonadWidget t m => m (Event t T.Text)
 homeWidget = do
   eStart <- getPostBuild
-  dEnv <- holdDyn Nothing $ Nothing <$ eStart
-  r <- workflow $ homePage dEnv
+  r <- workflow $ homePage $ def
   display r
   return $ updated r
 
-noPage :: (MonadWidget t m) => Dynamic t Env -> Workflow t m T.Text
+noPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   el "div" $ text "No Page So Far"
-  display dEnv
+  display (dEnv ^. auth)
   e <- button "Home"
   return ("noPage", homePage dEnv <$ e)
 
-loginPage :: (MonadWidget t m) => Dynamic t Env -> Workflow t m T.Text
+loginPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 loginPage dEnv = Workflow . el "div" $ do
   el "div" $ text "LoginPage"
-  display dEnv
+  display (dEnv ^. auth)
   username <- textInput def
   password <- textInput def
 
@@ -142,18 +152,19 @@ loginPage dEnv = Workflow . el "div" $ do
         mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
   let dLoginReq = pure genLoginReq <*> value username <*> value password
   eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
-  dEnv' <- holdDyn Nothing eToken
+  dToken <- holdDyn Nothing eToken
+  let dEnv2 = dEnv & auth .~ dToken
   e <- button "Back"
-  return ("LoginPage", homePage dEnv' <$ e)
+  return ("LoginPage", homePage dEnv2 <$ e)
 
-homePage :: MonadWidget t m => Dynamic t Env ->  Workflow t m T.Text
+homePage :: MonadWidget t m => (Env t) ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
   let eLogin = ffilter (== Login) eNav
   el "div" $ mdo
     text "home"
-    display dEnv
+    display (dEnv ^. auth)
     eStart <- getPostBuild
 
     let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
@@ -171,11 +182,11 @@ homePage dEnv = Workflow $ do
     --return ("HomePage", detailPage dEdit <$ eEdit)
 
 
-type Env = Maybe Token
 
-detailPage :: (MonadWidget t m) => Dynamic t Env -> Dynamic t Int -> Workflow t m T.Text
+detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
-  display dEnv
+  display (dEnv ^. auth)
+  eBack <- toButton "div" mempty $ text "Back"
   el "div" $ text "You have arrived on page 3"
   let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
 
@@ -184,6 +195,5 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   eRef :: Event t (Maybe Reference) <- getAndDecode $
     tGetSingle <$> tag (current dSerial) eStart
   display =<< holdDyn Nothing eRef
-  pg1 <- toButton "div" mempty $ text "Back"
-  return ("DetailPage", homePage dEnv <$ pg1)
+  return ("DetailPage", homePage dEnv <$ eBack)
 
