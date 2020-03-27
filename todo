@@ -3,7 +3,7 @@ v implement links: but we need to remove it, because android and gtk cannot hand
 v implement Abstract dynamic
 implement pagedHome
 implement EditRecords
-implement Login
+implement Login, tinggal pakai token untuk post data
 implement Search
 implement Acknowledgements
-implement DetailedView
+v implement DetailedView with editing onClick at the field
