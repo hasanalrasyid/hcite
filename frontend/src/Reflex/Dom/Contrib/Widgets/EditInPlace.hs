@@ -30,7 +30,10 @@ import           Reflex.Dom.Contrib.Utils
 import Control.Lens
 import Data.Default
 ------------------------------------------------------------------------------
-
+import JSDOM.Element
+import JSDOM.Types (liftDOM,MonadJSM(..))
+import Control.Monad (void)
+import Language.Javascript.JSaddle (jsf)
 
 ------------------------------------------------------------------------------
 data EditState = Viewing
@@ -98,6 +101,9 @@ data SheetEditEvent = NameChange Text
                     | EditClose
   deriving (Read,Show,Eq,Ord)
 
+focus :: (IsElement self, MonadJSM m) => self -> m ()
+focus self =
+  liftDOM $ void $ (toElement self) ^. jsf ("focus" :: String) ()
 
 ------------------------------------------------------------------------------
 editor
@@ -113,6 +119,8 @@ editor name = mdo
     -}
   w <- inputElement $ def & inputElementConfig_setValue .~ (tagPromptlyDyn name pb)
   pb <- getPostBuild
+  performEvent_ $ ffor pb $ \_ -> do
+    focus $ _element_raw $ _inputElement_element w
   let eEnter = ffilter (==13) $ domEvent Keypress w
   let eEsc   = ffilter (==27) $ domEvent Keypress w
 
