@@ -55,7 +55,10 @@ editInPlace
     -> m (Event t Text)
     -- ^ Event that fires when the text is edited
 editInPlace active val = do
-    rec editState <- holdDyn Viewing $ leftmost
+    rec
+        let startEditing = fmapMaybe id $
+              (\a -> if a then Just Editing else Nothing) <$> selActive
+        editState <- holdDyn Viewing $ leftmost
           [ fmapMaybe id $ attachWith
               (\c n -> if c == Editing then Nothing else Just n)
               (current editState) startEditing
@@ -65,8 +68,6 @@ editInPlace active val = do
           de <- widgetHoldHelper (chooser val) Viewing (updated editState)
           return $ switch $ current de
         let selActive = tag active $ domEvent Click e
-        let startEditing = fmapMaybe id $
-              (\a -> if a then Just Editing else Nothing) <$> selActive
     return $ fmapMaybe e2maybe sheetEdit
 
 ------------------------------------------------------------------------------
@@ -103,8 +104,7 @@ editor
     :: (MonadWidget t m)
     => Dynamic t Text
     -> m (Event t SheetEditEvent)
-editor name = do
-  pb <- getPostBuild
+editor name = mdo
     {-
   (e,w) <- htmlTextInput' "text" $ WidgetConfig
     (tagPromptlyDyn name pb) "" (constDyn mempty)
@@ -112,12 +112,17 @@ editor name = do
     liftIO $ focus e
     -}
   w <- inputElement $ def & inputElementConfig_setValue .~ (tagPromptlyDyn name pb)
+  pb <- getPostBuild
+  let eEnter = ffilter (==13) $ domEvent Keypress w
+  let eEsc   = ffilter (==27) $ domEvent Keypress w
+
   let acceptEvent = leftmost
-        [ -- () <$ ffilter (==13) (_inputElement_input w) ,
-          () <$ ffilter not (updated $ _inputElement_hasFocus w)
+        [ () <$ eEnter -- () <$ ffilter (==13) (_inputElement_input w) ,
+        , () <$ ffilter not (updated $ _inputElement_hasFocus w)
         ]
   return $ leftmost
-    [ NameChange <$> tag (current $ _inputElement_value w) acceptEvent
+    [ EditClose <$ eEsc
+    , NameChange <$> tag (current $ _inputElement_value w) acceptEvent
     --, EditClose <$ ffilter (==27) (_inputElement_input w)
     , EditClose <$ ffilter  not (updated $ _inputElement_hasFocus w)
     ]
