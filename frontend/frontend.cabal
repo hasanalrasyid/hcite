@@ -20,6 +20,8 @@ executable frontend
   other-modules:
     Proto
     Home
+    Reflex.Dom.Contrib.Utils Reflex.Dom.Contrib.Widgets.EditInPlace
+
   -- other-extensions:
   default-extensions:
     FlexibleInstances

@@ -181,7 +181,6 @@ homePage dEnv = Workflow $ do
     dEdit <- holdDyn 0 eEdit
     let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
-    --return ("HomePage", detailPage dEdit <$ eEdit)
 
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
