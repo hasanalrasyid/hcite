@@ -30,6 +30,11 @@ import Reflex.Bulmex.Tag.Bulma
 import Proto hiding (main,headElement,body)
 import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
 
+import Control.Monad.Reader
+
+initAuth :: T.Text
+initAuth = "nothing"
+
 main :: IO ()
 main = mainWidgetWithHead headElement body
 
@@ -82,7 +87,7 @@ body = mdo
 -- v. DetailPage (bisa static)
 -- 3. DetailPage (bisa edited)
 -- 4. DetailedSearchPage
--- 5. SearchResultPage (seperti HomePage tapi dengan content yang berbeda)
+-- 5. SearchResultPage (seperti HomePage tapi content yang berbeda)
 -- 6. ImportPage (ini yang paling penting sebenarnya)
 --
 --
@@ -112,32 +117,43 @@ body = mdo
 
 homeWidget :: MonadWidget t m => m (Event t T.Text)
 homeWidget = do
-  r <- workflow homePage
+  eStart <- getPostBuild
+  dEnv <- holdDyn Nothing $ Nothing <$ eStart
+  r <- workflow $ homePage dEnv
   display r
   return $ updated r
 
-noPage :: (MonadWidget t m) => Workflow t m T.Text
-noPage = Workflow . el "div" $ do
+noPage :: (MonadWidget t m) => Dynamic t (Maybe Token) -> Workflow t m T.Text
+noPage dEnv = Workflow . el "div" $ do
   el "div" $ text "No Page So Far"
+  display dEnv
   e <- button "Home"
-  return ("noPage", homePage <$ e)
+  return ("noPage", homePage dEnv <$ e)
 
-loginPage :: (MonadWidget t m) => Workflow t m T.Text -> Workflow t m T.Text
-loginPage asal = Workflow . el "div" $ do
+loginPage :: (MonadWidget t m) => Dynamic t Env -> Workflow t m T.Text
+loginPage dEnv = Workflow . el "div" $ do
   el "div" $ text "LoginPage"
+  display dEnv
   username <- textInput def
   password <- textInput def
-  eSend <- button "Submit"
-  e <- button "Back"
-  return ("LoginPage", asal <$ e)
 
-homePage :: (MonadWidget t m) => Workflow t m T.Text
-homePage = Workflow $ do
+  eSend <- button "Submit"
+  let genLoginReq u p =
+        mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
+  let dLoginReq = pure genLoginReq <*> value username <*> value password
+  eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
+  dEnv' <- holdDyn Nothing eToken
+  e <- button "Back"
+  return ("LoginPage", homePage dEnv' <$ e)
+
+homePage :: MonadWidget t m => Dynamic t (Maybe Token) ->  Workflow t m T.Text
+homePage dEnv = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
   let eLogin = ffilter (== Login) eNav
   el "div" $ mdo
     text "home"
+    display dEnv
     eStart <- getPostBuild
 
     let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
@@ -150,13 +166,16 @@ homePage = Workflow $ do
     let deEdit = fmap leftmost delEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
-    let thePage = leftmost $ [detailPage dEdit <$ eEdit,homePage <$ eHome, loginPage homePage <$ eLogin, noPage <$ eNav]
+    let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
     --return ("HomePage", detailPage dEdit <$ eEdit)
 
 
-detailPage :: (MonadWidget t m) => Dynamic t Int -> Workflow t m T.Text
-detailPage dSerial = Workflow . el "div" $ do
+type Env = Maybe Token
+
+detailPage :: (MonadWidget t m) => Dynamic t (Maybe Token) -> Dynamic t Int -> Workflow t m T.Text
+detailPage dEnv dSerial = Workflow . el "div" $ do
+  display dEnv
   el "div" $ text "You have arrived on page 3"
   let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
 
@@ -166,5 +185,5 @@ detailPage dSerial = Workflow . el "div" $ do
     tGetSingle <$> tag (current dSerial) eStart
   display =<< holdDyn Nothing eRef
   pg1 <- toButton "div" mempty $ text "Back"
-  return ("DetailPage", homePage <$ pg1)
+  return ("DetailPage", homePage dEnv <$ pg1)
 

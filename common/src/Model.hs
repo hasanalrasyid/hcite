@@ -118,6 +118,9 @@ data SimpleRef = SimpleRef { refSerial      :: Int
 instance ToJSON SimpleRef
 instance FromJSON SimpleRef
 
+data Token = Token { token :: T.Text } deriving (Generic,Show)
+instance FromJSON Token
+
 data Abstract = Abstract { absSerial   :: Int
                          , absAbstract :: T.Text
                          } deriving (Generic,Show)
