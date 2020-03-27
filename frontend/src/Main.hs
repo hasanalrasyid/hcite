@@ -35,7 +35,7 @@ import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
 import Control.Monad.Reader
 import Control.Lens
 import Data.Default
---import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
+import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
@@ -196,8 +196,14 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
     tGetSingle <$> tag (current dSerial) eStart
   let eRef = mapMaybe id eRef1
   dRefs <- holdDyn [] $ (:[]) <$> eRef
-  eTitle <- inputElement $ def & inputElementConfig_setValue .~ (referenceTitle <$> eRef)
-  dynText $ value eTitle
+  --let dRef = headBlank <$> dRefs
+  --eTitle <- inputElement $ def & inputElementConfig_setValue .~ (referenceTitle <$> eRef)
+  --dynText $ value eTitle
+  dTitle <- holdDyn "TITLE_BLANK" $ referenceTitle <$> mapMaybe id eRef1
+  eTitle <- editInPlace (constant True) dTitle -- $ (referenceTitle <$> dRef)
+--  display =<< holdDyn "eTitleHold" eTitle
+  el "hr" blank
+  display =<< holdDyn "eTitleHold" eTitle
+  el "hr" blank
   display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
-
