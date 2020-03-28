@@ -11,8 +11,8 @@ module Server(
   ) where
 
 import Control.Monad.IO.Class
-import Control.Monad.Logger
-import Data.Proxy
+--import Control.Monad.Logger
+--import Data.Proxy
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.RequestLogger
@@ -27,10 +27,10 @@ import Monad hiding (newServerEnv)
 import Auth.Monad
 
 import Servant
-import qualified Data.Map as Map
+--import qualified Data.Map as Map
 --import qualified Lucid as L
 
-import Action
+--import Action
 import Model
 import Routing
 --import View
@@ -39,7 +39,7 @@ import Routing
 
 --import Html
 
-import Network.HTTP.Types
+--import Network.HTTP.Types
 
 import Database.Persist
 
@@ -73,10 +73,13 @@ notFoundHtml _ respond =
         L.renderBS $ L.toHtml (HtmlPage notFoundPage)
 -}
 
+exampleImpl :: ServerEnv -> Server ExampleAPI
 exampleImpl e = hoistServer exampleApi (runServerM e) exampleServer
 
+authImpl :: ServerEnv -> Server AuthAPI
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
+jsonImpl :: ServerEnv -> Server JsonApi
 jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e :<|> putRecordById e :<|> putRecordFieldById e
 
 getRecord e i = do
