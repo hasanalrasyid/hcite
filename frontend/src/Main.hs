@@ -201,8 +201,11 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   dTitle <- holdDyn "TITLE_BLANK" $ referenceTitle <$> mapMaybe id eRef1
   eTitle <- editInPlace (constant True) dTitle -- $ (referenceTitle <$> dRef)
 --  display =<< holdDyn "eTitleHold" eTitle
+
   el "hr" blank
   display =<< holdDyn "eTitleHold" eTitle
   el "hr" blank
   display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
+  where
+    buildPostEdit serial field content = XhrRequest "POST" (serverBackend <> T.pack . show . linkURI . jsonApiPutField serial field content )

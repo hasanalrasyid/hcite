@@ -77,7 +77,7 @@ exampleImpl e = hoistServer exampleApi (runServerM e) exampleServer
 
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
-jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e :<|> putRecordById e
+jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e :<|> putRecordById e :<|> putRecordFieldById e
 
 getRecord e i = do
   p <- withDB e $ selectList [ ReferenceSerial ==. i ] []
@@ -97,6 +97,9 @@ putRecordById e i p = do
   withDB e $ do
     p0 <- selectList [ ReferenceSerial ==. i ] [LimitTo 1]
     repsert (entityKey $ head p0) p
+  return NoContent
+
+putRecordFieldById e i f c = do
   return NoContent
 
 -- | Implementation of main server API

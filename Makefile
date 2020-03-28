@@ -9,3 +9,7 @@ build:
 	nix-build -o android-frontend-result -A android.frontend --verbose
 js:
 	nix-build -o js-frontend-result -A ghcjs.frontend --verbose
+front:
+	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl frontend"'
+back:
+	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl backend"'
