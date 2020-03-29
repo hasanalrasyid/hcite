@@ -47,7 +47,7 @@ import qualified Data.Text as T
 
 import Data.Maybe (fromMaybe)
 import Servant.Multipart
-import qualified Data.ByteString.Lazy as LBS
+import qualified Data.ByteString.Lazy.Char8 as LBS
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -92,14 +92,18 @@ guardedJsonImpl :: ServerEnv -> Server GuardedJsonBackendApi
 guardedJsonImpl e =
   hoistServer guardedJsonBackendApi (runServerM e) guardedServer
 
+getRecord :: MonadIO m => ServerEnv -> Int -> m Reference
 getRecord e i = do
   p <- withDBEnv e $ selectList [ ReferenceSerial ==. i ] []
   return $ entityVal $ head p
 
+getAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> f b
 getAbstract e i = fromReference <$> getRecord e i
 
+resPerPage :: Int
 resPerPage = 5
 
+getRecords :: (FromReference b, MonadIO f) => ServerEnv -> Int -> f [b]
 getRecords e iPage = do
   p <- withDBEnv e $ selectList [] [ LimitTo resPerPage
                                 , OffsetBy $ (iPage - 1) * resPerPage ]
@@ -114,7 +118,7 @@ putRecordById e i p = do
 -}
 
 -- | Implementation of main server API
---exampleServer :: ServerT ExampleAPI ServerM
+exampleServer :: ServerT ExampleAPI ServerM
 exampleServer = testEndpoint
 
 guardedServer :: ServerT GuardedJsonBackendApi ServerM
@@ -135,13 +139,13 @@ putRecordByFile token multipartData = do
 putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
 putRecordById token serial ref = do
   runAuth $ guardAuthToken token
-  liftIO $ putStrLn $ "putRecordById " ++ show serial
+  liftIO $ putStrLn $ "putRecordById " ++ show serial ++ "/" ++ show ref
   return NoContent
 
 putRecordFieldById :: MToken' '["_session"] -> Int -> T.Text -> T.Text -> ServerM NoContent
 putRecordFieldById token serial f c = do
   runAuth $ guardAuthToken token
-  liftIO $ putStrLn $ "putRecordFieldById " ++ show serial
+  liftIO $ putStrLn $ "putRecordFieldById " ++ show serial ++ show f ++ show c
   return NoContent
 
 testEndpoint :: MToken' '["test-permission"] -> ServerM [SimpleRef]
@@ -154,6 +158,7 @@ testEndpoint token = do
   liftIO $ putStrLn $ "testEndpoint"
   return $ map (fromReference . entityVal) p
 
+staticFiles :: MonadIO m => Tagged m Application
 staticFiles = serveDirectoryFileServer "static"
 
   {-

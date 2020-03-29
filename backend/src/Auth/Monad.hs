@@ -14,11 +14,12 @@ module Auth.Monad(
 
 import Control.Monad.Base
 import Control.Monad.Catch (MonadCatch, MonadThrow)
-import Control.Monad.Except
+import Control.Monad.Except (MonadError,ExceptT(..))
+
 import Control.Monad.Logger
 import Control.Monad.Reader
 import Control.Monad.Trans.Control
-import Data.Monoid
+--import Data.Monoid
 import Database.Persist.Sql
 import Servant.Server
 import Servant.Server.Auth.Token.Config
@@ -29,7 +30,7 @@ import qualified Servant.Server.Auth.Token.Persistent.Schema as S
 
 import Config
 
-import Servant.API.Auth.Token (AuthAPI(..))
+import Servant.API.Auth.Token
 import Servant.Server.Auth.Token (authServer)
 
 -- | Server private environment
@@ -111,5 +112,5 @@ authServerM :: ServerT AuthAPI AuthM
 authServerM = authServer
 
 runAuthM :: ServerEnv -> AuthM a -> Handler a
-runAuthM e@(ServerEnv _ cfg pool) = do
+runAuthM (ServerEnv _ cfg pool) = do
   Handler . ExceptT . ( runPersistentBackendT cfg pool ) . unAuthM

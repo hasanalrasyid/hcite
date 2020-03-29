@@ -5,7 +5,6 @@ module Monad(
   ) where
 
 import Control.Monad.Reader
-import Control.Monad.Except
 import Database.Persist.Sql
 
 import Config
@@ -16,14 +15,18 @@ import qualified Model as M
 -- | Create new server environment
 newServerEnv :: MonadIO m => ServerConfig -> m AM.ServerEnv
 newServerEnv cfg = do
-  env@(AM.ServerEnv _ _ pool) <- AM.newServerEnv cfg
+  env <- AM.newServerEnv cfg
   if (initDB cfg) then withDBEnv env $ runMigration M.migrateRefs
                   else return ()
   return env
 
+withDB :: (MonadReader AM.ServerEnv m, MonadIO m)
+       => ReaderT SqlBackend IO b -> m b
 withDB q = do
   pool <- asks AM.envPool
   liftIO $ runSqlPool q pool
 
+withDBEnv :: MonadIO m
+       => AM.ServerEnv -> ReaderT SqlBackend IO a -> m a
 withDBEnv (AM.ServerEnv _ _ pool) q = do
   liftIO $ flip runSqlPool pool q
