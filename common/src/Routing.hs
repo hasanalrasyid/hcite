@@ -9,6 +9,7 @@ import           Servant.Utils.Links
 import           Action
 import           Model
 import qualified Data.Text as T
+import Servant.Multipart
 
 --type TopRoute = View Action
 
@@ -23,12 +24,13 @@ type GuardedJsonApi =
     "api" :> "record" :> (
              Capture "ident" Int :> ReqBody '[JSON] Reference :> Put '[JSON] NoContent
         :<|> Capture "ident" Int :> Capture "field" T.Text :> Capture "content" T.Text :> Put '[JSON] NoContent
+        :<|> MultipartForm Mem (MultipartData Mem) :> Put '[JSON] NoContent
      )
 
 (jsonApiGetList :<|> jsonApiGetAbstract :<|> jsonApiGetSingle) = allLinks (Proxy :: Proxy JsonApi)
 
 
-(jsonApiPutSingle :<|> jsonApiPutSingleField) = allLinks (Proxy :: Proxy GuardedJsonApi)
+(jsonApiPutSingle :<|> jsonApiPutSingleField :<|> jsonApiPutFile) = allLinks (Proxy :: Proxy GuardedJsonApi)
 
   {-
 listLink :: URI

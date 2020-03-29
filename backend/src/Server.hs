@@ -45,7 +45,9 @@ import Database.Persist
 import Network.Wai.Middleware.Cors
 import qualified Data.Text as T
 
-import Data.Bifunctor (bimap)
+import Data.Maybe (fromMaybe)
+import Servant.Multipart
+import qualified Data.ByteString.Lazy as LBS
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -90,8 +92,6 @@ guardedJsonImpl :: ServerEnv -> Server GuardedJsonBackendApi
 guardedJsonImpl e =
   hoistServer guardedJsonBackendApi (runServerM e) guardedServer
 
-jsonImplAuth e = getRecord e  -- :<|> putRecordById e :<|> putRecordFieldById e
-
 getRecord e i = do
   p <- withDBEnv e $ selectList [ ReferenceSerial ==. i ] []
   return $ entityVal $ head p
@@ -118,7 +118,19 @@ putRecordById e i p = do
 exampleServer = testEndpoint
 
 guardedServer :: ServerT GuardedJsonBackendApi ServerM
-guardedServer token = (putRecordById token :<|> putRecordFieldById token)
+guardedServer token = ( putRecordById token
+                   :<|> putRecordFieldById token
+                   :<|> putRecordByFile token
+                      )
+
+putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM NoContent
+putRecordByFile token multipartData = do
+  runAuth $ guardAuthToken token
+  --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
+  let fInput = fromMaybe "NoPayload" $ fmap fdPayload $ lookupFile "bib" multipartData
+  liftIO $ LBS.putStrLn fInput
+  -- Tinggal diproses untuk memasukkan fInput ke dalam
+  return NoContent
 
 putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
 putRecordById token serial ref = do

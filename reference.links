@@ -1,2 +1,3 @@
 https://qfpl.io/posts/reflex/basics/switching/
 https://stackoverflow.com/questions/41399055/haskell-yesod-cors-problems-with-browsers-options-requests-when-doing-post-req
+http://hackage.haskell.org/package/reflex-dom-core-0.5.3/docs/Reflex-Dom-Xhr-FormData.html

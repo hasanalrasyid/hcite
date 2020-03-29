@@ -28,3 +28,5 @@ signout:
 ╰─$ curl -X PUT -H "Authorization:5ca39879-2eb1-4faa-80a0-9e90f777755b" localhost:3000/api/record/66
 ╰─$ curl -X PUT -H "Authorization:5ca39879-2eb1-4faa-80a0-9e90f777755b" localhost:3000/api/record/66/year/12345
 
+╰─$ curl -X PUT -H "Authorization: $TOKEN" -F bib=@sample/fileSample.bib localhost:3000/api/record
+

@@ -32,6 +32,7 @@ library
                      , persistent-template
                      , network-uri
                      , servant
+                     , servant-multipart
 
   hs-source-dirs:      src
   default-language:    Haskell2010

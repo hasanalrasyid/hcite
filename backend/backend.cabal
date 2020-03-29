@@ -144,6 +144,7 @@ executable backend
                      , warp
                      , optparse-applicative
                      , wai-cors
+                     , servant-multipart
 
   hs-source-dirs:
     app
