@@ -132,7 +132,7 @@ genRecord (Cons e i f) = do
                 Nothing -- "doi                 "
                 Nothing -- "conference          "
                 Nothing -- "url                 "
-                ( "FMIPA-ITB @ admin @ " <> Tx.pack i ) -- "callNumber          "
+                ( Tx.pack i ) -- "callNumber          "
                 "" -- "location            "
                 Nothing -- "contributionId      "
                 "no" -- "onlinePublication   "
