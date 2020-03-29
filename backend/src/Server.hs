@@ -47,7 +47,9 @@ import qualified Data.Text as T
 
 import Data.Maybe (fromMaybe)
 import Servant.Multipart
-import qualified Data.ByteString.Lazy.Char8 as LBS
+--import qualified Data.ByteString.Lazy.Char8 as LBS
+import Filler
+
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -132,7 +134,9 @@ putRecordByFile token multipartData = do
   runAuth $ guardAuthToken token
   --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
   let fInput = fromMaybe "NoPayload" $ fmap fdPayload $ lookupFile "bib" multipartData
-  liftIO $ LBS.putStrLn fInput
+  bibRecords <- liftIO $ readRecords fInput
+  liftIO $ putStrLn $ show bibRecords
+  _ <- withDB $ insertMany bibRecords
   -- Tinggal diproses untuk memasukkan fInput ke dalam
   return NoContent
 

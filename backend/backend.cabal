@@ -23,6 +23,7 @@ executable backend
     Config
     Monad
     Server
+    Filler
 
 --    Servant.API.Auth.Token
 --    Servant.API.Auth.Token.Internal.DeriveJson
@@ -145,6 +146,11 @@ executable backend
                      , optparse-applicative
                      , wai-cors
                      , servant-multipart
+
+                     , bibtex
+                     , parsec
+                     , regex-compat
+                     , split
 
   hs-source-dirs:
     app

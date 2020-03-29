@@ -15,12 +15,12 @@
 -- | Taken from http://www.yesodweb.com/book/persistent.
 module Filler where
 
-import           Control.Monad.IO.Class  (liftIO)
-import           Control.Monad.Logger    (runNoLoggingT,runStdoutLoggingT,runStderrLoggingT)
-import           Database.Persist
+--import           Control.Monad.IO.Class  (liftIO)
+--import           Control.Monad.Logger    (runNoLoggingT,runStdoutLoggingT,runStderrLoggingT)
+--import           Database.Persist
 import           Database.Persist.MySQL
-import           Database.Persist.TH
-import           Control.Monad (void,forM_)
+--import           Database.Persist.TH
+--import           Control.Monad (void,forM_)
 import qualified Text.BibTeX.Parse as B1
 import Text.BibTeX.Entry
 import Text.Regex
@@ -28,10 +28,10 @@ import           Text.Parsec.Prim hiding ((<|>))
 import Text.Parsec
 import Data.Time
 import Data.Maybe
-import Data.List.Split
-import Control.Concurrent
-import qualified Data.ByteString.Char8 as B
-import Data.Text.Encoding
+--import Data.List.Split
+--import Control.Concurrent
+import qualified Data.ByteString.Lazy.Char8 as B
+--import Data.Text.Encoding
 import qualified Data.Text as Tx
 import System.Environment (getArgs)
 
@@ -45,6 +45,17 @@ connectionInfo :: MySQLConnectInfo
 --             = mkMySQLConnectInfo host        user   password   database
 connectionInfo = setMySQLConnectInfoCharset 45 $ mkMySQLConnectInfo "localhost" "test" "test"     "example"
 
+readRecords :: B.ByteString -> IO [Reference]
+readRecords bibFile = do
+  let bib = fromMaybe [] $ parseBib "bibtex" (B.unpack bibFile) :: [T]
+--  let (Cons _ _ fBib) = head bib
+  putStrLn $ show $ length bib
+  mapM genRecord bib
+  --putStrLn $ show $ length bibRecs
+
+-- test4 = " @article{Armada_2007, title={A modified finite-lived American exchange option methodology applied to real options valuation}, volume={17}, ISSN={1044-0283}, url={http://dx.doi.org/10.1016/j.gfj.2006.05.006}, DOI={10.1016/j.gfj.2006.05.006}, number={3}, journal={Global Finance Journal}, publisher={Elsevier BV}, author={Armada, Manuel Rocha and Kryzanowski, Lawrence and Pereira, Paulo Jorge}, year={2007}, month={Mar}, pages={419\8211\&438}}\n"
+
+--  insertToDb bibRecs
 
 fillDB :: IO ()
 fillDB = do
@@ -52,7 +63,7 @@ fillDB = do
   (fBib:_) <- getArgs
   bibFile <- B.readFile fBib
   let bib = fromMaybe [] $ parseBib "bibtex" (B.unpack bibFile) :: [T]
-  let (Cons _ _ fBib) = head bib
+--  let (Cons _ _ fBib) = head bib
   putStrLn $ show $ length bib
   bibRecs <- mapM genRecord bib
   putStrLn $ show $ length bibRecs
@@ -61,6 +72,7 @@ fillDB = do
 --  insertToDb bibRecs
   putStrLn $ "------"
 
+  {-
 insertToDb r =
   runStdoutLoggingT $ withMySQLPool connectionInfo 10 $ \pool -> liftIO $ do
           flip runSqlPersistMPool pool $ do
@@ -69,11 +81,11 @@ insertToDb r =
             insertMany r
             liftIO $ putStrLn "done.."
 
-
 insertThemAll [] = return ()
 insertThemAll (r:rs) = do
   insertMany r
   insertThemAll rs
+-}
 
 genRecord :: T -> IO Reference
 genRecord (Cons e i f) = do
@@ -97,7 +109,7 @@ genRecord (Cons e i f) = do
                 Nothing -- (Just "pages               ")
                 Nothing -- (Just 1 ) -- "firstPage           "
                 Nothing -- -- "keywords            "
-                "abstract            "
+                (Just "abstract            ")
                 Nothing -- (Just "edition             ")
                 Nothing -- "" -- "editor              "
                 Nothing -- (Just "publisher           ")
@@ -120,14 +132,14 @@ genRecord (Cons e i f) = do
                 Nothing -- "doi                 "
                 Nothing -- "conference          "
                 Nothing -- "url                 "
-                ( "FMIPA-ITB @ admin @ " ++ i ) -- "callNumber          "
+                ( "FMIPA-ITB @ admin @ " <> Tx.pack i ) -- "callNumber          "
                 "" -- "location            "
                 Nothing -- "contributionId      "
                 "no" -- "onlinePublication   "
                 Nothing -- "onlineCitation      "
                 Nothing -- "file                "
                 Nothing -- "notes               "
-                Nothing -- 1 -- "serial              "
+                0 -- 1 -- "serial              "
                 Nothing -- (Just 1) -- "origRecord          "
                 "no" -- "approved            "
                 Nothing -- "createdDate         "
@@ -137,7 +149,7 @@ genRecord (Cons e i f) = do
                 (Just totime) -- "modifiedTime        "
                 (Just "Admin FMIPA Publications (admin@pubs.fmipa.itb.ac.id)")
                 1 -- "version             "
-  return $ foldl parseFields blankRef f
+  return $ foldl parseFields blankRef $ map (\(a,b) -> (a,Tx.pack b)) f
   where
     entryTy "inproceedings" = "Conference Article"
     entryTy "article" = "Journal Article"
@@ -169,10 +181,12 @@ parseOrError name x y = either (error . unlines . (:[y]) . show) id $ parse x na
 
 -- reference
 
+
+parseFields :: Reference -> (String, Tx.Text) -> Reference
 parseFields a ("address"      , s) = a {referenceAddress     =      Just s}
 parseFields a ("annote"       , s) = a {referenceNotes       =      Just s}
 parseFields a ("author"       , s) =
-  let allAuthor = B1.splitAuthorList s
+  let allAuthor = map Tx.pack $ B1.splitAuthorList $ Tx.unpack s
    in a { referenceAuthor      =      s
         , referenceFirstAuthor = head allAuthor
         , referenceAuthorCount = length allAuthor
@@ -209,9 +223,9 @@ parseFields a ("doi"          , s) =
   a {referenceDoi         = Just s
     ,referenceOnlinePublication = "yes"}
 parseFields a ("url"          , s) =
-  a {referenceUrl         = Just $ take 255 s
+  a {referenceUrl         = Just $ Tx.take 255 s
     ,referenceOnlinePublication = "yes"}
-parseFields a ("abstract"          , s) = a {referenceAbstract         = s}
+parseFields a ("abstract"          , s) = a {referenceAbstract         = Just s}
 parseFields a ("issn"          , s) = a {referenceIssn         = Just s}
 parseFields a ("isbn"          , s) = a {referenceIsbn = Just s}
 parseFields a ("language"          , s) = a {referenceLanguage = Just s}
@@ -236,7 +250,9 @@ parseFields a ("volumes"          ,_) = a
 parseFields a ("zmnumber"         ,_) = a
 parseFields a _                    = a
 
-readInt s = case (reads s :: [(Int,String)]) of
+
+readInt :: Tx.Text -> Int
+readInt s = case (reads (Tx.unpack s) :: [(Int,String)]) of
               ((a,_):_) -> a
               [] -> 0
 
