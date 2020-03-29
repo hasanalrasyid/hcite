@@ -1,1 +1,2 @@
-./native-backend-result/bin/backend --conf backend/config.yaml
+./dist-ghc/build/x86_64-linux/ghc-8.6.5/backend-0.1.0.0/x/backend/build/backend/backend  --conf backend/config.yaml
+#./native-backend-result/bin/backend --conf backend/config.yaml

@@ -208,4 +208,4 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
   where
-    buildPostEdit serial field content = XhrRequest "POST" (serverBackend <> T.pack . show . linkURI . jsonApiPutField serial field content )
+    buildPostEdit serial f c = XhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutSingleField serial f c)

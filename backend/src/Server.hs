@@ -40,10 +40,10 @@ import Routing
 --import Html
 
 --import Network.HTTP.Types
-
 import Database.Persist
 
 import Network.Wai.Middleware.Cors
+--import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
 --
@@ -80,10 +80,13 @@ authImpl :: ServerEnv -> Server AuthAPI
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
 jsonImpl :: ServerEnv -> Server JsonApi
-jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e :<|> putRecordById e :<|> putRecordFieldById e
+jsonImpl e = getRecords e :<|> getAbstract e :<|> jsonImplAuth e
+
+
+jsonImplAuth e = getRecord e :<|> putRecordById e :<|> putRecordFieldById e
 
 getRecord e i = do
-  p <- withDB e $ selectList [ ReferenceSerial ==. i ] []
+  p <- withDBEnv e $ selectList [ ReferenceSerial ==. i ] []
   return $ entityVal $ head p
 
 getAbstract e i = fromReference <$> getRecord e i
@@ -91,13 +94,13 @@ getAbstract e i = fromReference <$> getRecord e i
 resPerPage = 5
 
 getRecords e iPage = do
-  p <- withDB e $ selectList [] [ LimitTo resPerPage
+  p <- withDBEnv e $ selectList [] [ LimitTo resPerPage
                                 , OffsetBy $ (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
 
 
 putRecordById e i p = do
-  withDB e $ do
+  withDBEnv e $ do
     p0 <- selectList [ ReferenceSerial ==. i ] [LimitTo 1]
     repsert (entityKey $ head p0) p
   return NoContent
@@ -106,14 +109,18 @@ putRecordFieldById e i f c = do
   return NoContent
 
 -- | Implementation of main server API
-exampleServer :: ServerT ExampleAPI ServerM
+--exampleServer :: ServerT ExampleAPI ServerM
 exampleServer = testEndpoint
 
-testEndpoint :: MToken' '["test-permission"] -> ServerM ()
+testEndpoint :: MToken' '["test-permission"] -> ServerM [SimpleRef]
 testEndpoint token = do
   runAuth $ guardAuthToken token
-  liftIO $ putStrLn "testEndpoint"
-  return ()
+  let iPage = 1
+  p <- withDB $ selectList [] [ LimitTo resPerPage
+                                   , OffsetBy $ (iPage - 1) * resPerPage ]
+  liftIO $ putStrLn $ show p
+  liftIO $ putStrLn $ "testEndpoint"
+  return $ map (fromReference . entityVal) p
 
 staticFiles = serveDirectoryFileServer "static"
 
