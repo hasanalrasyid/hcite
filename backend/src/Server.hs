@@ -83,7 +83,7 @@ jsonImpl :: ServerEnv -> Server JsonApi
 jsonImpl e = getRecords e :<|> getAbstract e :<|> jsonImplAuth e
 
 
-jsonImplAuth e = getRecord e :<|> putRecordById e :<|> putRecordFieldById e
+jsonImplAuth e = getRecord e  -- :<|> putRecordById e :<|> putRecordFieldById e
 
 getRecord e i = do
   p <- withDBEnv e $ selectList [ ReferenceSerial ==. i ] []

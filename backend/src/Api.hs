@@ -16,6 +16,7 @@ type ExampleAPI = "test"
   :> TokenHeader' '["test-permission"]
   :> Get '[JSON] [SimpleRef]
 
+
 type Api = AuthAPI :<|> ExampleAPI
   :<|> JsonApi :<|> StaticApi {- :<|> IsomorphicApi -}
 

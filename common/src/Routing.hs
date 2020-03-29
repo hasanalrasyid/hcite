@@ -16,13 +16,18 @@ type JsonApi =
          "api" :> "record" :> "list" :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
     :<|> "api" :> "record" :> "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
     :<|> "api" :> "record" :> Capture "ident" Int :> Get '[JSON] Reference
-    :<|> "api" :> "record" :> Capture "ident" Int
+
+type GuardedJsonApi =
+         "api" :> "record" :> Capture "ident" Int
             :> ReqBody '[JSON] Reference :> Put '[JSON] NoContent
     :<|> "api" :> "record" :> Capture "ident" Int
             :> Capture "field" T.Text :> Capture "content" T.Text
             :> Put '[JSON] NoContent
 
-(jsonApiGetList :<|> jsonApiGetAbstract :<|> jsonApiGetSingle :<|> jsonApiPutSingle :<|> jsonApiPutSingleField) = allLinks (Proxy :: Proxy JsonApi)
+(jsonApiGetList :<|> jsonApiGetAbstract :<|> jsonApiGetSingle) = allLinks (Proxy :: Proxy JsonApi)
+
+
+(jsonApiPutSingle :<|> jsonApiPutSingleField) = allLinks (Proxy :: Proxy GuardedJsonApi)
 
   {-
 listLink :: URI
