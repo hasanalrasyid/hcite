@@ -118,17 +118,17 @@ putRecordById e i p = do
 exampleServer = testEndpoint
 
 guardedServer :: ServerT GuardedJsonBackendApi ServerM
-guardedServer token = guardBy token (putRecordById :<|> putRecordFieldById)
-  where
-    guardBy t = bimap ($ t) ($ t)
+guardedServer token = (putRecordById token :<|> putRecordFieldById token)
 
 putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
 putRecordById token serial ref = do
+  runAuth $ guardAuthToken token
   liftIO $ putStrLn $ "putRecordById " ++ show serial
   return NoContent
 
 putRecordFieldById :: MToken' '["_session"] -> Int -> T.Text -> T.Text -> ServerM NoContent
 putRecordFieldById token serial f c = do
+  runAuth $ guardAuthToken token
   liftIO $ putStrLn $ "putRecordFieldById " ++ show serial
   return NoContent
 
