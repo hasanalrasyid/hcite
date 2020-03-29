@@ -44,6 +44,8 @@ import Database.Persist
 
 import Network.Wai.Middleware.Cors
 import qualified Data.Text as T
+
+import Data.Bifunctor (bimap)
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -115,7 +117,10 @@ putRecordById e i p = do
 --exampleServer :: ServerT ExampleAPI ServerM
 exampleServer = testEndpoint
 
-guardedServer token = putRecordById token :<|> putRecordFieldById token
+guardedServer :: ServerT GuardedJsonBackendApi ServerM
+guardedServer token = guardBy token (putRecordById :<|> putRecordFieldById)
+  where
+    guardBy t = bimap ($ t) ($ t)
 
 putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
 putRecordById token serial ref = do
