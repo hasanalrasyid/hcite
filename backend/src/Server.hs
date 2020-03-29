@@ -43,6 +43,7 @@ import Routing
 import Database.Persist
 
 import Network.Wai.Middleware.Cors
+import qualified Data.Text as T
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -60,6 +61,7 @@ exampleServerApp e = simpleCors $ serve api myImpl
     myImpl = authImpl e :<|> exampleImpl e
                         :<|> jsonImpl e
                         :<|> staticFiles
+                        :<|> guardedJsonImpl e
                           {-
                         :<|> ssrViews
 --                        :<|> notFoundHtml
@@ -80,8 +82,11 @@ authImpl :: ServerEnv -> Server AuthAPI
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
 jsonImpl :: ServerEnv -> Server JsonApi
-jsonImpl e = getRecords e :<|> getAbstract e :<|> jsonImplAuth e
+jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e
 
+guardedJsonImpl :: ServerEnv -> Server GuardedJsonBackendApi
+guardedJsonImpl e =
+  hoistServer guardedJsonBackendApi (runServerM e) guardedServer
 
 jsonImplAuth e = getRecord e  -- :<|> putRecordById e :<|> putRecordFieldById e
 
@@ -98,19 +103,29 @@ getRecords e iPage = do
                                 , OffsetBy $ (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
 
-
+  {-
 putRecordById e i p = do
   withDBEnv e $ do
     p0 <- selectList [ ReferenceSerial ==. i ] [LimitTo 1]
     repsert (entityKey $ head p0) p
   return NoContent
-
-putRecordFieldById e i f c = do
-  return NoContent
+-}
 
 -- | Implementation of main server API
 --exampleServer :: ServerT ExampleAPI ServerM
 exampleServer = testEndpoint
+
+guardedServer token = putRecordById token :<|> putRecordFieldById token
+
+putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
+putRecordById token serial ref = do
+  liftIO $ putStrLn $ "putRecordById " ++ show serial
+  return NoContent
+
+putRecordFieldById :: MToken' '["_session"] -> Int -> T.Text -> T.Text -> ServerM NoContent
+putRecordFieldById token serial f c = do
+  liftIO $ putStrLn $ "putRecordFieldById " ++ show serial
+  return NoContent
 
 testEndpoint :: MToken' '["test-permission"] -> ServerM [SimpleRef]
 testEndpoint token = do

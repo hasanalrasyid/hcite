@@ -5,11 +5,11 @@ module Api where
 
 import           Servant
 
-import           Action
+--import           Action
 import           Model
 import           Routing
 
-import Servant.API
+--import Servant.API
 import Servant.API.Auth.Token
 
 type ExampleAPI = "test"
@@ -18,7 +18,7 @@ type ExampleAPI = "test"
 
 
 type Api = AuthAPI :<|> ExampleAPI
-  :<|> JsonApi :<|> StaticApi {- :<|> IsomorphicApi -}
+  :<|> JsonApi :<|> StaticApi :<|> GuardedJsonBackendApi {- :<|> IsomorphicApi -}
 
   {-
 type IsomorphicApi = ToServerRoutes Route HtmlPage Action
@@ -34,4 +34,9 @@ exampleApi = Proxy
 
 authApi :: Proxy AuthAPI
 authApi = Proxy
+
+type GuardedJsonBackendApi = TokenHeader' '["_session"] :> GuardedJsonApi
+
+guardedJsonBackendApi :: Proxy GuardedJsonBackendApi
+guardedJsonBackendApi = Proxy
 

@@ -25,3 +25,6 @@ curl -vvv -H "Authorization: 4c364cfe-5db0-47e5-a4fd-c58846bb06a0" "localhost:30
 signout:
 ╰─$ curl -vvv -X POST -H "Authorization: 4c364cfe-5db0-47e5-a4fd-c58846bb06a0" "localhost:3000/auth/signout"
 
+╰─$ curl -X PUT -H "Authorization:5ca39879-2eb1-4faa-80a0-9e90f777755b" localhost:3000/api/record/66
+╰─$ curl -X PUT -H "Authorization:5ca39879-2eb1-4faa-80a0-9e90f777755b" localhost:3000/api/record/66/year/12345
+
