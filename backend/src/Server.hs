@@ -137,9 +137,8 @@ putRecordByFile token multipartData = do
   --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
   let fInput = fromMaybe "NoPayload" $ fmap fdPayload $ lookupFile "bib" multipartData
   bibRecords <- liftIO $ readRecords fInput
-  liftIO $ putStrLn $ show bibRecords
   res <- mapM insertTop bibRecords
-  liftIO $ putStrLn $ show res
+  liftIO $ putStrLn $ show $ map (fmap referenceTitle) res
 
 --  _ <- withDB $ insertMany bibRecords
   -- Tinggal diproses untuk memasukkan fInput ke dalam
