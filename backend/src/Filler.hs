@@ -221,9 +221,19 @@ parseFields a ("year"         , s) =
       a {referenceYear        = Just $ readInt s}
 parseFields a ("doi"          , s) =
   a {referenceDoi         = Just s
+    ,referenceUrl = case referenceUrl a of
+                      "" -> "https://doi.org/" <> s
+                      t  -> t
     ,referenceOnlinePublication = "yes"}
 parseFields a ("url"          , s) =
-  a {referenceUrl         = Tx.take 512 s
+  a {referenceUrl         =
+    case s of
+      "" -> case referenceUrl a of
+        "" -> case referenceDoi a of
+                Nothing -> ""
+                Just d  -> "https://doi.org/" <> d
+        u  -> u
+      t  -> t
     ,referenceOnlinePublication = "yes"}
 parseFields a ("abstract"          , s) = a {referenceAbstract         = Just s}
 parseFields a ("issn"          , s) = a {referenceIssn         = Just s}

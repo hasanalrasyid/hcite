@@ -41,17 +41,16 @@ import Routing
 
 --import Network.HTTP.Types
 import Database.Persist
-import Database.Persist.Sql
 
 import Network.Wai.Middleware.Cors
 import qualified Data.Text as T
 
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe,isNothing)
 import Servant.Multipart
 --import qualified Data.ByteString.Lazy.Char8 as LBS
 import Filler
-import GHC.Int
-
+import Control.Monad
+import Data.Either
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -137,26 +136,35 @@ putRecordByFile token multipartData = do
   --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
   let fInput = fromMaybe "NoPayload" $ fmap fdPayload $ lookupFile "bib" multipartData
   bibRecords <- liftIO $ readRecords fInput
-  res <- mapM insertTop bibRecords
-  liftIO $ putStrLn $ show $ map (fmap referenceTitle) res
+  nTop       <- withDB $ selectList [] [ LimitTo 1
+                                       , Desc ReferenceSerial
+                                       ]
+  let iStart = increaseKey nTop
+  res <- zipWithM insertTop [iStart..] bibRecords
+  liftIO $ putStrLn $ show $ map (\(a,b) -> (a, referenceTitle b)) $ lefts res
 
 --  _ <- withDB $ insertMany bibRecords
   -- Tinggal diproses untuk memasukkan fInput ke dalam
   return NoContent
 
-insertTop :: Reference -> ServerM (Maybe Reference)
-insertTop rec = do
-  withDB $ do
-    kTop <- selectList [] [ LimitTo 1
-                              , Desc ReferenceSerial ]
-    let iInsert = if null kTop then 1 else increaseKey $ entityKey $ head kTop
-    r <- insertUnique $ rec {referenceSerial = iInsert}
-    let res = case r of
-            Nothing -> Just rec
-            Just _ -> Nothing
-    return res
+increaseKey :: [Entity Reference] -> Int
+increaseKey [] = 1
+increaseKey (n:_) =
+  let (ReferenceKey k) = entityKey n
+   in k + 1
 
-increaseKey (ReferenceKey n) = n + 1
+insertTop :: Int -> Reference -> ServerM (Either (T.Text,Reference) Int)
+insertTop iInsert rec
+  | (T.null $ referenceUrl rec) && (isNothing $ referenceDoi rec) =
+              return $ Left ("Empty URL and DOI",rec)
+  | otherwise = do
+              withDB $ do
+                r <- insertUnique $ rec {referenceSerial = iInsert}
+                let res = case r of
+                        Nothing -> Left ("Identical URL", rec)
+                        Just _ -> Right 0
+                return res
+
 
 putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
 putRecordById token serial ref = do
