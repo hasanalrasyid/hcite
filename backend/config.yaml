@@ -6,4 +6,4 @@ db-user: postgres
 db-pass: ""
 db-base: auth-test
 db-size: 10
-init-db: false
+init-db: true

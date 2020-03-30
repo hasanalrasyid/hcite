@@ -131,7 +131,7 @@ genRecord (Cons e i f) = do
                 Nothing -- "expedition          "
                 Nothing -- "doi                 "
                 Nothing -- "conference          "
-                Nothing -- "url                 "
+                "" -- "url                 "
                 ( Tx.pack i ) -- "callNumber          "
                 "" -- "location            "
                 Nothing -- "contributionId      "
@@ -223,7 +223,7 @@ parseFields a ("doi"          , s) =
   a {referenceDoi         = Just s
     ,referenceOnlinePublication = "yes"}
 parseFields a ("url"          , s) =
-  a {referenceUrl         = Just $ Tx.take 255 s
+  a {referenceUrl         = Tx.take 512 s
     ,referenceOnlinePublication = "yes"}
 parseFields a ("abstract"          , s) = a {referenceAbstract         = Just s}
 parseFields a ("issn"          , s) = a {referenceIssn         = Just s}

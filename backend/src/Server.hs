@@ -41,6 +41,7 @@ import Routing
 
 --import Network.HTTP.Types
 import Database.Persist
+import Database.Persist.Sql
 
 import Network.Wai.Middleware.Cors
 import qualified Data.Text as T
@@ -49,6 +50,7 @@ import Data.Maybe (fromMaybe)
 import Servant.Multipart
 --import qualified Data.ByteString.Lazy.Char8 as LBS
 import Filler
+import GHC.Int
 
 --import Control.Monad.Reader -- asks
 
@@ -131,14 +133,31 @@ guardedServer token = ( putRecordById token
 
 putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM NoContent
 putRecordByFile token multipartData = do
-  runAuth $ guardAuthToken token
+  --runAuth $ guardAuthToken token
   --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
   let fInput = fromMaybe "NoPayload" $ fmap fdPayload $ lookupFile "bib" multipartData
   bibRecords <- liftIO $ readRecords fInput
   liftIO $ putStrLn $ show bibRecords
-  _ <- withDB $ insertMany bibRecords
+  res <- mapM insertTop bibRecords
+  liftIO $ putStrLn $ show res
+
+--  _ <- withDB $ insertMany bibRecords
   -- Tinggal diproses untuk memasukkan fInput ke dalam
   return NoContent
+
+insertTop :: Reference -> ServerM (Maybe Reference)
+insertTop rec = do
+  withDB $ do
+    kTop <- selectList [] [ LimitTo 1
+                              , Desc ReferenceSerial ]
+    let iInsert = if null kTop then 1 else increaseKey $ entityKey $ head kTop
+    r <- insertUnique $ rec {referenceSerial = iInsert}
+    let res = case r of
+            Nothing -> Just rec
+            Just _ -> Nothing
+    return res
+
+increaseKey (ReferenceKey n) = n + 1
 
 putRecordById :: MToken' '["_session"] -> Int -> Reference -> ServerM NoContent
 putRecordById token serial ref = do

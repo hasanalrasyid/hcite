@@ -83,7 +83,7 @@ Reference json
      expedition            T.Text      Maybe                      sqltype=varchar(255)
      doi                   T.Text      Maybe                      sqltype=varchar(100)
      conference            T.Text      Maybe                      sqltype=varchar(255)
-     url                   T.Text      Maybe                      sqltype=varchar(255)
+     url                   T.Text                      --           sqltype=varchar(191)
      callNumber            T.Text
      location              T.Text
      contributionId        T.Text     Maybe                       sqltype=varchar(100)
@@ -102,6 +102,7 @@ Reference json
      modifiedBy            T.Text   Maybe                         sqltype=varchar(100)
      version               Int sqltype=mediumint(8)  default=1
      Primary serial
+     UniqueUrl url
      deriving Eq Show
 |]
 

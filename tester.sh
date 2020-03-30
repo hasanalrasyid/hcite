@@ -12,6 +12,7 @@ grant all privileges on database perservant to test
 delete from refs_new;
 alter table refs_new auto_increment=1351;
 
+CREATE DATABASE `example` /*!40100 DEFAULT CHARACTER SET utf8mb4 */;
 
 ===============================
 ╰─$ curl -vvv "localhost:3000/auth/signin?login=admin&password=123456"
