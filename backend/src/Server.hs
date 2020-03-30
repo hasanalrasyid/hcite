@@ -130,7 +130,7 @@ guardedServer token = ( putRecordById token
                    :<|> putRecordByFile token
                       )
 
-putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM NoContent
+putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM [(T.Text,T.Text)]
 putRecordByFile token multipartData = do
   --runAuth $ guardAuthToken token
   --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
@@ -141,11 +141,12 @@ putRecordByFile token multipartData = do
                                        ]
   let iStart = increaseKey nTop
   res <- zipWithM insertTop [iStart..] bibRecords
-  liftIO $ putStrLn $ show $ map (\(a,b) -> (a, referenceTitle b)) $ lefts res
+  --liftIO $ putStrLn $ show $ map (\(a,b) -> (a, referenceTitle b)) $ lefts res
+  let r = map (\(a,b) -> (a, referenceTitle b)) $ lefts res
 
 --  _ <- withDB $ insertMany bibRecords
   -- Tinggal diproses untuk memasukkan fInput ke dalam
-  return NoContent
+  return r
 
 increaseKey :: [Entity Reference] -> Int
 increaseKey [] = 1
