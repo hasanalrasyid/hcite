@@ -39,7 +39,7 @@ import Routing
 
 --import Html
 
---import Network.HTTP.Types
+import Network.HTTP.Types
 import Database.Persist
 
 import Network.Wai.Middleware.Cors
@@ -63,8 +63,19 @@ runExampleServer config = liftIO $ do
 
 -- | WAI application of server
 exampleServerApp :: ServerEnv -> Application
-exampleServerApp e = simpleCors $ serve api myImpl
+exampleServerApp e = (cors allOK) $ serve api myImpl
+--exampleServerApp e = simpleCors $ serve api myImpl
   where
+    allOK _ = Just $ CorsResourcePolicy
+                { corsOrigins = Nothing
+                , corsMethods = [methodGet,methodPost,methodOptions,methodPut]
+                , corsRequestHeaders = []
+                , corsExposedHeaders = Nothing
+                , corsMaxAge = Nothing
+                , corsVaryOrigin = False
+                , corsRequireOrigin = False
+                , corsIgnoreFailures = False
+                }
     myImpl = authImpl e :<|> exampleImpl e
                         :<|> jsonImpl e
                         :<|> staticFiles
@@ -132,8 +143,7 @@ guardedServer token = ( putRecordById token
 
 putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM [(T.Text,T.Text)]
 putRecordByFile token multipartData = do
-  --runAuth $ guardAuthToken token
-  --fInput <- liftIO $ T.readFile $ fdPayload $ head $ files multipartData
+  runAuth $ guardAuthToken token
   let fInput = fromMaybe "NoPayload" $ fmap fdPayload $ lookupFile "bib" multipartData
   bibRecords <- liftIO $ readRecords fInput
   nTop       <- withDB $ selectList [] [ LimitTo 1

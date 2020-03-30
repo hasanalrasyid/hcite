@@ -22,7 +22,7 @@ import Model
 --import Language.Javascript.JSaddle.Types
 --import Control.Monad.IO.Class
 --import Control.Monad
-import Control.Monad.Trans
+--import Control.Monad.Trans
 
 import Servant.Links
 
@@ -158,13 +158,14 @@ importPage dEnv = Workflow . el "div" $ do
   let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
   efd <- performEvent $ fmap (wrapFile "bib") eFi
   r <- performRequestAsync $ ffor efd $ \fd ->
-        xhrRequest "PUT" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) def {
+        xhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) def {
                                           _xhrRequestConfig_sendData = fd
                                         }
-  st <- holdDyn "" $ fmap _xhrResponse_statusText r
+  --st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fmap (fromMaybe [] . decodeXhrResponse) r
+  st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
   el "p" $ do
     text "Upload status:"
-    dynText st
+    dynText $ fmap (T.pack . show) st
 
   {-
   username <- textInput def
