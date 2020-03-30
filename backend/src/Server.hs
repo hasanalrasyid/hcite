@@ -67,9 +67,15 @@ exampleServerApp e = (cors allOK) $ serve api myImpl
 --exampleServerApp e = simpleCors $ serve api myImpl
   where
     allOK _ = Just $ CorsResourcePolicy
-                { corsOrigins = Nothing
+      { corsOrigins = Nothing
+        {-
+                    Just (["localhost:3000"
+                          ,"127.0.0.1:3000"],True)
+                    -}
                 , corsMethods = [methodGet,methodPost,methodOptions,methodPut]
-                , corsRequestHeaders = []
+                , corsRequestHeaders = ["Access-Control-Request-Method"
+                                       ,"Access-Control-Request-Headers"
+                                       ,"Authorization"]
                 , corsExposedHeaders = Nothing
                 , corsMaxAge = Nothing
                 , corsVaryOrigin = False
@@ -139,7 +145,10 @@ guardedServer :: ServerT GuardedJsonBackendApi ServerM
 guardedServer token = ( putRecordById token
                    :<|> putRecordFieldById token
                    :<|> putRecordByFile token
+                   :<|> answerOPTIONS
                       )
+
+answerOPTIONS = return NoContent
 
 putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM [(T.Text,T.Text)]
 putRecordByFile token multipartData = do

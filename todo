@@ -2,8 +2,8 @@ v implement "Not yet Implemented"
 v implement links: but we need to remove it, because android and gtk cannot handle it well
 v implement Abstract dynamic
 implement pagedHome
-implement EditRecords
-implement Login, tinggal pakai token untuk post data
+v implement EditRecords
+v implement Login, tinggal pakai token untuk post data
 implement Search
 implement Acknowledgements
 v implement DetailedView with editing onClick at the field

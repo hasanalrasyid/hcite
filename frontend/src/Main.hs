@@ -42,6 +42,7 @@ import JSDOM.Types (File,MonadJSM)
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
+                  , _defXhrRequest :: Dynamic t (XhrRequestConfig ())
                }
 
 $(makeLenses ''Env)
@@ -49,6 +50,7 @@ $(makeLenses ''Env)
 instance Reflex t => Default (Env t) where
   def = Env { _history = []
             , _auth = constDyn Nothing
+            , _defXhrRequest = constDyn def
             }
 
 main :: IO ()
@@ -101,10 +103,12 @@ body = mdo
 -- v. HomePage
 -- v. LoginPage
 -- v. DetailPage (bisa static)
--- 3. DetailPage (bisa edited)
+-- v. DetailPage (bisa edited)
 -- 4. DetailedSearchPage
 -- 5. SearchResultPage (seperti HomePage tapi content yang berbeda)
--- 6. ImportPage (ini yang paling penting sebenarnya)
+-- v. ImportPage (ini yang paling penting sebenarnya)
+-- 7. Full Editor
+-- 8. Cosmetics
 --
 --
 
@@ -156,12 +160,12 @@ importPage dEnv = Workflow . el "div" $ do
   fi <- fileInput def
   eSubmit <- button "Upload"
   let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
-  efd <- performEvent $ fmap (wrapFile "bib") eFi
-  r <- performRequestAsync $ ffor efd $ \fd ->
-        xhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) def {
-                                          _xhrRequestConfig_sendData = fd
-                                        }
-  --st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fmap (fromMaybe [] . decodeXhrResponse) r
+  efd1 <- performEvent $ fmap (wrapFile "bib") eFi
+  let efd = attachPromptlyDyn (dEnv ^. defXhrRequest) efd1
+  r <- performRequestAsync $ ffor efd $ \(defXhr,fd) ->
+        xhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) $ defXhr {
+                          _xhrRequestConfig_sendData = fd
+                         }
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
   el "p" $ do
     text "Upload status:"
@@ -194,10 +198,17 @@ loginPage dEnv = Workflow . el "div" $ do
         mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
   let dLoginReq = pure genLoginReq <*> value username <*> value password
   eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
+  let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ dEnv ^. defXhrRequest) eToken
+  dNewXhr <- holdDyn def eNewXhr
   dToken <- holdDyn Nothing eToken
   let dEnv2 = dEnv & auth .~ dToken
+                   & defXhrRequest .~ dNewXhr
   e <- button "Back"
   return ("LoginPage", homePage dEnv2 <$ e)
+  where
+    putEnvToken :: XhrRequestConfig () -> Maybe Token -> XhrRequestConfig ()
+    putEnvToken d Nothing = d
+    putEnvToken d (Just t) = d { _xhrRequestConfig_headers = Map.singleton "Authorization" $ token t }
 
 homePage :: MonadWidget t m => (Env t) ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
