@@ -24,7 +24,7 @@ type GuardedJsonApi =
     "api" :> "record" :> (
              Capture "ident" Int :> ReqBody '[JSON] Reference :> Put '[JSON] NoContent
         :<|> Capture "ident" Int :> Capture "field" T.Text :> Capture "content" T.Text :> Put '[JSON] NoContent
-        :<|> MultipartForm Mem (MultipartData Mem) :> Put '[JSON] NoContent
+        :<|> MultipartForm Mem (MultipartData Mem) :> Post '[JSON] [(T.Text,T.Text)]
      )
 
 (jsonApiGetList :<|> jsonApiGetAbstract :<|> jsonApiGetSingle) = allLinks (Proxy :: Proxy JsonApi)

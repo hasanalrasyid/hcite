@@ -63,7 +63,7 @@ data Page = PageData | PageError
 data Nav = Home
          | Landing
          | Blog
-         | Album
+         | Import
          | Kanban
          | Search
          | Acknowledgements

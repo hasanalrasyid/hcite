@@ -8,7 +8,7 @@
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromMaybe)
+import           Data.Maybe (fromMaybe,listToMaybe)
 
 --import           Data.FileEmbed
 
@@ -21,21 +21,24 @@ import Model
 
 --import Language.Javascript.JSaddle.Types
 --import Control.Monad.IO.Class
-import Control.Monad
+--import Control.Monad
 import Control.Monad.Trans
 
 import Servant.Links
 
-import Reflex.Bulmex.Modal
-import Reflex.Bulmex.Tag.Bulma
+--import Reflex.Bulmex.Modal
+--import Reflex.Bulmex.Tag.Bulma
 
 import Proto hiding (main,headElement,body)
 import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
 
-import Control.Monad.Reader
+--import Control.Monad.Reader
 import Control.Lens
 import Data.Default
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
+import JSDOM.FormData as FD
+import JSDOM.Types (File,MonadJSM)
+
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
@@ -96,7 +99,7 @@ body = mdo
 -- di sini, textWidget dan textWidget2 return Event t Int from referenceSerial.
 -- Sebab isi textWidget* adalah:
 -- v. HomePage
--- 2. LoginPage
+-- v. LoginPage
 -- v. DetailPage (bisa static)
 -- 3. DetailPage (bisa edited)
 -- 4. DetailedSearchPage
@@ -109,7 +112,6 @@ body = mdo
   eeDetail <- dyn dWidget
   -- and we can use `switchHold` to turn that into an `Event t Int`:
   eDetail <- switchHold never eeDetail
-  dDetail <- holdDyn "" eDetail
 
   -- dText hanya untuk penguat saja. sapa tahu event perubahan ini diperlukan
   dText <- holdDyn "" . leftmost $ [
@@ -130,7 +132,6 @@ body = mdo
 
 homeWidget :: MonadWidget t m => m (Event t T.Text)
 homeWidget = do
-  eStart <- getPostBuild
   r <- workflow $ homePage $ def
   display r
   return $ updated r
@@ -139,8 +140,46 @@ noPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   el "div" $ text "No Page So Far"
   display (dEnv ^. auth)
-  e <- button "Home"
+  e <- toButton "button" (constDyn mempty) $ text "Home"
   return ("noPage", homePage dEnv <$ e)
+
+wrapFile :: (Monad m , MonadJSM m) => T.Text -> File -> m FD.FormData
+wrapFile fname f = do
+  fd <- FD.newFormData Nothing
+  FD.appendBlob fd fname f (Nothing :: Maybe String)
+  return fd
+
+importPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
+importPage dEnv = Workflow . el "div" $ do
+  el "div" $ text "ImportPage"
+  display (dEnv ^. auth)
+  fi <- fileInput def
+  eSubmit <- button "Upload"
+  let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
+  efd <- performEvent $ fmap (wrapFile "bib") eFi
+  r <- performRequestAsync $ ffor efd $ \fd ->
+        xhrRequest "PUT" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) def {
+                                          _xhrRequestConfig_sendData = fd
+                                        }
+  st <- holdDyn "" $ fmap _xhrResponse_statusText r
+  el "p" $ do
+    text "Upload status:"
+    dynText st
+
+  {-
+  username <- textInput def
+  password <- textInput def
+
+  eSend <- toButton "button" (constDyn mempty) $ text "Submit"
+  let genLoginReq u p =
+        mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
+  let dLoginReq = pure genLoginReq <*> value username <*> value password
+  eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
+  dToken <- holdDyn Nothing eToken
+  let dEnv2 = dEnv & auth .~ dToken
+  -}
+  e <- toButton "button" (constDyn mempty) $ text "Back"
+  return ("ImportPage", homePage dEnv <$ e)
 
 loginPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 loginPage dEnv = Workflow . el "div" $ do
@@ -164,6 +203,7 @@ homePage dEnv = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
   let eLogin = ffilter (== Login) eNav
+  let eImport = ffilter (== Import) eNav
   el "div" $ mdo
     text "home"
     display (dEnv ^. auth)
@@ -179,7 +219,7 @@ homePage dEnv = Workflow $ do
     let deEdit = fmap leftmost delEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
-    let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, noPage dEnv <$ eNav]
+    let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, importPage dEnv <$ eImport, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
 
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
