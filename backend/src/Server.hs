@@ -140,36 +140,44 @@ getRecords = getRecordsList [] {- do
   return $ map (fromReference . entityVal) p
   -}
 
-getRecordsByAuthor :: (FromReference b, MonadIO f) => ServerEnv -> T.Text -> Int -> f [b]
-getRecordsByAuthor   e tSearch iPage =
-  getRecordsList [genFilter ReferenceAuthor tSearch] e iPage
+getRecordsByAuthor :: (FromReference b, MonadIO f) => ServerEnv -> Int -> (T.Text,T.Text) -> f [b]
+getRecordsByAuthor   e iPage (_,tSearch) =
+  getRecordsList (genFilter ReferenceAuthor $ T.words tSearch) e iPage
 
-getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> T.Text -> Int -> f [b]
-getRecordsByKeyword  e tSearch iPage =
-  getRecordsList [genFilter ReferenceKeywords $ Just tSearch] e iPage
+getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> Int -> (T.Text,T.Text) -> f [b]
+getRecordsByKeyword  e iPage (_,tSearch) =
+  getRecordsList (genFilter ReferenceKeywords $ map Just $ T.words tSearch) e iPage
 
-getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> T.Text -> Int -> f [b]
-getRecordsByAbstract e tSearch iPage =
-  getRecordsList [genFilter ReferenceAbstract $ Just tSearch] e iPage
+getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> (T.Text,T.Text) -> f [b]
+getRecordsByAbstract e iPage (_,tSearch) =
+  getRecordsList (genFilter ReferenceAbstract $ map Just $ T.words tSearch) e iPage
 
 getRecordsByOwnerId :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Int -> f [b]
 getRecordsByOwnerId  e iSearch iPage =
-  getRecordsList [genFilter ReferenceAuthor "NOT_YET"] e iPage
+  getRecordsList (genFilter ReferenceAuthor $ T.words "NOT_YET") e iPage
 
 class LikeFilter a where
-  genFilter :: EntityField record a -> a -> Filter record
+  genFilter :: EntityField record a -> [a] -> [Filter record]
 
 genFilter' :: PersistField typ => EntityField record typ -> typ -> Filter record
 genFilter'  f v = Filter f (Left v) (BackendSpecificFilter "LIKE")
 
 instance LikeFilter (Maybe T.Text) where
-  genFilter f v = genFilter' f $ fmap (\x -> T.concat ["%", x, "%"]) v
+  --genFilter f v = [genFilter' f $ map (fmap (\x -> T.concat ["%", x, "%"])) v]
+  genFilter f v = map (genFilter' f) $ map (fmap wrapWildCard) v
 
 instance LikeFilter T.Text where
-  genFilter f v = genFilter' f $ T.concat ["%", v, "%"]
+  genFilter f v = genFilter'' f $ map wrapWildCard v
 
 instance LikeFilter Int where
-  genFilter f v = genFilter' f v
+  genFilter f v = genFilter'' f v
+
+genFilter'' :: PersistField t => EntityField record t -> [t] -> [Filter record]
+--genFilter'' f v = foldr (||.) [] $ map (:[]) $ map (genFilter' f) v
+genFilter'' f v =  map (genFilter' f) v
+
+wrapWildCard :: T.Text -> T.Text
+wrapWildCard x = T.concat ["%",x,"%"]
 
   {-
 putRecordById e i p = do

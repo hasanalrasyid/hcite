@@ -4,7 +4,8 @@ v implement Abstract dynamic
 implement pagedHome
 v implement EditRecords
 v implement Login, tinggal pakai token untuk post data
-implement Search
-  by author, keyword, abstract, ownerId
+implement Search as json_data with space as &&.
+v  by author, keyword, abstract,
+  by ownerId
 implement Acknowledgements
 v implement DetailedView with editing onClick at the field

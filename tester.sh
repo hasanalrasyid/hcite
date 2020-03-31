@@ -31,3 +31,5 @@ signout:
 
 ╰─$ curl -X PUT -H "Authorization: $TOKEN" -F bib=@sample/fileSample.bib localhost:3000/api/record
 
+curl -vvv --header "Content-Type: application/json" --request GET --data '["q","electrode"]'  http://localhost:3000/api/record/list/keywords/1
+
