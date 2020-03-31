@@ -45,12 +45,13 @@ import Database.Persist
 import Network.Wai.Middleware.Cors
 import qualified Data.Text as T
 
-import Data.Maybe (fromMaybe,isNothing)
+import Data.Maybe (fromMaybe,isNothing,fromJust)
 import Servant.Multipart
 --import qualified Data.ByteString.Lazy.Char8 as LBS
 import Filler
 import Control.Monad
 import Data.Either
+import Data.List
 --import Control.Monad.Reader -- asks
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
@@ -249,12 +250,30 @@ putRecordFieldById token serial f c = do
   liftIO $ putStrLn $ "putRecordFieldById " ++ show serial ++ show f ++ show c
   return NoContent
 
-testEndpoint :: MToken' '["test-permission"] -> ServerM [SimpleRef]
+putOwnerRecords :: MToken' '["_session"] -> Key Pegawai -> [Key Reference] -> ServerM NoContent
+putOwnerRecords token pegawai keyRefs = do
+--  runAuth $ guardAuthToken token
+  withDB $ do
+        p <- selectFirst [ PegawaiId ==. pegawai ] []
+        case p of
+          Nothing -> return ()
+          Just pg -> do
+            let relRefs = nub $ sort $ (++) keyRefs $ pegawaiRelatedReference $ entityVal pg
+            update (entityKey pg) [PegawaiRelatedReference =. relRefs]
+  return NoContent
+
+
+
+testEndpoint :: MToken' '["_session"] -> ServerM [SimpleRef]
 testEndpoint token = do
-  runAuth $ guardAuthToken token
+--  runAuth $ guardAuthToken token
   let iPage = 1
-  p <- withDB $ selectList [] [ LimitTo resPerPage
-                                   , OffsetBy $ (iPage - 1) * resPerPage ]
+  (r,p) <- withDB $ do
+        rs <- selectList (genFilter ReferenceAuthor $ ["cynt"]) [ LimitTo 3 ]
+--        k1 <- insert $ Pegawai "Admin2"  "33322222" $ (map entityKey rs :: [Key Reference])
+        k1 <- selectFirst [PegawaiNama ==. "Admin2"] []
+        return (k1,rs)
+  putOwnerRecords token (entityKey $ fromJust r) $ map entityKey p
   liftIO $ putStrLn $ show p
   liftIO $ putStrLn $ "testEndpoint"
   return $ map (fromReference . entityVal) p

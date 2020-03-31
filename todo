@@ -9,3 +9,4 @@ v  by author, keyword, abstract,
   by ownerId
 implement Acknowledgements
 v implement DetailedView with editing onClick at the field
+implement setOwner

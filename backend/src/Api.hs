@@ -13,7 +13,7 @@ import           Routing
 import Servant.API.Auth.Token
 
 type ExampleAPI = "test"
-  :> TokenHeader' '["test-permission"]
+  :> TokenHeader' '["_session"]
   :> Get '[JSON] [SimpleRef]
 
 

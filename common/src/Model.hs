@@ -41,6 +41,11 @@ import GHC.Generics
 -- | Taken from http://www.yesodweb.com/book/persistent.
 
 share [mkPersist sqlSettings, mkMigrate "migrateRefs"] [persistLowerCase|
+Pegawai
+  nama  T.Text
+  nip   T.Text
+  relatedReference [ReferenceId]
+  deriving Show
 ThesisType
   thesis T.Text
   deriving Show
