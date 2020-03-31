@@ -5,5 +5,6 @@ implement pagedHome
 v implement EditRecords
 v implement Login, tinggal pakai token untuk post data
 implement Search
+  by author, keyword, abstract, ownerId
 implement Acknowledgements
 v implement DetailedView with editing onClick at the field

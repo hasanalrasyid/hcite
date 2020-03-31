@@ -15,10 +15,23 @@ import Servant.Multipart
 
 type JsonApi =
     "api" :> "record" :> (
-           "list" :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
-      :<|> "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
+           "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
       :<|> Capture "ident" Int :> Get '[JSON] Reference
+      :<|> "list" :> (
+                   Capture "page" Int :>  Get '[JSON] [SimpleRef]
+              :<|> "author" :> Capture "search" T.Text :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
+              :<|> "abstract" :> Capture "search" T.Text :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
+              :<|> "keywords" :> Capture "search" T.Text :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
+              :<|> "owner" :> Capture "search" Int :> Capture "page" Int :>  Get '[JSON] [SimpleRef]
+            )
     )
+
+( jsonApiGetAbstract :<|> jsonApiGetSingle
+  :<|> jsonApiGetList
+  :<|> jsonApiGetListAuthor
+  :<|> jsonApiGetListAbstract
+  :<|> jsonApiGetListKeyword
+  :<|> jsonApiGetListOwnerId ) = allLinks (Proxy :: Proxy JsonApi)
 
 type GuardedJsonApi =
     "api" :> "record" :> (
@@ -27,13 +40,9 @@ type GuardedJsonApi =
         :<|> MultipartForm Mem (MultipartData Mem) :> Post '[JSON] [(T.Text,T.Text)]
         :<|> Options '[JSON] NoContent
      )
-
-(jsonApiGetList :<|> jsonApiGetAbstract :<|> jsonApiGetSingle) = allLinks (Proxy :: Proxy JsonApi)
-
+type Options = Verb 'OPTIONS 200
 
 (jsonApiPutSingle :<|> jsonApiPutSingleField :<|> jsonApiPutFile :<|> jsonApiOptions) = allLinks (Proxy :: Proxy GuardedJsonApi)
-
-type Options = Verb 'OPTIONS 200
 
   {-
 listLink :: URI

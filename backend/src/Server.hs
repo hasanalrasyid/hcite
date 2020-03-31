@@ -106,7 +106,10 @@ authImpl :: ServerEnv -> Server AuthAPI
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
 jsonImpl :: ServerEnv -> Server JsonApi
-jsonImpl e = getRecords e :<|> getAbstract e :<|> getRecord e
+jsonImpl e = getAbstract e :<|> getRecord e
+        :<|> getRecords e
+        :<|> getRecordsByAuthor e :<|> getRecordsByAbstract e
+        :<|> getRecordsByKeyword e :<|> getRecordsByOwnerId e
 
 guardedJsonImpl :: ServerEnv -> Server GuardedJsonBackendApi
 guardedJsonImpl e =
@@ -123,11 +126,50 @@ getAbstract e i = fromReference <$> getRecord e i
 resPerPage :: Int
 resPerPage = 5
 
+getRecordsList :: (FromReference b, MonadIO f) => [Filter Reference]
+               -> ServerEnv -> Int -> f [b]
+getRecordsList q e iPage = do
+  p <- withDBEnv e $ selectList q [ LimitTo resPerPage
+                                  , OffsetBy $ (iPage - 1) * resPerPage ]
+  return $ map (fromReference . entityVal) p
+
 getRecords :: (FromReference b, MonadIO f) => ServerEnv -> Int -> f [b]
-getRecords e iPage = do
+getRecords = getRecordsList [] {- do
   p <- withDBEnv e $ selectList [] [ LimitTo resPerPage
                                 , OffsetBy $ (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
+  -}
+
+getRecordsByAuthor :: (FromReference b, MonadIO f) => ServerEnv -> T.Text -> Int -> f [b]
+getRecordsByAuthor   e tSearch iPage =
+  getRecordsList [genFilter ReferenceAuthor tSearch] e iPage
+
+getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> T.Text -> Int -> f [b]
+getRecordsByKeyword  e tSearch iPage =
+  getRecordsList [genFilter ReferenceKeywords $ Just tSearch] e iPage
+
+getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> T.Text -> Int -> f [b]
+getRecordsByAbstract e tSearch iPage =
+  getRecordsList [genFilter ReferenceAbstract $ Just tSearch] e iPage
+
+getRecordsByOwnerId :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Int -> f [b]
+getRecordsByOwnerId  e iSearch iPage =
+  getRecordsList [genFilter ReferenceAuthor "NOT_YET"] e iPage
+
+class LikeFilter a where
+  genFilter :: EntityField record a -> a -> Filter record
+
+genFilter' :: PersistField typ => EntityField record typ -> typ -> Filter record
+genFilter'  f v = Filter f (Left v) (BackendSpecificFilter "LIKE")
+
+instance LikeFilter (Maybe T.Text) where
+  genFilter f v = genFilter' f $ fmap (\x -> T.concat ["%", x, "%"]) v
+
+instance LikeFilter T.Text where
+  genFilter f v = genFilter' f $ T.concat ["%", v, "%"]
+
+instance LikeFilter Int where
+  genFilter f v = genFilter' f v
 
   {-
 putRecordById e i p = do
@@ -148,6 +190,7 @@ guardedServer token = ( putRecordById token
                    :<|> answerOPTIONS
                       )
 
+answerOPTIONS :: ServerM NoContent
 answerOPTIONS = return NoContent
 
 putRecordByFile :: MToken' '["_session"] -> MultipartData Mem -> ServerM [(T.Text,T.Text)]
