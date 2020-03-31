@@ -197,6 +197,7 @@ guardedServer token = ( putRecordById token
                    :<|> putRecordFieldById token
                    :<|> putRecordByFile token
                    :<|> answerOPTIONS
+                   :<|> putOwnerRecords token
                       )
 
 answerOPTIONS :: ServerM NoContent
@@ -250,8 +251,9 @@ putRecordFieldById token serial f c = do
   liftIO $ putStrLn $ "putRecordFieldById " ++ show serial ++ show f ++ show c
   return NoContent
 
-putOwnerRecords :: MToken' '["_session"] -> Key Pegawai -> [Key Reference] -> ServerM NoContent
-putOwnerRecords token pegawai keyRefs = do
+putOwnerRecords :: MToken' '["_session"]
+                -> (Key Pegawai, [Key Reference]) -> ServerM NoContent
+putOwnerRecords token (pegawai,keyRefs) = do
 --  runAuth $ guardAuthToken token
   withDB $ do
         p <- selectFirst [ PegawaiId ==. pegawai ] []
@@ -273,7 +275,7 @@ testEndpoint token = do
 --        k1 <- insert $ Pegawai "Admin2"  "33322222" $ (map entityKey rs :: [Key Reference])
         k1 <- selectFirst [PegawaiNama ==. "Admin2"] []
         return (k1,rs)
-  putOwnerRecords token (entityKey $ fromJust r) $ map entityKey p
+  putOwnerRecords token (entityKey $ fromJust r, map entityKey p)
   liftIO $ putStrLn $ show p
   liftIO $ putStrLn $ "testEndpoint"
   return $ map (fromReference . entityVal) p

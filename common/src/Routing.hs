@@ -39,10 +39,12 @@ type GuardedJsonApi =
         :<|> Capture "ident" Int :> Capture "field" T.Text :> Capture "content" T.Text :> Put '[JSON] NoContent
         :<|> MultipartForm Mem (MultipartData Mem) :> Post '[JSON] [(T.Text,T.Text)]
         :<|> Options '[JSON] NoContent
+        :<|> "own" :> ReqBody '[JSON] (Key Pegawai,[Key Reference]) :> Put '[JSON] NoContent
      )
 type Options = Verb 'OPTIONS 200
 
-(jsonApiPutSingle :<|> jsonApiPutSingleField :<|> jsonApiPutFile :<|> jsonApiOptions) = allLinks (Proxy :: Proxy GuardedJsonApi)
+(jsonApiPutSingle :<|> jsonApiPutSingleField :<|> jsonApiPutFile :<|> jsonApiOptions
+  :<|> jsonApiPutOwner) = allLinks (Proxy :: Proxy GuardedJsonApi)
 
   {-
 listLink :: URI

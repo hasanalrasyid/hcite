@@ -9,7 +9,7 @@ import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
 import           Data.Maybe (fromMaybe,listToMaybe)
-
+import Data.Set (fromList)
 --import           Data.FileEmbed
 
 --import Data.Witherable
@@ -30,7 +30,7 @@ import Servant.Links
 --import Reflex.Bulmex.Tag.Bulma
 
 import Proto hiding (main,headElement,body)
-import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage)
+import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage,dViewArticle)
 
 --import Control.Monad.Reader
 import Control.Lens
@@ -38,6 +38,8 @@ import Data.Default
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 import JSDOM.FormData as FD
 import JSDOM.Types (File,MonadJSM)
+import Reflex.Dom.Contrib.Widgets.CheckboxList (checkboxList)
+
 
 
 data Env t = Env  { _history :: [String]
@@ -109,6 +111,7 @@ body = mdo
 -- v. ImportPage (ini yang paling penting sebenarnya)
 -- 7. Full Editor
 -- 8. Cosmetics
+-- 9. setOwner
 --
 --
 
@@ -224,8 +227,11 @@ homePage dEnv = Workflow $ do
     let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
     eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
     dRefList <- holdDyn Nothing eRefList
-    --display dRefList
-    --eAbstract <- toButton "button" (constDyn mempty) $ text "Abstract"
+
+    let dCheckRefList = fmap (fmap (map ((,) False))) dRefList
+
+    eBulkAll <- checkbox False def
+    dBulkAction <- checkboxList (_checkbox_change eBulkAll) (fromList $ map show [1,2,3,4,5]) (map show [1,2,3,4,5])
 
     delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
     let deEdit = fmap leftmost delEdit
@@ -261,3 +267,21 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   return ("DetailPage", homePage dEnv <$ eBack)
   where
     buildPostEdit serial f c = XhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutSingleField serial f c)
+
+dViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m (Event t Int)
+dViewArticle dRef = el "div" $ do
+  dynText $ refTitle <$> dRef
+  eAbstract <- toButton "div" mempty $ text "Abstract"
+  dToggleAbstract <- toggle True eAbstract
+  let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
+  dAbstractI <- holdDyn (True,0) eAbstractI
+  eAbstractT <- getAbstract3 dAbstractI
+  elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dToggleAbstract) $ do
+    elClass "hr" "login-hr" blank
+    el "p" $ dynText =<< holdDyn "Init" eAbstractT
+
+  eSerial <- toButton "div" mempty $
+                elClass "i" "fa fa-edit" $ blank
+  let serial = refSerial <$> dRef
+  return (tag (current serial) eSerial)
+

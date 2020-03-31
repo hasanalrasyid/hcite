@@ -133,6 +133,7 @@ homePage = Workflow . el "div" $ mdo
 
 dViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m (Event t Int)
 dViewArticle dRef = el "div" $ do
+
   dynText $ refTitle <$> dRef
 
   eAbstract <- toButton "div" mempty $ text "Abstract"
