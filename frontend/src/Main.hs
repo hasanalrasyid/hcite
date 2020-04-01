@@ -215,12 +215,11 @@ loginPage dEnv = Workflow . el "div" $ do
     putEnvToken d Nothing = d
     putEnvToken d (Just t) = d { _xhrRequestConfig_headers = Map.singleton "Authorization" $ token t }
 
-dViewArticle :: MonadWidget t m => (Dynamic t (Bool,SimpleRef))
+dViewArticle :: MonadWidget t m => Event t Bool -> Dynamic t SimpleRef
              -> m (Dynamic t (Int,Bool), Event t Int)
-dViewArticle dCheckRef = el "div" $ mdo
-  let (dCheck,dRef) = splitDynPure dCheckRef
+dViewArticle eCheck dRef = el "div" $ mdo
   -- dynText $ refTitle <$> dRef
-  checkRef <- genCheckbox dynText (refTitle <$> dRef) $ updated dCheck -- $ _inputElement_checkedChange checkRef
+  checkRef <- genCheckbox dynText (refTitle <$> dRef) eCheck -- $ _inputElement_checkedChange checkRef
   eAbstract <- toButton "div" mempty $ text "Abstract"
   dToggleAbstract <- toggle True eAbstract
   let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
@@ -257,12 +256,9 @@ homePage dEnv = Workflow $ do
 
     text "bulkAll"
     display $ _inputElement_checked bulkAll
-    --dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
-    dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
-    --display dBulkAction
-    display ddBulk
 
-    dleEdit <- flip simpleList dViewArticle $ fmap (map ((,) False)) dRefList
+    display ddBulk
+    dleEdit <- flip simpleList (dViewArticle (_inputElement_checkedChange bulkAll)) dRefList
     let ddBulk = joinDynThroughMap $ fmap (\x -> Map.fromList $ zip [1..] $ map fst x) dleEdit
     let deEdit = fmap (leftmost . (map snd)) dleEdit
         eEdit = switchDyn deEdit
