@@ -34,6 +34,8 @@ import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage,dViewA
 
 --import Control.Monad.Reader
 import Control.Lens
+import Control.Monad
+import Control.Applicative
 import Data.Default
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 import JSDOM.FormData as FD
@@ -213,6 +215,28 @@ loginPage dEnv = Workflow . el "div" $ do
     putEnvToken d Nothing = d
     putEnvToken d (Just t) = d { _xhrRequestConfig_headers = Map.singleton "Authorization" $ token t }
 
+dViewArticle :: MonadWidget t m => (Dynamic t (Bool,SimpleRef))
+             -> m (Dynamic t (Int,Bool), Event t Int)
+dViewArticle dCheckRef = el "div" $ mdo
+  let (dCheck,dRef) = splitDynPure dCheckRef
+  -- dynText $ refTitle <$> dRef
+  checkRef <- genCheckbox dynText (refTitle <$> dRef) $ updated dCheck -- $ _inputElement_checkedChange checkRef
+  eAbstract <- toButton "div" mempty $ text "Abstract"
+  dToggleAbstract <- toggle True eAbstract
+  let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
+  dAbstractI <- holdDyn (True,0) eAbstractI
+  eAbstractT <- getAbstract3 dAbstractI
+  elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dToggleAbstract) $ do
+    elClass "hr" "login-hr" blank
+    el "p" $ dynText =<< holdDyn "Init" eAbstractT
+
+  eSerial <- toButton "div" mempty $
+                elClass "i" "fa fa-edit" $ blank
+  let serial = refSerial <$> dRef
+  let dCheckRet = liftA2 (,) serial $ _inputElement_checked checkRef
+  let eEdit = tag (current serial) eSerial
+  return (dCheckRet, eEdit)
+
 homePage :: MonadWidget t m => (Env t) ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
@@ -235,12 +259,15 @@ homePage dEnv = Workflow $ do
     display $ _inputElement_checked bulkAll
     --dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
     dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
-    display dBulkAction
+    --display dBulkAction
+    display ddBulk
 
-    delEdit <- flip simpleList dViewArticle dRefList
-    let deEdit = fmap leftmost delEdit
+    dleEdit <- flip simpleList dViewArticle $ fmap (map ((,) False)) dRefList
+    let ddBulk = joinDynThroughMap $ fmap (\x -> Map.fromList $ zip [1..] $ map fst x) dleEdit
+    let deEdit = fmap (leftmost . (map snd)) dleEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
+
     let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, importPage dEnv <$ eImport, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
 
@@ -271,21 +298,4 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   return ("DetailPage", homePage dEnv <$ eBack)
   where
     buildPostEdit serial f c = XhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutSingleField serial f c)
-
-dViewArticle :: MonadWidget t m => Dynamic t SimpleRef -> m (Event t Int)
-dViewArticle dRef = el "div" $ do
-  dynText $ refTitle <$> dRef
-  eAbstract <- toButton "div" mempty $ text "Abstract"
-  dToggleAbstract <- toggle True eAbstract
-  let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
-  dAbstractI <- holdDyn (True,0) eAbstractI
-  eAbstractT <- getAbstract3 dAbstractI
-  elDynAttr "div" (hiddenDynAttrs ("class" =: "abstract") <$> dToggleAbstract) $ do
-    elClass "hr" "login-hr" blank
-    el "p" $ dynText =<< holdDyn "Init" eAbstractT
-
-  eSerial <- toButton "div" mempty $
-                elClass "i" "fa fa-edit" $ blank
-  let serial = refSerial <$> dRef
-  return (tag (current serial) eSerial)
 
