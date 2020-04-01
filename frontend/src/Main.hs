@@ -226,26 +226,18 @@ homePage dEnv = Workflow $ do
 
     let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
     eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
-    dRefList <- holdDyn Nothing eRefList
+    dR <- holdDyn Nothing eRefList
+    let dRefList = fromMaybe [] <$> dR
 
-    let dCheckRefList = fmap (fmap (map ((,) False))) dRefList
     bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
-      {-
-    bulkAll <- el "label" $ do
-                  eB <- inputElement $
-                    def & initialAttributes .~
-                            Map.fromList [ ("class" , "is-checkradio is-block is-info")
-                                         , ("value", "test")
-                                         , ("type","checkbox")
-                                         ]
-                  text "Check all"
-                  return eB
--}
+
     text "bulkAll"
     display $ _inputElement_checked bulkAll
+    --dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
     dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
     display dBulkAction
-    delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
+
+    delEdit <- flip simpleList dViewArticle dRefList
     let deEdit = fmap leftmost delEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
