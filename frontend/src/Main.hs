@@ -40,8 +40,6 @@ import JSDOM.FormData as FD
 import JSDOM.Types (File,MonadJSM)
 import Reflex.Dom.Contrib.Widgets.CheckboxList (checkboxList)
 
-
-
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
                   , _defXhrRequest :: Dynamic t (XhrRequestConfig ())
@@ -69,6 +67,8 @@ headElement = do
   stylesheet "inc/css/font-awesome.min.css"
   stylesheet "inc/css/OpenSans.css"
   stylesheet "inc/css/bulma.min.css"
+  stylesheet "inc/css/bulma-checkradio.min.css"
+  stylesheet "inc/css/custom.css"
 --  stylesheet "inc/css/forum.css"
 --  stylesheet "inc/css/bulma-docs.min.css"
   where
@@ -229,10 +229,20 @@ homePage dEnv = Workflow $ do
     dRefList <- holdDyn Nothing eRefList
 
     let dCheckRefList = fmap (fmap (map ((,) False))) dRefList
+    bulkAll <- el "label" $ do
+                  eB <- inputElement $
+                    def & initialAttributes .~
+                            Map.fromList [ ("class" , "is-checkradio is-block is-info")
+                                         , ("value", "test")
+                                         , ("type","checkbox")
+                                         ]
+                  text "Check all"
+                  return eB
 
-    eBulkAll <- checkbox False def
-    dBulkAction <- checkboxList (_checkbox_change eBulkAll) (fromList $ map show [1,2,3,4,5]) (map show [1,2,3,4,5])
-
+    text "bulkAll"
+    display $ _inputElement_checked bulkAll
+    dBulkAction <- checkboxList (T.pack) (_inputElement_checkedChange bulkAll) (fromList $ map show [1,2,3,4,5]) $ map show [1,2,3,4,5]
+    display dBulkAction
     delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
     let deEdit = fmap leftmost delEdit
         eEdit = switchDyn deEdit
