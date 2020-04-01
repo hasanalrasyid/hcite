@@ -38,7 +38,7 @@ import Data.Default
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 import JSDOM.FormData as FD
 import JSDOM.Types (File,MonadJSM)
-import Reflex.Dom.Contrib.Widgets.CheckboxList (checkboxList)
+import Reflex.Dom.Contrib.Widgets.CheckboxList (checkboxList,genCheckbox)
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
@@ -229,6 +229,8 @@ homePage dEnv = Workflow $ do
     dRefList <- holdDyn Nothing eRefList
 
     let dCheckRefList = fmap (fmap (map ((,) False))) dRefList
+    bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
+      {-
     bulkAll <- el "label" $ do
                   eB <- inputElement $
                     def & initialAttributes .~
@@ -238,10 +240,10 @@ homePage dEnv = Workflow $ do
                                          ]
                   text "Check all"
                   return eB
-
+-}
     text "bulkAll"
     display $ _inputElement_checked bulkAll
-    dBulkAction <- checkboxList (T.pack) (_inputElement_checkedChange bulkAll) (fromList $ map show [1,2,3,4,5]) $ map show [1,2,3,4,5]
+    dBulkAction <- checkboxList (text . T.pack . show) (_inputElement_checkedChange bulkAll) $ [1,2,3,4,5]
     display dBulkAction
     delEdit <- flip simpleList dViewArticle $ fromMaybe [] <$> dRefList
     let deEdit = fmap leftmost delEdit

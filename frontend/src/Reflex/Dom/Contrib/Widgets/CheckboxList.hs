@@ -16,7 +16,7 @@ import qualified Data.Text as T
 -- the boxes that are checked.
 checkboxList
     :: (MonadWidget t m, Ord a, Show a)
-    => (a -> T.Text)
+    => (a -> m ())
     -- ^ Function to show each item
 --      (T.Text -> a -> Bool)
     -- ^ Function to filter each item
@@ -26,17 +26,17 @@ checkboxList
     -- select none.
 --    -> Dynamic t T.Text
     -- ^ A search string for filtering the list of items.
-    -> Set a
+--    -> Set a
     -- ^ Set of items that should be initially checked
     -> [a]
     -- ^ List of items to show checkboxes for
     -> m (Dynamic t [a])
     -- ^ Dynamic list of checked items
 --checkboxList showFunc filterFunc blanketEvent searchString onItems items = do
-checkboxList showFunc blanketEvent onItems items = do
+checkboxList showFunc blanketEvent items = do
     el "ul" $ do
       es <- forM items $ \item -> do
-        let shown = showFunc item
+        let textShown = showFunc item
         {-
             mkAttrs search =
               if filterFunc search item
@@ -47,16 +47,16 @@ checkboxList showFunc blanketEvent onItems items = do
         let attrs = constDyn mempty
 
         elDynAttr "li" attrs $ el "label" $ do
-          cb <- htmlCheckbox
-                  (leftmost [blanketEvent])
-                  (S.member item onItems :: Bool)
+          cb <- genCheckbox
+--                  (S.member item onItems :: Bool)
 --                  (constDyn mempty)
-          text shown
+                  showFunc item
+                  (leftmost [blanketEvent])
           return $ fmap (\b -> if b then [item] else []) $ _inputElement_checked cb
       pure $ fmap concat $ distributeListOverDyn es
 
---htmlCheckbox setV initV attr = do
-htmlCheckbox setV initV = do
+--genCheckbox setV initV attr = do
+genCheckbox showFunc item setV = do
     elClass "label" "checkbox" $ do
       cb <- inputElement $ def & inputElementConfig_setChecked .~ setV
                                & initialAttributes .~
@@ -68,6 +68,7 @@ htmlCheckbox setV initV = do
         & setValue .~ setV
         & attributes .~ attr
         -}
+      showFunc item
       return cb
 
 mapCheckbox f (Checkbox v c) = do
@@ -112,7 +113,7 @@ checkboxListView showFunc filterFunc updateFunc blanketEvent searchString
                 else "style" =: "display:none"
         attrs <- liftM nubDyn $ mapDyn mkAttrs searchString
         elDynAttr "li" attrs $ el "label" $ do
-          cb <- htmlCheckbox $ WidgetConfig
+          cb <- genCheckbox $ WidgetConfig
                   (leftmost [blanketEvent])
                   (S.member item onItems)
                   (constDyn mempty)
