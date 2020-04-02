@@ -1,18 +1,43 @@
+CRUD of Reference
+Cv- by Import
+
+R - by Search
+      implement pagedHome
+v     implement Abstract dynamic
+      implement Search
+      at upper part of Home
+v     as json_data with space as &&.
+v     by author, keyword, abstract,
+      by ownerId
+
+U - by Details
+v     implement EditRecords
+
+D - Unimplemented (never delete data)
+
+CRUD of Person
+C - by DB
+R - by pickOwner
+      implement pickOwner with Search, as updated Dropdown list
+v     implement DetailedView with editing onClick at the field
+U - by DB
+D - by DB
+
+Interconnect Person and Reference
+C - assignOwner
+v implement setOwner
+
+R - in DetailedView
+implement viewWithOwner in Details
+
+U - in DetailedView
+implement unSetOwner
+
+D - in DetailedView
+implement deAssignOwner
+
+View based
 v implement "Not yet Implemented"
 v implement links: but we need to remove it, because android and gtk cannot handle it well
-v implement Abstract dynamic
-implement pagedHome
-v implement EditRecords
 v implement Login, tinggal pakai token untuk post data
-implement Search
-at upper part of Home
-v  as json_data with space as &&.
-v  by author, keyword, abstract,
-  by ownerId
 implement Acknowledgements
-v implement DetailedView with editing onClick at the field
-v implement setOwner
-implement unSetOwner
-implement viewWithOwner in Details
-implement deAssignOwner
-implement pickOwner with Search, as updated Dropdown list
