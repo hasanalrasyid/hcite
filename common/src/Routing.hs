@@ -39,7 +39,8 @@ type GuardedJsonApi =
         :<|> Capture "ident" Int :> Capture "field" T.Text :> Capture "content" T.Text :> Put '[JSON] NoContent
         :<|> MultipartForm Mem (MultipartData Mem) :> Post '[JSON] [(T.Text,T.Text)]
         :<|> Options '[JSON] NoContent
-        :<|> "own" :> ReqBody '[JSON] (Key Pegawai,[Key Reference]) :> Put '[JSON] NoContent
+        -- :<|> "own" :> ReqBody '[JSON] (Key Pegawai,[Key Reference]) :> Put '[JSON] NoContent
+        :<|> "own" :> ReqBody '[JSON] OwnerLRef :> Put '[JSON] NoContent
      )
 type Options = Verb 'OPTIONS 200
 

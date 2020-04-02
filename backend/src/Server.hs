@@ -53,6 +53,7 @@ import Control.Monad
 import Data.Either
 import Data.List
 --import Control.Monad.Reader -- asks
+import Database.Persist.Sql
 
 -- | Enter infinite loop of processing requests for pdf-master-server.
 --
@@ -76,6 +77,7 @@ exampleServerApp e = (cors allOK) $ serve api myImpl
                 , corsMethods = [methodGet,methodPost,methodOptions,methodPut]
                 , corsRequestHeaders = ["Access-Control-Request-Method"
                                        ,"Access-Control-Request-Headers"
+                                       ,"Content-Type"
                                        ,"Authorization"]
                 , corsExposedHeaders = Nothing
                 , corsMaxAge = Nothing
@@ -252,15 +254,16 @@ putRecordFieldById token serial f c = do
   return NoContent
 
 putOwnerRecords :: MToken' '["_session"]
-                -> (Key Pegawai, [Key Reference]) -> ServerM NoContent
-putOwnerRecords token (pegawai,keyRefs) = do
+                -- -> (Key Pegawai, [Key Reference]) -> ServerM NoContent
+                -> OwnerLRef -> ServerM NoContent
+putOwnerRecords token olr@(OwnerLRef iPegawai liKeyRefs) = do
 --  runAuth $ guardAuthToken token
   withDB $ do
-        p <- selectFirst [ PegawaiId ==. pegawai ] []
+        p <- selectFirst [ PegawaiId ==. (toSqlKey $ fromIntegral iPegawai) ] []
         case p of
           Nothing -> return ()
           Just pg -> do
-            let relRefs = nub $ sort $ (++) keyRefs $ pegawaiRelatedReference $ entityVal pg
+            let relRefs = nub $ sort $ (++) (map keyReference liKeyRefs) $ pegawaiRelatedReference $ entityVal pg
             update (entityKey pg) [PegawaiRelatedReference =. relRefs]
   return NoContent
 
@@ -275,8 +278,7 @@ testEndpoint token = do
 --        k1 <- insert $ Pegawai "Admin2"  "33322222" $ (map entityKey rs :: [Key Reference])
         k1 <- selectFirst [PegawaiNama ==. "Admin2"] []
         return (k1,rs)
-  putOwnerRecords token (entityKey $ fromJust r, map entityKey p)
-  liftIO $ putStrLn $ show p
+  _ <- putOwnerRecords token (OwnerLRef (fromIntegral $ fromSqlKey $ entityKey $ fromJust r) $ map (fromKeyReference . entityKey) p)
   liftIO $ putStrLn $ "testEndpoint"
   return $ map (fromReference . entityVal) p
 

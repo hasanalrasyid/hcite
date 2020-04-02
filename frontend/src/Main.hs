@@ -7,6 +7,7 @@
 
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
+import qualified Data.Text.Read as T
 import qualified Data.Map.Strict as Map
 import           Data.Maybe (fromMaybe,listToMaybe)
 import Data.Set (fromList)
@@ -16,7 +17,6 @@ import Data.Set (fromList)
 
 import Routing
 import Model
-
 --import Reflex.Dom.Xhr
 
 --import Language.Javascript.JSaddle.Types
@@ -29,7 +29,7 @@ import Servant.Links
 --import Reflex.Bulmex.Modal
 --import Reflex.Bulmex.Tag.Bulma
 
-import Proto hiding (main,headElement,body)
+import Proto hiding (main,headElement,body,serverBackend)
 import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage,dViewArticle)
 
 --import Control.Monad.Reader
@@ -37,6 +37,7 @@ import Control.Lens
 import Control.Monad
 import Control.Applicative
 import Data.Default
+import Data.Either
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 import JSDOM.FormData as FD
 import JSDOM.Types (File,MonadJSM)
@@ -44,7 +45,7 @@ import Reflex.Dom.Contrib.Widgets.CheckboxList (checkboxList,genCheckbox)
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
-                  , _defXhrRequest :: Dynamic t (XhrRequestConfig ())
+                  , _defXhrReqConfig :: Dynamic t (XhrRequestConfig ())
                }
 
 $(makeLenses ''Env)
@@ -52,7 +53,7 @@ $(makeLenses ''Env)
 instance Reflex t => Default (Env t) where
   def = Env { _history = []
             , _auth = constDyn Nothing
-            , _defXhrRequest = constDyn def
+            , _defXhrReqConfig = constDyn def
             }
 
 main :: IO ()
@@ -166,7 +167,7 @@ importPage dEnv = Workflow . el "div" $ do
   eSubmit <- button "Upload"
   let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
   efd1 <- performEvent $ fmap (wrapFile "bib") eFi
-  let efd = attachPromptlyDyn (dEnv ^. defXhrRequest) efd1
+  let efd = attachPromptlyDyn (dEnv ^. defXhrReqConfig) efd1
   r <- performRequestAsync $ ffor efd $ \(defXhr,fd) ->
         xhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) $ defXhr {
                           _xhrRequestConfig_sendData = fd
@@ -203,11 +204,11 @@ loginPage dEnv = Workflow . el "div" $ do
         mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
   let dLoginReq = pure genLoginReq <*> value username <*> value password
   eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
-  let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ dEnv ^. defXhrRequest) eToken
+  let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ dEnv ^. defXhrReqConfig) eToken
   dNewXhr <- holdDyn def eNewXhr
   dToken <- holdDyn Nothing eToken
   let dEnv2 = dEnv & auth .~ dToken
-                   & defXhrRequest .~ dNewXhr
+                   & defXhrReqConfig .~ dNewXhr
   e <- button "Back"
   return ("LoginPage", homePage dEnv2 <$ e)
   where
@@ -236,6 +237,9 @@ dViewArticle eCheck dRef = el "div" $ mdo
   let eEdit = tag (current serial) eSerial
   return (dCheckRet, eEdit)
 
+serverBackend :: T.Text
+serverBackend = "http://127.0.0.1:3000/"
+
 homePage :: MonadWidget t m => (Env t) ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
@@ -247,25 +251,45 @@ homePage dEnv = Workflow $ do
     display (dEnv ^. auth)
     eStart <- getPostBuild
 
-    let tGetList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 1
-    eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetList <$ eStart)
+    let tGetInitList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 11
+    eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetInitList <$ eStart)
     dR <- holdDyn Nothing eRefList
     let dRefList = fromMaybe [] <$> dR
 
-    bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
 
+    tiOwner <- textInput def
+    eAssignOwner <- toButton "button" mempty $ text "Assign Owner"
+    assignOwner dEnv tiOwner (fmap (filter snd) dBulk) eAssignOwner
+
+
+    bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
     text "bulkAll"
     display $ _inputElement_checked bulkAll
-
-    display ddBulk
+    display dBulk
     dleEdit <- flip simpleList (dViewArticle (_inputElement_checkedChange bulkAll)) dRefList
-    let ddBulk = joinDynThroughMap $ fmap (\x -> Map.fromList $ zip [1..] $ map fst x) dleEdit
+    let dBulk = fmap (map snd . Map.toList) $ joinDynThroughMap $ fmap (\x -> Map.fromList $ zip [1..] $ map fst x) dleEdit
     let deEdit = fmap (leftmost . (map snd)) dleEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
 
     let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, importPage dEnv <$ eImport, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
+
+assignOwner :: MonadWidget t m => Env t -> TextInput t -> Dynamic t [(Int,Bool)] -> Event t () -> m ()
+assignOwner dEnv tiOwner dFilteredBulk eAssignOwner = mdo
+  let efd = attach (current $ dEnv ^. defXhrReqConfig) $ attach (current $ _textInput_value tiOwner) $ tag (current dFilteredBulk) eAssignOwner
+  r <- performRequestAsync $ ffor efd $ \(defXhr,(owner,lRefCheck)) ->
+        let ownerID = case T.decimal owner of
+                        Right (a,_) -> a
+                        Left _ -> 0
+            postXhrRequest =
+              postJson (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutOwner) $
+                OwnerLRef ownerID $ map fst lRefCheck
+         in postXhrRequest & xhrRequest_method .~ "PUT"
+                           & xhrRequest_config . xhrRequestConfig_headers <>~ defXhr ^. xhrRequestConfig_headers
+  st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
+  display st
+
 
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
@@ -279,13 +303,10 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   eRef1 :: Event t (Maybe Reference) <- getAndDecode $
     tGetSingle <$> tag (current dSerial) eStart
   let eRef = mapMaybe id eRef1
+
   dRefs <- holdDyn [] $ (:[]) <$> eRef
-  --let dRef = headBlank <$> dRefs
-  --eTitle <- inputElement $ def & inputElementConfig_setValue .~ (referenceTitle <$> eRef)
-  --dynText $ value eTitle
   dTitle <- holdDyn "TITLE_BLANK" $ referenceTitle <$> mapMaybe id eRef1
   eTitle <- editInPlace (constant True) dTitle -- $ (referenceTitle <$> dRef)
---  display =<< holdDyn "eTitleHold" eTitle
 
   el "hr" blank
   display =<< holdDyn "eTitleHold" eTitle

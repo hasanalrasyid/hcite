@@ -1,6 +1,8 @@
 module Monad(
   newServerEnv,
   withDB,
+  keyReference,
+  fromKeyReference,
   withDBEnv
   ) where
 
@@ -30,3 +32,9 @@ withDBEnv :: MonadIO m
        => AM.ServerEnv -> ReaderT SqlBackend IO a -> m a
 withDBEnv (AM.ServerEnv _ _ pool) q = do
   liftIO $ flip runSqlPool pool q
+
+keyReference :: Int -> Key M.Reference
+keyReference x = M.ReferenceKey x
+
+fromKeyReference :: Key M.Reference -> Int
+fromKeyReference (M.ReferenceKey x) = x

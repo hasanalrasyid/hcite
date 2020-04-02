@@ -151,7 +151,12 @@ instance FromReference SimpleRef where
                               ( fromMaybe ""    $ referencePages        r)
                               ( fromMaybe ""    $ referencePublisher    r)
 
+data OwnerLRef = OwnerLRef { ownPID :: Int
+                           , ownLRef :: [Int]
+                           } deriving (Generic,Show)
 
+instance ToJSON OwnerLRef
+instance FromJSON OwnerLRef
 
 data Model = Model
   { records :: Either T.Text [Reference]
