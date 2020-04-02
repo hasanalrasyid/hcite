@@ -5,6 +5,7 @@ implement pagedHome
 v implement EditRecords
 v implement Login, tinggal pakai token untuk post data
 implement Search
+at upper part of Home
 v  as json_data with space as &&.
 v  by author, keyword, abstract,
   by ownerId
@@ -14,3 +15,4 @@ v implement setOwner
 implement unSetOwner
 implement viewWithOwner in Details
 implement deAssignOwner
+implement pickOwner with Search, as updated Dropdown list
