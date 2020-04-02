@@ -45,6 +45,7 @@ Pegawai
   nama  T.Text
   nip   T.Text
   relatedReference [ReferenceId]
+  UniqueNip nip
   deriving Show
 ThesisType
   thesis T.Text

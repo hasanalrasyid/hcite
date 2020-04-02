@@ -257,7 +257,7 @@ putOwnerRecords :: MToken' '["_session"]
                 -- -> (Key Pegawai, [Key Reference]) -> ServerM NoContent
                 -> OwnerLRef -> ServerM NoContent
 putOwnerRecords token olr@(OwnerLRef iPegawai liKeyRefs) = do
---  runAuth $ guardAuthToken token
+  runAuth $ guardAuthToken token
   withDB $ do
         p <- selectFirst [ PegawaiId ==. (toSqlKey $ fromIntegral iPegawai) ] []
         case p of
