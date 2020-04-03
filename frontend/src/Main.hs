@@ -241,6 +241,13 @@ serverBackend :: T.Text
 --serverBackend = "http://127.0.0.1:3000/"
 serverBackend = "http://192.168.43.175:3000/"
 
+getAndDecodeSimpleRef :: MonadWidget t m => Event t (XhrRequest T.Text) -> m (Event t (Maybe [SimpleRef]))
+getAndDecodeSimpleRef d = do
+  let target = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetListAbstract 1
+  r <- performRequestAsync d
+  return $ fmap decodeXhrResponse r
+
+
 homePage :: MonadWidget t m => (Env t) ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
@@ -256,7 +263,15 @@ homePage dEnv = Workflow $ do
     eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetInitList <$ eStart)
     dR <- holdDyn Nothing eRefList
     let dRefList = fromMaybe [] <$> dR
-
+    eSearchButton <- toButton "button" mempty $ text "Search"
+    let eSearch = leftmost [eSearchButton, eStart]
+    eTest <- getAndDecodeSimpleRef $ postXhrRequest <$ eSearch
+    dTest <- holdDyn Nothing eTest
+    display dTest
+    let target = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetListAbstract 1
+    let postXhrRequest = postJson target $
+                                  Model.Search "abstract" "model disease"
+    text $ T.pack $ show postXhrRequest
 
     tiOwner <- textInput def
     eAssignOwner <- toButton "button" mempty $ text "Assign Owner"

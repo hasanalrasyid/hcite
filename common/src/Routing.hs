@@ -19,9 +19,9 @@ type JsonApi =
       :<|> Capture "ident" Int :> Get '[JSON] Reference
       :<|> "list" :> (
                    Capture "page" Int :>  Get '[JSON] [SimpleRef]
-              :<|> "author"   :> Capture "page" Int :> ReqBody '[JSON] (T.Text,T.Text) :> Get '[JSON] [SimpleRef]
-              :<|> "abstract" :> Capture "page" Int :> ReqBody '[JSON] (T.Text,T.Text) :> Get '[JSON] [SimpleRef]
-              :<|> "keywords" :> Capture "page" Int :> ReqBody '[JSON] (T.Text,T.Text) :> Get '[JSON] [SimpleRef]
+              :<|> "author"   :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
+              :<|> "abstract" :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
+              :<|> "keywords" :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
               :<|> "owner"    :> Capture "page" Int :> Capture "ident" Int :> Get '[JSON] [SimpleRef]
             )
     )

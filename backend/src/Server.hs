@@ -143,16 +143,16 @@ getRecords = getRecordsList [] {- do
   return $ map (fromReference . entityVal) p
   -}
 
-getRecordsByAuthor :: (FromReference b, MonadIO f) => ServerEnv -> Int -> (T.Text,T.Text) -> f [b]
-getRecordsByAuthor   e iPage (_,tSearch) =
+getRecordsByAuthor :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
+getRecordsByAuthor   e iPage (Search _ tSearch) =
   getRecordsList (genFilter ReferenceAuthor $ T.words tSearch) e iPage
 
-getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> Int -> (T.Text,T.Text) -> f [b]
-getRecordsByKeyword  e iPage (_,tSearch) =
+getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
+getRecordsByKeyword  e iPage (Search _ tSearch) =
   getRecordsList (genFilter ReferenceKeywords $ map Just $ T.words tSearch) e iPage
 
-getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> (T.Text,T.Text) -> f [b]
-getRecordsByAbstract e iPage (_,tSearch) =
+getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
+getRecordsByAbstract e iPage (Search _ tSearch) =
   getRecordsList (genFilter ReferenceAbstract $ map Just $ T.words tSearch) e iPage
 
 getRecordsByOwnerId :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Int -> f [b]

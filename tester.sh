@@ -33,3 +33,5 @@ signout:
 
 curl -vvv --header "Content-Type: application/json" --request GET --data '["q","electrode"]'  http://localhost:3000/api/record/list/keywords/1
 
+ curl -X GET --data '{"searchMode":"abstract","searchTerm":"model storm"}' --header "Content-Type: application/json" -H "Authorization:5ca39879-2eb1-4faa-80a0-9e90f777755b" localhost:3000/api/record/list/abstract/1
+
