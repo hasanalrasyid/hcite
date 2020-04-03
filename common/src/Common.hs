@@ -6,5 +6,3 @@ module Common
 import Data.Meteo.Swiss.Types
 import Data.Meteo.Swiss.Urls
 
-lib :: IO ()
-lib = putStrLn "Hello, Haskell!"

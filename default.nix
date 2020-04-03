@@ -16,6 +16,8 @@ reflex-platform.project ({ pkgs, ... }:
     frontend = ./frontend;
     otherlibs = ./otherlibs;
     bulmex = ./bulmex-4.0.0;
+    doHaddock = false;
+    doCheck = false;
   };
 
   android.frontend = {
