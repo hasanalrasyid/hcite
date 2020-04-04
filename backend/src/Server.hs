@@ -279,7 +279,8 @@ putOwnerRecords token olr@(OwnerLRef iPegawai liKeyRefs) = do
   withDB $ do
         p <- selectFirst [RelationPRPId ==. (toSqlKey $ fromIntegral iPegawai) ] []
         case p of
-          Nothing -> return ()
+          Nothing ->
+            insert_ $ RelationPR (toSqlKey $ fromIntegral iPegawai) $ map keyReference liKeyRefs
           Just pg -> do
             let relRefs = nub $ sort $ (++) (map keyReference liKeyRefs) $ relationPRRefIds $ entityVal pg
             update (entityKey pg) [RelationPRRefIds =. relRefs]

@@ -259,10 +259,12 @@ homePage dEnv = Workflow $ do
     display (dEnv ^. auth)
     eStart <- getPostBuild
 
+  {-
     let tGetInitList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 11
     eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetInitList <$ eStart)
     dR <- holdDyn Nothing eRefList
     let dRefList = fromMaybe [] <$> dR
+    -}
     eSearchButton <- toButton "button" mempty $ text "Search"
     let eSearch = leftmost [eSearchButton, eStart]
 
@@ -279,16 +281,24 @@ homePage dEnv = Workflow $ do
                               $ attach (current $ _textInput_value tiSearch)
                               $ tag (current $ _dropdown_value drModel) eSearch
 
-    eTest <- getAndDecodeSimpleRef ePostXhrRequest
-    dTest <- holdDyn Nothing eTest
-    let dRefListSearch =fromMaybe [] <$> dTest
+    eRefList <- getAndDecodeSimpleRef ePostXhrRequest
+    dR <- holdDyn Nothing eRefList
+    let dRefListSearch =fromMaybe [] <$> dR
 
     let target = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetListAbstract 1
 
-    tiOwner <- textInput def
-    eAssignOwner <- toButton "button" mempty $ text "Assign Owner"
-    assignOwner dEnv tiOwner (fmap (filter snd) dBulk) eAssignOwner
+    --tiOwner <- textInput def
+    elAttr "datalist" ("id" =: "candidates") $ do
+       elAttr "option" ("value" =: "123") blank
+       elAttr "option" ("value" =: "133") blank
+       elAttr "option" ("value" =: "442") blank
+    tOwnerSearch <- inputElement $ def & (inputElementConfig_elementConfig . initialAttributes) .~ ( "list" =: "candidates" )
 
+    dTOwner <- dViewOwnerPicker (_inputElement_value tOwnerSearch) (_inputElement_input tOwnerSearch)
+    display dTOwner
+
+    eAssignOwner <- toButton "button" mempty $ text "Assign Owner"
+    assignOwner dEnv dTOwner (fmap (filter snd) dBulk) eAssignOwner
 
     bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
     text "bulkAll"
@@ -303,16 +313,32 @@ homePage dEnv = Workflow $ do
     let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, importPage dEnv <$ eImport, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
 
-assignOwner :: MonadWidget t m => Env t -> TextInput t -> Dynamic t [(Int,Bool)] -> Event t () -> m ()
-assignOwner dEnv tiOwner dFilteredBulk eAssignOwner = mdo
-  let efd = attach (current $ dEnv ^. defXhrReqConfig) $ attach (current $ _textInput_value tiOwner) $ tag (current dFilteredBulk) eAssignOwner
+dViewOwnerPicker :: MonadWidget t m =>  Dynamic t T.Text -> Event t T.Text -> m (Dynamic t Int)
+dViewOwnerPicker dOwnerSearch eOwnerSearch =
+  el "div" $ mdo
+    let eGetOwnerList1 = ffilter (\x -> T.length x > 3) eOwnerSearch
+    eGetOwnerList <- performRequestAsync $ ffor eGetOwnerList1 $ \s ->
+        postJson (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetPerson) $ Model.Search "p" s
+
+    dGetOwnerList :: Dynamic t [Person] <- holdDyn [] $ fforMaybe eGetOwnerList decodeXhrResponse
+    dleSetOwner <- flip simpleList dView dGetOwnerList
+    let deSetOwner = fmap leftmost dleSetOwner
+        eSetOwner  = switchDyn deSetOwner
+    dSetOwner <- holdDyn 0 eSetOwner
+    display dSetOwner
+    return dSetOwner
+    where
+      dView o = do
+        e <- toButton "div" mempty $ dynText $ fmap personName o
+        return $ tag (current $ fmap personId o) e
+
+assignOwner :: MonadWidget t m => Env t -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t () -> m ()
+assignOwner dEnv dOwner dFilteredBulk eAssignOwner = mdo
+  let efd = attach (current $ dEnv ^. defXhrReqConfig) $ attach (current dOwner) $ tag (current dFilteredBulk) eAssignOwner
   r <- performRequestAsync $ ffor efd $ \(defXhr,(owner,lRefCheck)) ->
-        let ownerID = case T.decimal owner of
-                        Right (a,_) -> a
-                        Left _ -> 0
-            postXhrRequest =
+        let postXhrRequest =
               postJson (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutOwner) $
-                OwnerLRef ownerID $ map fst lRefCheck
+                OwnerLRef owner $ map fst lRefCheck
          in postXhrRequest & xhrRequest_method .~ "PUT"
                            & xhrRequest_config . xhrRequestConfig_headers <>~ defXhr ^. xhrRequestConfig_headers
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
