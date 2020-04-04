@@ -14,7 +14,8 @@ import Servant.Multipart
 --type TopRoute = View Action
 
 type JsonApi =
-    "api" :> "record" :> (
+        "api" :> "person" :> ReqBody '[JSON] Model.Search :> Post '[JSON] [Person]
+  :<|>  "api" :> "record" :> (
            "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
       :<|> Capture "ident" Int :> Get '[JSON] Reference
       :<|> "list" :> (
@@ -26,7 +27,8 @@ type JsonApi =
             )
     )
 
-( jsonApiGetAbstract :<|> jsonApiGetSingle
+( jsonApiGetPerson :<|>
+  jsonApiGetAbstract :<|> jsonApiGetSingle
   :<|> jsonApiGetList
   :<|> jsonApiGetListAuthor
   :<|> jsonApiGetListAbstract

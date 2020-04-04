@@ -109,10 +109,21 @@ authImpl :: ServerEnv -> Server AuthAPI
 authImpl e = hoistServer authApi (runAuthM e) authServerM
 
 jsonImpl :: ServerEnv -> Server JsonApi
-jsonImpl e = getAbstract e :<|> getRecord e
+jsonImpl e = getPerson e
+        :<|> getAbstract e :<|> getRecord e
         :<|> getRecords e
         :<|> getRecordsByAuthor e :<|> getRecordsByAbstract e
         :<|> getRecordsByKeyword e :<|> getRecordsByOwnerId e
+
+getPerson :: (MonadIO f) => ServerEnv -> Model.Search -> f [Person]
+getPerson e (Search _ tSearch) = do
+  if T.length tSearch > 3 then do
+    ps <- getPersonList (genFilter PegawaiNama $ T.words tSearch) e (1 :: Int)
+    return $ map toPerson ps
+  else return []
+
+toPerson :: Entity Pegawai -> Person
+toPerson p = Person (pegawaiNama $ entityVal p) $ fromIntegral $ fromSqlKey $ entityKey p
 
 guardedJsonImpl :: ServerEnv -> Server GuardedJsonBackendApi
 guardedJsonImpl e =
@@ -128,6 +139,13 @@ getAbstract e i = fromReference <$> getRecord e i
 
 resPerPage :: Int
 resPerPage = 5
+
+getPersonList :: (MonadIO f) => [Filter Pegawai]
+               -> ServerEnv -> Int -> f [Entity Pegawai]
+getPersonList q e iPage = do
+  p <- withDBEnv e $ selectList q [ LimitTo resPerPage
+                                  , OffsetBy $ (iPage - 1) * resPerPage ]
+  return p
 
 getRecordsList :: (FromReference b, MonadIO f) => [Filter Reference]
                -> ServerEnv -> Int -> f [b]
@@ -259,28 +277,29 @@ putOwnerRecords :: MToken' '["_session"]
 putOwnerRecords token olr@(OwnerLRef iPegawai liKeyRefs) = do
   runAuth $ guardAuthToken token
   withDB $ do
-        p <- selectFirst [ PegawaiId ==. (toSqlKey $ fromIntegral iPegawai) ] []
+        p <- selectFirst [RelationPRPId ==. (toSqlKey $ fromIntegral iPegawai) ] []
         case p of
           Nothing -> return ()
           Just pg -> do
-            let relRefs = nub $ sort $ (++) (map keyReference liKeyRefs) $ pegawaiRelatedReference $ entityVal pg
-            update (entityKey pg) [PegawaiRelatedReference =. relRefs]
+            let relRefs = nub $ sort $ (++) (map keyReference liKeyRefs) $ relationPRRefIds $ entityVal pg
+            update (entityKey pg) [RelationPRRefIds =. relRefs]
   return NoContent
-
 
 
 testEndpoint :: MToken' '["_session"] -> ServerM [SimpleRef]
 testEndpoint token = do
 --  runAuth $ guardAuthToken token
-  let iPage = 1
+  let iPage = 1 :: Int
+    {-
   (r,p) <- withDB $ do
         rs <- selectList (genFilter ReferenceAuthor $ ["cynt"]) [ LimitTo 3 ]
 --        k1 <- insert $ Pegawai "Admin2"  "33322222" $ (map entityKey rs :: [Key Reference])
         k1 <- selectFirst [PegawaiNama ==. "Admin2"] []
         return (k1,rs)
   _ <- putOwnerRecords token (OwnerLRef (fromIntegral $ fromSqlKey $ entityKey $ fromJust r) $ map (fromKeyReference . entityKey) p)
+  -}
   liftIO $ putStrLn $ "testEndpoint"
-  return $ map (fromReference . entityVal) p
+  return $ [] -- map (fromReference . entityVal) p
 
 staticFiles :: MonadIO m => Tagged m Application
 staticFiles = serveDirectoryFileServer "static"

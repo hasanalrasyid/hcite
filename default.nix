@@ -36,5 +36,7 @@ reflex-platform.project ({ pkgs, ... }:
   shells = {
     ghc = ["common" "backend" "frontend"];
     ghcjs = ["common" "frontend"];
+    doHaddock = false;
+    doCheck = false;
   };
 })

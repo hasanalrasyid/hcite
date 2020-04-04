@@ -42,11 +42,23 @@ import GHC.Generics
 
 share [mkPersist sqlSettings, mkMigrate "migrateRefs"] [persistLowerCase|
 Pegawai
-  nama  T.Text
-  nip   T.Text
-  relatedReference [ReferenceId]
-  UniqueNip nip
+     nama                T.Text  sqltype=varchar(100)
+     nip                 T.Text  sqltype=varchar(50)
+     kodeAbsen          Int     sqltype=int(20)
+     unit                T.Text  sqltype=varchar(25)
+     email               T.Text  sqltype=varchar(50)
+     telp                T.Text  sqltype=varchar(100)
+     password            T.Text  sqltype=varchar(50)
+     tglLahir           Day     sqltype=date
+     status              Int     sqltype=smallint(5)
+     golongan            Int     sqltype=smallint(5)
+     statusAktif        Int     sqltype=smallint(2)
+     foto                T.Text  sqltype=varchar(200)
+     tglData            UTCTime sqltype=datetime
+     fpid                T.Text  sqltype=varchar(10)
+     statSpkwt          Int     sqltype=int(1)
   deriving Show
+
 ThesisType
   thesis T.Text
   deriving Show
@@ -110,6 +122,11 @@ Reference json
      Primary serial
      UniqueUrl url
      deriving Eq Show
+
+RelationPR
+     pId    PegawaiId
+     refIds   [ReferenceId]
+  deriving Show
 |]
 
 data SimpleRef = SimpleRef { refSerial      :: Int
@@ -164,6 +181,12 @@ data OwnerLRef = OwnerLRef { ownPID :: Int
 
 instance ToJSON OwnerLRef
 instance FromJSON OwnerLRef
+
+data Person = Person { personName :: T.Text
+                     , personId   :: Int
+                     } deriving (Generic,Show)
+instance ToJSON Person
+instance FromJSON Person
 
 data Model = Model
   { records :: Either T.Text [Reference]
