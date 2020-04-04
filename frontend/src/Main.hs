@@ -265,13 +265,25 @@ homePage dEnv = Workflow $ do
     let dRefList = fromMaybe [] <$> dR
     eSearchButton <- toButton "button" mempty $ text "Search"
     let eSearch = leftmost [eSearchButton, eStart]
-    eTest <- getAndDecodeSimpleRef $ postXhrRequest <$ eSearch
+
+    drModel <- dropdown "abstract"
+                        (constDyn $ Map.fromList [("abstract","abstract")
+                                                 ,("author","author")
+                                                 ,("keywords","keywords")])
+                        def
+
+    tiSearch <- textInput def
+
+    let ePostXhrRequest = fmap (\(m,s) -> postJson target $
+                                  Model.Search m s)
+                              $ attach (current $ _textInput_value tiSearch)
+                              $ tag (current $ _dropdown_value drModel) eSearch
+
+    eTest <- getAndDecodeSimpleRef ePostXhrRequest
     dTest <- holdDyn Nothing eTest
-    display dTest
+    let dRefListSearch =fromMaybe [] <$> dTest
+
     let target = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetListAbstract 1
-    let postXhrRequest = postJson target $
-                                  Model.Search "abstract" "model disease"
-    text $ T.pack $ show postXhrRequest
 
     tiOwner <- textInput def
     eAssignOwner <- toButton "button" mempty $ text "Assign Owner"
@@ -282,7 +294,7 @@ homePage dEnv = Workflow $ do
     text "bulkAll"
     display $ _inputElement_checked bulkAll
     display dBulk
-    dleEdit <- flip simpleList (dViewArticle (_inputElement_checkedChange bulkAll)) dRefList
+    dleEdit <- flip simpleList (dViewArticle (_inputElement_checkedChange bulkAll)) dRefListSearch
     let dBulk = fmap (map snd . Map.toList) $ joinDynThroughMap $ fmap (\x -> Map.fromList $ zip [1..] $ map fst x) dleEdit
     let deEdit = fmap (leftmost . (map snd)) dleEdit
         eEdit = switchDyn deEdit
