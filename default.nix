@@ -15,7 +15,7 @@ reflex-platform.project ({ pkgs, ... }:
     backend = ./backend;
     frontend = ./frontend;
     otherlibs = ./otherlibs;
-    bulmex = ./bulmex-4.0.0;
+    bulmex = ./lib/bulmex-4.0.0;
     doHaddock = false;
     doCheck = false;
   };
