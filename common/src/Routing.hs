@@ -43,11 +43,12 @@ type GuardedJsonApi =
         :<|> Options '[JSON] NoContent
         -- :<|> "own" :> ReqBody '[JSON] (Key Pegawai,[Key Reference]) :> Put '[JSON] NoContent
         :<|> "own" :> ReqBody '[JSON] OwnerLRef :> Put '[JSON] NoContent
+        :<|> "own" :> ReqBody '[JSON] OwnerLRef :> Delete '[JSON] NoContent
      )
 type Options = Verb 'OPTIONS 200
 
 (jsonApiPutSingle :<|> jsonApiPutSingleField :<|> jsonApiPutFile :<|> jsonApiOptions
-  :<|> jsonApiPutOwner) = allLinks (Proxy :: Proxy GuardedJsonApi)
+  :<|> jsonApiPutOwner :<|> jsonApiDeleteOwner) = allLinks (Proxy :: Proxy GuardedJsonApi)
 
   {-
 listLink :: URI

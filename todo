@@ -1,14 +1,16 @@
 CRUD of Reference
-Cv- by Import
+C- by Import
+v     Bibtex import
 
 R - by Search
       implement pagedHome
 v     implement Abstract dynamic
       implement Search
-      at upper part of Home
-v     as json_data with space as &&.
-v     by author, keyword, abstract,
-      by ownerId
+v       at upper part of Home
+v       as json_data with space as &&.
+        by author, keyword,
+v       abstract,
+        by ownerId
 
 U - by Details
 v     implement EditRecords
@@ -17,10 +19,13 @@ D - Unimplemented (never delete data)
 
 CRUD of Person
 C - by DB
+
 R - by pickOwner
-      implement pickOwner with Search, as updated Dropdown list
+v     implement pickOwner with Search, as updated Dropdown list
 v     implement DetailedView with editing onClick at the field
+
 U - by DB
+
 D - by DB
 
 Interconnect Person and Reference
@@ -28,16 +33,17 @@ C - assignOwner
 v implement setOwner
 
 R - in DetailedView
-implement viewWithOwner in Details
+  implement viewWithOwner in Details
 
 U - in DetailedView
-implement unSetOwner
+v implement deAssignOwner
 
 D - in DetailedView
-implement deAssignOwner
+v implement deAssignOwner
 
 View based
+  Better view
+  implement Acknowledgements
 v implement "Not yet Implemented"
 v implement links: but we need to remove it, because android and gtk cannot handle it well
 v implement Login, tinggal pakai token untuk post data
-implement Acknowledgements

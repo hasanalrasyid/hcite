@@ -146,6 +146,8 @@ homeWidget = do
   display r
   return $ updated r
 
+data BulkAction = AssignOwner | DeAssignOwner deriving (Show,Ord,Eq)
+
 noPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   el "div" $ text "No Page So Far"
@@ -169,7 +171,7 @@ importPage dEnv = Workflow . el "div" $ do
   efd1 <- performEvent $ fmap (wrapFile "bib") eFi
   let efd = attachPromptlyDyn (dEnv ^. defXhrReqConfig) efd1
   r <- performRequestAsync $ ffor efd $ \(defXhr,fd) ->
-        xhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutFile) $ defXhr {
+        xhrRequest "POST" (textFromJsonApi jsonApiPutFile) $ defXhr {
                           _xhrRequestConfig_sendData = fd
                          }
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
@@ -177,18 +179,6 @@ importPage dEnv = Workflow . el "div" $ do
     text "Upload status:"
     dynText $ fmap (T.pack . show) st
 
-  {-
-  username <- textInput def
-  password <- textInput def
-
-  eSend <- toButton "button" (constDyn mempty) $ text "Submit"
-  let genLoginReq u p =
-        mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
-  let dLoginReq = pure genLoginReq <*> value username <*> value password
-  eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
-  dToken <- holdDyn Nothing eToken
-  let dEnv2 = dEnv & auth .~ dToken
-  -}
   e <- toButton "button" (constDyn mempty) $ text "Back"
   return ("ImportPage", homePage dEnv <$ e)
 
@@ -221,6 +211,7 @@ dViewArticle :: MonadWidget t m => Event t Bool -> Dynamic t SimpleRef
 dViewArticle eCheck dRef = el "div" $ mdo
   -- dynText $ refTitle <$> dRef
   checkRef <- genCheckbox dynText (refTitle <$> dRef) eCheck -- $ _inputElement_checkedChange checkRef
+  dynText $ refAuthor <$> dRef
   eAbstract <- toButton "div" mempty $ text "Abstract"
   dToggleAbstract <- toggle True eAbstract
   let eAbstractI = attachPromptlyDyn dToggleAbstract $ tag (current $ refSerial <$> dRef) eAbstract
@@ -243,7 +234,7 @@ serverBackend = "http://192.168.43.175:3000/"
 
 getAndDecodeSimpleRef :: MonadWidget t m => Event t (XhrRequest T.Text) -> m (Event t (Maybe [SimpleRef]))
 getAndDecodeSimpleRef d = do
-  let target = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetListAbstract 1
+  let target = textFromJsonApi $ jsonApiGetListAbstract 1
   r <- performRequestAsync d
   return $ fmap decodeXhrResponse r
 
@@ -259,15 +250,6 @@ homePage dEnv = Workflow $ do
     display (dEnv ^. auth)
     eStart <- getPostBuild
 
-  {-
-    let tGetInitList = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetList 11
-    eRefList :: Event t (Maybe [SimpleRef]) <- getAndDecode $ (tGetInitList <$ eStart)
-    dR <- holdDyn Nothing eRefList
-    let dRefList = fromMaybe [] <$> dR
-    -}
-    eSearchButton <- toButton "button" mempty $ text "Search"
-    let eSearch = leftmost [eSearchButton, eStart]
-
     drModel <- dropdown "abstract"
                         (constDyn $ Map.fromList [("abstract","abstract")
                                                  ,("author","author")
@@ -275,17 +257,20 @@ homePage dEnv = Workflow $ do
                         def
 
     tiSearch <- textInput def
+    eSearchButton <- toButton "button" mempty $ text "Search"
+    let eSearch = leftmost [eSearchButton, eStart]
+
 
     let ePostXhrRequest = fmap (\(m,s) -> postJson target $
                                   Model.Search m s)
-                              $ attach (current $ _textInput_value tiSearch)
-                              $ tag (current $ _dropdown_value drModel) eSearch
+                              $ attach (current $ _dropdown_value drModel)
+                              $ tag (current $ _textInput_value tiSearch) eSearch
 
     eRefList <- getAndDecodeSimpleRef ePostXhrRequest
     dR <- holdDyn Nothing eRefList
     let dRefListSearch =fromMaybe [] <$> dR
 
-    let target = mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetListAbstract 1
+    let target = textFromJsonApi $ jsonApiGetListAbstract 1
 
     --tiOwner <- textInput def
     elAttr "datalist" ("id" =: "candidates") $ do
@@ -294,11 +279,18 @@ homePage dEnv = Workflow $ do
        elAttr "option" ("value" =: "442") blank
     tOwnerSearch <- inputElement $ def & (inputElementConfig_elementConfig . initialAttributes) .~ ( "list" =: "candidates" )
 
+
+    dropdownBulkAction <- dropdown AssignOwner
+                        (constDyn $ Map.fromList [(AssignOwner,"Assign Owner")
+                                                 ,(DeAssignOwner,"Remove Ownership")
+                                                 ])
+                        def
     dTOwner <- dViewOwnerPicker (_inputElement_value tOwnerSearch) (_inputElement_input tOwnerSearch)
     display dTOwner
-
-    eAssignOwner <- toButton "button" mempty $ text "Assign Owner"
-    assignOwner dEnv dTOwner (fmap (filter snd) dBulk) eAssignOwner
+    display $ _dropdown_value dropdownBulkAction
+    eBulkExecute <- toButton "button" mempty $ text "Execute"
+    bulkExecute dEnv dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
+    --assignOwner dEnv dTOwner (fmap (filter snd) dBulk) eAssignOwner
 
     bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
     text "bulkAll"
@@ -318,7 +310,7 @@ dViewOwnerPicker dOwnerSearch eOwnerSearch =
   el "div" $ mdo
     let eGetOwnerList1 = ffilter (\x -> T.length x > 3) eOwnerSearch
     eGetOwnerList <- performRequestAsync $ ffor eGetOwnerList1 $ \s ->
-        postJson (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetPerson) $ Model.Search "p" s
+        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search "p" s
 
     dGetOwnerList :: Dynamic t [Person] <- holdDyn [] $ fforMaybe eGetOwnerList decodeXhrResponse
     dleSetOwner <- flip simpleList dView dGetOwnerList
@@ -332,25 +324,29 @@ dViewOwnerPicker dOwnerSearch eOwnerSearch =
         e <- toButton "div" mempty $ dynText $ fmap personName o
         return $ tag (current $ fmap personId o) e
 
-assignOwner :: MonadWidget t m => Env t -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t () -> m ()
-assignOwner dEnv dOwner dFilteredBulk eAssignOwner = mdo
-  let efd = attach (current $ dEnv ^. defXhrReqConfig) $ attach (current dOwner) $ tag (current dFilteredBulk) eAssignOwner
-  r <- performRequestAsync $ ffor efd $ \(defXhr,(owner,lRefCheck)) ->
-        let postXhrRequest =
-              postJson (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutOwner) $
-                OwnerLRef owner $ map fst lRefCheck
-         in postXhrRequest & xhrRequest_method .~ "PUT"
-                           & xhrRequest_config . xhrRequestConfig_headers <>~ defXhr ^. xhrRequestConfig_headers
+bulkExecute :: MonadWidget t m => Env t -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t BulkAction -> m ()
+bulkExecute dEnv dOwner dFilteredBulk eBulkExecute = mdo
+  let efd = attach (current $ dEnv ^. defXhrReqConfig) $ attach (current dOwner) $ attach (current dFilteredBulk) eBulkExecute
+  r <- performRequestAsync $ ffor efd
+        $ \(defXhr,(owner,(lRefCheck,actBulk))) ->
+          let (jsonApi,mApi) = case actBulk of
+                          AssignOwner -> (jsonApiPutOwner,"PUT")
+                          DeAssignOwner -> (jsonApiDeleteOwner,"DELETE")
+              postJsonReq = postJson (textFromJsonApi jsonApi) $ OwnerLRef owner $ map fst lRefCheck
+              postReq = postJsonReq & xhrRequest_method .~ mApi
+          in postReq & xhrRequest_config . xhrRequestConfig_headers <>~ defXhr ^. xhrRequestConfig_headers
+
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
   display st
 
+textFromJsonApi j = mappend serverBackend $ T.pack $ show $ linkURI $ j
 
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
   display (dEnv ^. auth)
   eBack <- toButton "div" mempty $ text "Back"
   el "div" $ text "You have arrived on page 3"
-  let tGetSingle = (mappend serverBackend) . T.pack . show . linkURI . jsonApiGetSingle
+  let tGetSingle = textFromJsonApi . jsonApiGetSingle
 
   eStart <- getPostBuild
   display $ tGetSingle <$> dSerial
@@ -368,5 +364,5 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
   where
-    buildPostEdit serial f c = XhrRequest "POST" (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiPutSingleField serial f c)
+    buildPostEdit serial f c = XhrRequest "POST" (textFromJsonApi $ jsonApiPutSingleField serial f c)
 

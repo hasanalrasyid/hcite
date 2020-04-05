@@ -45,7 +45,7 @@ import Database.Persist
 import Network.Wai.Middleware.Cors
 import qualified Data.Text as T
 
-import Data.Maybe (fromMaybe,isNothing,fromJust)
+import Data.Maybe (fromMaybe,isNothing)
 import Servant.Multipart
 --import qualified Data.ByteString.Lazy.Char8 as LBS
 import Filler
@@ -74,7 +74,7 @@ exampleServerApp e = (cors allOK) $ serve api myImpl
                     Just (["localhost:3000"
                           ,"127.0.0.1:3000"],True)
                     -}
-                , corsMethods = [methodGet,methodPost,methodOptions,methodPut]
+                , corsMethods = [methodGet,methodPost,methodOptions,methodPut,methodDelete]
                 , corsRequestHeaders = ["Access-Control-Request-Method"
                                        ,"Access-Control-Request-Headers"
                                        ,"Content-Type"
@@ -218,6 +218,7 @@ guardedServer token = ( putRecordById token
                    :<|> putRecordByFile token
                    :<|> answerOPTIONS
                    :<|> putOwnerRecords token
+                   :<|> deleteOwnerRecords token
                       )
 
 answerOPTIONS :: ServerM NoContent
@@ -271,10 +272,22 @@ putRecordFieldById token serial f c = do
   liftIO $ putStrLn $ "putRecordFieldById " ++ show serial ++ show f ++ show c
   return NoContent
 
-putOwnerRecords :: MToken' '["_session"]
-                -- -> (Key Pegawai, [Key Reference]) -> ServerM NoContent
+deleteOwnerRecords :: MToken' '["_session"]
                 -> OwnerLRef -> ServerM NoContent
-putOwnerRecords token olr@(OwnerLRef iPegawai liKeyRefs) = do
+deleteOwnerRecords token (OwnerLRef iPegawai liKeyRefs) = do
+  runAuth $ guardAuthToken token
+  withDB $ do
+        p <- selectFirst [RelationPRPId ==. (toSqlKey $ fromIntegral iPegawai) ] []
+        case p of
+          Nothing -> return ()
+          Just pDb -> do
+            let relRefs =  (relationPRRefIds $ entityVal pDb) \\ (map keyReference liKeyRefs)
+            update (entityKey pDb) [RelationPRRefIds =. relRefs]
+  return NoContent
+
+putOwnerRecords :: MToken' '["_session"]
+                -> OwnerLRef -> ServerM NoContent
+putOwnerRecords token (OwnerLRef iPegawai liKeyRefs) = do
   runAuth $ guardAuthToken token
   withDB $ do
         p <- selectFirst [RelationPRPId ==. (toSqlKey $ fromIntegral iPegawai) ] []
@@ -290,8 +303,8 @@ putOwnerRecords token olr@(OwnerLRef iPegawai liKeyRefs) = do
 testEndpoint :: MToken' '["_session"] -> ServerM [SimpleRef]
 testEndpoint token = do
 --  runAuth $ guardAuthToken token
-  let iPage = 1 :: Int
     {-
+  let iPage = 1 :: Int
   (r,p) <- withDB $ do
         rs <- selectList (genFilter ReferenceAuthor $ ["cynt"]) [ LimitTo 3 ]
 --        k1 <- insert $ Pegawai "Admin2"  "33322222" $ (map entityKey rs :: [Key Reference])
