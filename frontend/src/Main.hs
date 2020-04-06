@@ -7,10 +7,8 @@
 
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
-import qualified Data.Text.Read as T
 import qualified Data.Map.Strict as Map
 import           Data.Maybe (fromMaybe,listToMaybe,isJust)
-import Data.Set (fromList)
 --import           Data.FileEmbed
 
 --import Data.Witherable
@@ -29,18 +27,19 @@ import Servant.Links
 --import Reflex.Bulmex.Modal
 --import Reflex.Bulmex.Tag.Bulma
 
-import Proto (toButton,hiddenDynAttrs,bodyNav,Nav(..))
+--import Proto (toButton,hiddenDynAttrs,bodyNav,Nav(..))
+
+import Navigation
+import Utils
 
 --import Control.Monad.Reader
 import Control.Lens
-import Control.Monad
 import Control.Applicative
 import Data.Default
-import Data.Either
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 import JSDOM.FormData as FD
 import JSDOM.Types (File,MonadJSM)
-import Reflex.Dom.Contrib.Widgets.CheckboxList (checkboxList,genCheckbox)
+import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
@@ -137,7 +136,7 @@ importPage dEnv = Workflow . el "div" $ do
   el "div" $ text "ImportPage"
   display (dEnv ^. auth)
   fi <- fileInput def
-  eSubmit <- button "Upload"
+  eSubmit <- toButton "button" mempty $ text "Upload"
   let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
   efd1 <- performEvent $ fmap (wrapFile "bib") eFi
   let efd = attachPromptlyDyn (dEnv ^. defXhrReqConfig) efd1
@@ -157,10 +156,10 @@ loginPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 loginPage dEnv = Workflow . el "div" $ do
   el "div" $ text "LoginPage"
   display (dEnv ^. auth)
-  username <- textInput def
-  password <- textInput def
+  username <- inputElement def
+  password <- inputElement def
 
-  eSend <- button "Submit"
+  eSend <- toButton "button" mempty $ text "Submit"
   let genLoginReq u p =
         mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
   let dLoginReq = pure genLoginReq <*> value username <*> value password
@@ -171,7 +170,7 @@ loginPage dEnv = Workflow . el "div" $ do
   let dEnv2 = dEnv & auth .~ dToken
                    & defXhrReqConfig .~ dNewXhr
   let okToken = ffilter isJust $ updated dToken
-  e <- button "Back"
+  e <- toButton "button" mempty $ text "Back"
   let eRet = leftmost [e, () <$ okToken]
   return ("LoginPage", homePage dEnv2 <$ eRet)
   where
@@ -207,7 +206,6 @@ serverBackend = "http://192.168.43.175:3000/"
 
 getAndDecodeSimpleRef :: (MonadWidget t m , IsXhrPayload a) => Event t (XhrRequest a) -> m (Event t (Maybe [SimpleRef]))
 getAndDecodeSimpleRef d = do
-  let target = textFromJsonApi $ jsonApiGetListSearch 1
   r <- performRequestAsync d
   return $ fmap decodeXhrResponse r
 
@@ -250,7 +248,7 @@ homePage dEnv = Workflow $ do
                                                  ,(DeAssignOwner,"Remove Ownership")
                                                  ])
                         def
-    dTOwner <- dViewOwnerPicker (_inputElement_value tOwnerSearch) (attach (current $ _dropdown_value drModel) $ _inputElement_input tOwnerSearch)
+    dTOwner <- dViewOwnerPicker (attach (current $ _dropdown_value drModel) $ _inputElement_input tOwnerSearch)
     display dTOwner
     display $ _dropdown_value dropdownBulkAction
     eBulkExecute <- toButton "button" mempty $ text "Execute"
@@ -262,7 +260,7 @@ homePage dEnv = Workflow $ do
     display $ _inputElement_checked bulkAll
     display dBulk
     dleEdit <- flip simpleList (dViewArticle (_inputElement_checkedChange bulkAll)) dRefListSearch
-    let dBulk = fmap (map snd . Map.toList) $ joinDynThroughMap $ fmap (\x -> Map.fromList $ zip [1..] $ map fst x) dleEdit
+    let dBulk = fmap (map snd . Map.toList) $ joinDynThroughMap $ fmap (\x -> Map.fromList $ zip ([1..] :: [Int]) $ map fst x) dleEdit
     let deEdit = fmap (leftmost . (map snd)) dleEdit
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
@@ -271,9 +269,9 @@ homePage dEnv = Workflow $ do
     return ("HomePage", thePage)
     where
       genSearchReq (o,(m,s)) =
-        let (target,maySearch) = case m of
-                       SOwner -> (textFromJsonApi $ jsonApiGetListOwnerId 1 o,Nothing)
-                       _ -> (textFromJsonApi $ jsonApiGetListSearch 1, Just $ Model.Search m s)
+        let target = case m of
+                       SOwner -> textFromJsonApi $ jsonApiGetListOwnerId 1 o
+                       _ -> textFromJsonApi $ jsonApiGetListSearch 1
          in postJson target $ Model.Search m s
 
 
@@ -281,8 +279,8 @@ homePage dEnv = Workflow $ do
 
 
 
-dViewOwnerPicker :: MonadWidget t m =>  Dynamic t T.Text -> Event t (SearchMode,T.Text) -> m (Dynamic t Int)
-dViewOwnerPicker dOwnerSearch eOwnerSearch =
+dViewOwnerPicker :: MonadWidget t m =>  Event t (SearchMode,T.Text) -> m (Dynamic t Int)
+dViewOwnerPicker eOwnerSearch =
   el "div" $ mdo
     let eGetOwnerList1 = ffilter (\(m,x) -> (m == SOwner) && (T.length x > 2)) eOwnerSearch
     eGetOwnerList <- performRequestAsync $ ffor eGetOwnerList1 $ \s ->
@@ -314,6 +312,7 @@ bulkExecute dEnv dOwner dFilteredBulk eBulkExecute = mdo
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse
   display st
 
+textFromJsonApi :: Servant.Links.Link -> T.Text
 textFromJsonApi j = mappend serverBackend $ T.pack $ show $ linkURI $ j
 
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
@@ -338,8 +337,6 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   el "hr" blank
   display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
-  where
-    buildPostEdit serial f c = XhrRequest "POST" (textFromJsonApi $ jsonApiPutSingleField serial f c)
 
 getAbstract3 :: MonadWidget t m => Dynamic t (Bool,Int) -> m (Event t T.Text)
 getAbstract3 d = do

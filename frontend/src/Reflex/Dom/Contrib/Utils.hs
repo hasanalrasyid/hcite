@@ -28,14 +28,14 @@ module Reflex.Dom.Contrib.Utils
   ) where
 
 ------------------------------------------------------------------------------
-import           Control.Concurrent
-import           Control.Monad
-import           Control.Monad.Fail
-import           Control.Monad.Reader
-import           Data.Map               (Map)
+--import           Control.Concurrent
+--import           Control.Monad
+--import           Control.Monad.Fail
+--import           Control.Monad.Reader
+--import           Data.Map               (Map)
 import           Data.Text              (Text)
 import qualified Data.Text           as T
-import qualified Language.Javascript.JSaddle as JS
+--import qualified Language.Javascript.JSaddle as JS
 import           Reflex
 import           Reflex.Dom.Core hiding (Window, fromJSString)
 ------------------------------------------------------------------------------

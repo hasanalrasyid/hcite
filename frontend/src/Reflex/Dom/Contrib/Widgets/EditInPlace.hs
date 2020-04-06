@@ -17,7 +17,7 @@ module Reflex.Dom.Contrib.Widgets.EditInPlace
   ) where
 
 ------------------------------------------------------------------------------
-import           Control.Monad.Trans
+--import           Control.Monad.Trans
 import           Data.Map (Map)
 import           Data.Text (Text)
 import qualified Data.Text as T
@@ -30,11 +30,11 @@ import           Reflex.Dom.Contrib.Utils
 import Control.Lens
 import Data.Default
 ------------------------------------------------------------------------------
-import JSDOM.Element
-import JSDOM.Types (liftDOM,MonadDOM(..))
-import Control.Monad (void)
-import Language.Javascript.JSaddle (jsf)
-import JSDOM.HTMLInputElement (setAutofocus,HTMLInputElement(..))
+--import JSDOM.Element
+--import JSDOM.Types (liftDOM,MonadDOM(..))
+--import Control.Monad (void)
+--import Language.Javascript.JSaddle (jsf)
+import JSDOM.HTMLInputElement (setAutofocus)
 ------------------------------------------------------------------------------
 data EditState = Viewing
                | Editing

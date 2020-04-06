@@ -4,12 +4,12 @@ module Reflex.Dom.Contrib.Widgets.CheckboxList where
 
 ------------------------------------------------------------------------------
 import           Control.Monad
-import           Data.Set (Set)
-import qualified Data.Set as S
+--import           Data.Set (Set)
+--import qualified Data.Set as S
 import           Reflex
 import           Reflex.Dom
 import qualified Data.Map as Map
-import qualified Data.Text as T
+--import qualified Data.Text as T
 ------------------------------------------------------------------------------
 ------------------------------------------------------------------------------
 -- | Takes a list of labels to make checkboxes for and returns the labels of
@@ -36,8 +36,8 @@ checkboxList
 checkboxList showFunc blanketEvent items = do
     el "ul" $ do
       es <- forM items $ \item -> do
-        let textShown = showFunc item
         {-
+        let textShown = showFunc item
             mkAttrs search =
               if filterFunc search item
                 then mempty
@@ -55,6 +55,7 @@ checkboxList showFunc blanketEvent items = do
           return $ fmap (\b -> if b then [item] else []) $ _inputElement_checked cb
       pure $ fmap concat $ distributeListOverDyn es
 
+genCheckbox :: (MonadWidget t m) => (a -> m ()) -> a -> Event t Bool -> m (InputElement EventResult (DomBuilderSpace m) t)
 --genCheckbox setV initV attr = do
 genCheckbox showFunc item setV = do
     elClass "label" "checkbox" $ do
@@ -71,12 +72,7 @@ genCheckbox showFunc item setV = do
       showFunc item
       return cb
 
-mapCheckbox f (Checkbox v c) = do
-  return $ fmap f v
 
-
-mapDyn f x = do
-  return $ map f x
 
 
   {-
