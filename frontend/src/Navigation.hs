@@ -22,7 +22,9 @@ import           Data.Monoid ((<>))
 import Reflex.Bulmex.Tag.Bulma
 
 import Utils
+import Types
 
+  {-
 data Nav = Home
          | Landing
          | Blog
@@ -33,6 +35,7 @@ data Nav = Home
          | Register
          | Login
          deriving (Eq, Enum, Show) -- remember, Enum start from 0
+-}
 
 showNav :: Nav -> T.Text
 showNav = T.pack . show

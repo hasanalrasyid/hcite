@@ -29,8 +29,10 @@ import Servant.Links
 
 --import Proto (toButton,hiddenDynAttrs,bodyNav,Nav(..))
 
+import Home
 import Navigation
 import Utils
+import Types
 
 --import Control.Monad.Reader
 import Control.Lens
@@ -41,6 +43,7 @@ import JSDOM.FormData as FD
 import JSDOM.Types (File,MonadJSM)
 import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
+  {-
 data Env t = Env  { _history :: [String]
                   , _auth :: Dynamic t (Maybe Token)
                   , _defXhrReqConfig :: Dynamic t (XhrRequestConfig ())
@@ -53,6 +56,7 @@ instance Reflex t => Default (Env t) where
             , _auth = constDyn Nothing
             , _defXhrReqConfig = constDyn def
             }
+-}
 
 main :: IO ()
 main = mainWidgetWithHead headElement body
@@ -125,11 +129,13 @@ noPage dEnv = Workflow . el "div" $ do
   e <- toButton "button" (constDyn mempty) $ text "Home"
   return ("noPage", homePage dEnv <$ e)
 
+  {-
 wrapFile :: (Monad m , MonadJSM m) => T.Text -> File -> m FD.FormData
 wrapFile fname f = do
   fd <- FD.newFormData Nothing
   FD.appendBlob fd fname f (Nothing :: Maybe String)
   return fd
+-}
 
 importPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 importPage dEnv = Workflow . el "div" $ do
@@ -152,6 +158,7 @@ importPage dEnv = Workflow . el "div" $ do
   e <- toButton "button" (constDyn mempty) $ text "Back"
   return ("ImportPage", homePage dEnv <$ e)
 
+  {-
 loginPage :: (MonadWidget t m) => (Env t) -> Workflow t m T.Text
 loginPage dEnv = Workflow . el "div" $ do
   el "div" $ text "LoginPage"
@@ -177,6 +184,7 @@ loginPage dEnv = Workflow . el "div" $ do
     putEnvToken :: XhrRequestConfig () -> Maybe Token -> XhrRequestConfig ()
     putEnvToken d Nothing = d
     putEnvToken d (Just t) = d { _xhrRequestConfig_headers = Map.singleton "Authorization" $ token t }
+-}
 
 dViewArticle :: MonadWidget t m => Event t Bool -> Dynamic t SimpleRef
              -> m (Dynamic t (Int,Bool), Event t Int)
@@ -209,7 +217,7 @@ getAndDecodeSimpleRef d = do
   r <- performRequestAsync d
   return $ fmap decodeXhrResponse r
 
-
+  {-
 homePage :: MonadWidget t m => (Env t) ->  Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
@@ -273,7 +281,7 @@ homePage dEnv = Workflow $ do
                        SOwner -> textFromJsonApi $ jsonApiGetListOwnerId 1 o
                        _ -> textFromJsonApi $ jsonApiGetListSearch 1
          in postJson target $ Model.Search m s
-
+-}
 
 
 
@@ -297,6 +305,7 @@ dViewOwnerPicker eOwnerSearch =
         e <- toButton "div" mempty $ dynText $ fmap personName o
         return $ tag (current $ fmap personId o) e
 
+  {-
 bulkExecute :: MonadWidget t m => Env t -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t BulkAction -> m ()
 bulkExecute dEnv dOwner dFilteredBulk eBulkExecute = mdo
   let efd = attach (current $ dEnv ^. defXhrReqConfig) $ attach (current dOwner) $ attach (current dFilteredBulk) eBulkExecute
@@ -314,6 +323,7 @@ bulkExecute dEnv dOwner dFilteredBulk eBulkExecute = mdo
 
 textFromJsonApi :: Servant.Links.Link -> T.Text
 textFromJsonApi j = mappend serverBackend $ T.pack $ show $ linkURI $ j
+-}
 
 detailPage :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dSerial = Workflow . el "div" $ do
@@ -338,6 +348,7 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   display dRefs
   return ("DetailPage", homePage dEnv <$ eBack)
 
+{-
 getAbstract3 :: MonadWidget t m => Dynamic t (Bool,Int) -> m (Event t T.Text)
 getAbstract3 d = do
   let e1 = ffilter (not . fst) $ updated d
@@ -347,4 +358,5 @@ getAbstract3 d = do
       absAddress (_,i) = (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
       cekR3 Nothing = "Unavailable"
       cekR3 (Just a) = absAbstract a
+-}
 
