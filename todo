@@ -10,7 +10,7 @@ v       at upper part of Home
 v       as json_data with space as &&.
 v       by author, keyword,
 v       abstract,
-        by ownerId
+v       by ownerId
 
 U - by Details
 v     implement EditRecords

@@ -18,8 +18,6 @@ executable frontend
   main-is:             Main.hs
   ghc-options:         -Wall -O2 -threaded -rtsopts -with-rtsopts=-N
   other-modules:
-    Proto
-    Home
     Reflex.Dom.Contrib.Utils
     Reflex.Dom.Contrib.Widgets.EditInPlace
     Reflex.Dom.Contrib.Widgets.CheckboxList

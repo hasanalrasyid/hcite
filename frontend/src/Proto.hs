@@ -27,7 +27,7 @@ import Model
 import Servant.Links
 
 import Reflex.Bulmex.Tag.Bulma
-
+  {-
 main :: IO ()
 main = mainWidgetWithHead headElement body
 
@@ -51,7 +51,7 @@ headElement = do
         , ("href", l)
       ]) $ return ()
 
-  {-
+
 main1 = mainWidgetWithCss css body
    where css = $(embedFile "css/tab.css")
 -}
@@ -460,7 +460,7 @@ pageNotification = do
 data Modal = ModalSimple | ModalCard deriving Show
 
 
-
+  {-
 body :: MonadWidget t m => m ()
 body  = mdo
   {-
@@ -496,6 +496,7 @@ body  = mdo
 serverBackend :: T.Text
 --serverBackend = "http://127.0.0.1:3000/"
 serverBackend = "http://192.168.43.175:3000/"
+-}
 
   {-
 pageData' :: (PostBuild t m, DomBuilder t m, MonadHold t m) => Event t (Maybe SmnRecord) -> Dynamic t Page -> m ()

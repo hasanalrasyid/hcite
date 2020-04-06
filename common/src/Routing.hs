@@ -19,21 +19,16 @@ type JsonApi =
            "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
       :<|> Capture "ident" Int :> Get '[JSON] Reference
       :<|> "list" :> (
-                   Capture "page" Int :>  Get '[JSON] [SimpleRef]
-              :<|> "author"   :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
-              :<|> "abstract" :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
-              :<|> "keywords" :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
-              :<|> "owner"    :> Capture "page" Int :> Capture "ident" Int :> Get '[JSON] [SimpleRef]
+                   Capture "page" Int :> Capture "ident" Int :> Get '[JSON] [SimpleRef]
+              :<|> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
             )
     )
 
 ( jsonApiGetPerson :<|>
   jsonApiGetAbstract :<|> jsonApiGetSingle
-  :<|> jsonApiGetList
-  :<|> jsonApiGetListAuthor
-  :<|> jsonApiGetListAbstract
-  :<|> jsonApiGetListKeyword
-  :<|> jsonApiGetListOwnerId ) = allLinks (Proxy :: Proxy JsonApi)
+  :<|> jsonApiGetListOwnerId
+  :<|> jsonApiGetListSearch
+  ) = allLinks (Proxy :: Proxy JsonApi)
 
 type GuardedJsonApi =
     "api" :> "record" :> (

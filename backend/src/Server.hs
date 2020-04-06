@@ -111,9 +111,8 @@ authImpl e = hoistServer authApi (runAuthM e) authServerM
 jsonImpl :: ServerEnv -> Server JsonApi
 jsonImpl e = getPerson e
         :<|> getAbstract e :<|> getRecord e
-        :<|> getRecords e
-        :<|> getRecordsByAuthor e :<|> getRecordsByAbstract e
-        :<|> getRecordsByKeyword e :<|> getRecordsByOwnerId e
+        :<|> getRecordsByOwnerId e
+        :<|> getRecordsByAbstract e
 
 getPerson :: (MonadIO f) => ServerEnv -> Model.Search -> f [Person]
 getPerson e (Search _ tSearch) = do
@@ -154,6 +153,7 @@ getRecordsList f e iPage = do
                                   , OffsetBy $ (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
 
+  {-
 getRecords :: (FromReference b, MonadIO f) => ServerEnv -> Int -> f [b]
 getRecords = getRecordsList [] {- do
   p <- withDBEnv e $ selectList [] [ LimitTo resPerPage
@@ -168,6 +168,7 @@ getRecordsByAuthor   e iPage (Search _ tSearch) =
 getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
 getRecordsByKeyword  e iPage (Search _ tSearch) =
   getRecordsList (genFilter ReferenceKeywords $ map Just $ T.words tSearch) e iPage
+-}
 
 getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
 getRecordsByAbstract e iPage (Search mSearch tSearch) =

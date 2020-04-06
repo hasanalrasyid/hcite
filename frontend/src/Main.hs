@@ -29,8 +29,7 @@ import Servant.Links
 --import Reflex.Bulmex.Modal
 --import Reflex.Bulmex.Tag.Bulma
 
-import Proto hiding (main,headElement,body,serverBackend)
-import Home  hiding (main,headElement,body,homePage,homeWidget,detailPage,dViewArticle)
+import Proto (toButton,hiddenDynAttrs,bodyNav,Nav(..))
 
 --import Control.Monad.Reader
 import Control.Lens
@@ -219,7 +218,7 @@ serverBackend = "http://192.168.43.175:3000/"
 
 getAndDecodeSimpleRef :: MonadWidget t m => Event t (XhrRequest T.Text) -> m (Event t (Maybe [SimpleRef]))
 getAndDecodeSimpleRef d = do
-  let target = textFromJsonApi $ jsonApiGetListAbstract 1
+  let target = textFromJsonApi $ jsonApiGetListSearch 1
   r <- performRequestAsync d
   return $ fmap decodeXhrResponse r
 
@@ -255,7 +254,7 @@ homePage dEnv = Workflow $ do
     dR <- holdDyn Nothing eRefList
     let dRefListSearch =fromMaybe [] <$> dR
 
-    let target = textFromJsonApi $ jsonApiGetListAbstract 1
+    let target = textFromJsonApi $ jsonApiGetListSearch 1
 
     --tiOwner <- textInput def
     elAttr "datalist" ("id" =: "candidates") $ do
@@ -350,4 +349,14 @@ detailPage dEnv dSerial = Workflow . el "div" $ do
   return ("DetailPage", homePage dEnv <$ eBack)
   where
     buildPostEdit serial f c = XhrRequest "POST" (textFromJsonApi $ jsonApiPutSingleField serial f c)
+
+getAbstract3 :: MonadWidget t m => Dynamic t (Bool,Int) -> m (Event t T.Text)
+getAbstract3 d = do
+  let e1 = ffilter (not . fst) $ updated d
+  e2 <- getAndDecode (absAddress <$> e1)
+  return $ cekR3 <$> e2
+    where
+      absAddress (_,i) = (mappend serverBackend $ T.pack $ show $ linkURI $ jsonApiGetAbstract i)
+      cekR3 Nothing = "Unavailable"
+      cekR3 (Just a) = absAbstract a
 
