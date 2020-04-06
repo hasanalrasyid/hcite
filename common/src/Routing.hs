@@ -19,7 +19,7 @@ type JsonApi =
            "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
       :<|> Capture "ident" Int :> Get '[JSON] Reference
       :<|> "list" :> (
-                   Capture "page" Int :> Capture "ident" Int :> Get '[JSON] [SimpleRef]
+                   Capture "page" Int :> Capture "ident" Int :> Post '[JSON] [SimpleRef]
               :<|> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
             )
     )

@@ -169,7 +169,7 @@ instance FromReference SimpleRef where
                               ( fromMaybe ""    $ referencePages        r)
                               ( fromMaybe ""    $ referencePublisher    r)
 
-data SearchMode = SAbstract | SAuthor | SKeywords deriving (Generic,Ord,Eq)
+data SearchMode = SAbstract | SAuthor | SKeywords | SOwner deriving (Generic,Ord,Eq)
 instance ToJSON SearchMode
 instance FromJSON SearchMode
 

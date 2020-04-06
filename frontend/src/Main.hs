@@ -216,7 +216,7 @@ serverBackend :: T.Text
 --serverBackend = "http://127.0.0.1:3000/"
 serverBackend = "http://192.168.43.175:3000/"
 
-getAndDecodeSimpleRef :: MonadWidget t m => Event t (XhrRequest T.Text) -> m (Event t (Maybe [SimpleRef]))
+getAndDecodeSimpleRef :: (MonadWidget t m , IsXhrPayload a) => Event t (XhrRequest a) -> m (Event t (Maybe [SimpleRef]))
 getAndDecodeSimpleRef d = do
   let target = textFromJsonApi $ jsonApiGetListSearch 1
   r <- performRequestAsync d
@@ -237,7 +237,8 @@ homePage dEnv = Workflow $ do
     drModel <- dropdown SAbstract
                         (constDyn $ Map.fromList [(SAbstract,"abstract")
                                                  ,(SAuthor,"author")
-                                                 ,(SKeywords,"keywords")])
+                                                 ,(SKeywords,"keywords")
+                                                 ,(SOwner,"owner")])
                         def
 
     tiSearch <- textInput def
@@ -245,8 +246,8 @@ homePage dEnv = Workflow $ do
     let eSearch = leftmost [eSearchButton, eStart]
 
 
-    let ePostXhrRequest = fmap (\(m,s) -> postJson target $
-                                  Model.Search m s)
+    let ePostXhrRequest = fmap genSearchReq
+                              $ attach (current dTOwner)
                               $ attach (current $ _dropdown_value drModel)
                               $ tag (current $ _textInput_value tiSearch) eSearch
 
@@ -254,7 +255,6 @@ homePage dEnv = Workflow $ do
     dR <- holdDyn Nothing eRefList
     let dRefListSearch =fromMaybe [] <$> dR
 
-    let target = textFromJsonApi $ jsonApiGetListSearch 1
 
     --tiOwner <- textInput def
     elAttr "datalist" ("id" =: "candidates") $ do
@@ -288,6 +288,17 @@ homePage dEnv = Workflow $ do
 
     let thePage = leftmost $ [detailPage dEnv dEdit <$ eEdit,homePage dEnv <$ eHome, loginPage dEnv <$ eLogin, importPage dEnv <$ eImport, noPage dEnv <$ eNav]
     return ("HomePage", thePage)
+    where
+      genSearchReq (o,(m,s)) =
+        let (target,maySearch) = case m of
+                       SOwner -> (textFromJsonApi $ jsonApiGetListOwnerId 1 o,Nothing)
+                       _ -> (textFromJsonApi $ jsonApiGetListSearch 1, Just $ Model.Search m s)
+         in postJson target $ Model.Search m s
+
+
+
+
+
 
 dViewOwnerPicker :: MonadWidget t m =>  Dynamic t T.Text -> Event t T.Text -> m (Dynamic t Int)
 dViewOwnerPicker dOwnerSearch eOwnerSearch =
@@ -301,7 +312,6 @@ dViewOwnerPicker dOwnerSearch eOwnerSearch =
     let deSetOwner = fmap leftmost dleSetOwner
         eSetOwner  = switchDyn deSetOwner
     dSetOwner <- holdDyn 0 eSetOwner
-    display dSetOwner
     return dSetOwner
     where
       dView o = do
