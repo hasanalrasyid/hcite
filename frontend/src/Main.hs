@@ -9,7 +9,7 @@ import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Text.Read as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromMaybe,listToMaybe)
+import           Data.Maybe (fromMaybe,listToMaybe,isJust)
 import Data.Set (fromList)
 --import           Data.FileEmbed
 
@@ -83,19 +83,6 @@ headElement = do
 body :: MonadWidget t m => m ()
 body = mdo
   eStart <- getPostBuild
-    {-
-  eNav :: Event t Nav <- bodyNav
-  let eHome = ffilter (== Home) eNav
-  let eLogin = ffilter (== Login) eNav
-      eUnimplemented = ffilter (flip notElem navMenuImplemented) eNav
-      eCurrent = leftmost [Right <$> eHome, Left <$> eUnimplemented]
-
-  dUnimplemented <- holdDyn Nothing $ fmap Just eUnimplemented
-  dCurrent <- holdDyn (Left Home) $ eCurrent
-
-  dNav <- holdDyn Home eNav
-  display dNav
-  -}
   -- Builds up a `Dynamic` of widgets that return `Event t Text`:
   dWidget <- holdDyn homeWidget . leftmost $ [
       homeWidget <$ eStart
@@ -183,8 +170,10 @@ loginPage dEnv = Workflow . el "div" $ do
   dToken <- holdDyn Nothing eToken
   let dEnv2 = dEnv & auth .~ dToken
                    & defXhrReqConfig .~ dNewXhr
+  let okToken = ffilter isJust $ updated dToken
   e <- button "Back"
-  return ("LoginPage", homePage dEnv2 <$ e)
+  let eRet = leftmost [e, () <$ okToken]
+  return ("LoginPage", homePage dEnv2 <$ eRet)
   where
     putEnvToken :: XhrRequestConfig () -> Maybe Token -> XhrRequestConfig ()
     putEnvToken d Nothing = d
