@@ -9,26 +9,10 @@ module Home where
 import           Reflex.Dom hiding (Home)
 import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (fromMaybe,listToMaybe,isJust)
---import           Data.FileEmbed
-
---import Data.Witherable
+import           Data.Maybe (fromMaybe)
 
 import Routing
 import Model
---import Reflex.Dom.Xhr
-
---import Language.Javascript.JSaddle.Types
---import Control.Monad.IO.Class
---import Control.Monad
---import Control.Monad.Trans
-
-import Servant.Links
-
---import Reflex.Bulmex.Modal
---import Reflex.Bulmex.Tag.Bulma
-
---import Proto (toButton,hiddenDynAttrs,bodyNav,Nav(..))
 
 import Navigation
 import Types
@@ -37,13 +21,7 @@ import Home.Detail
 import Import
 import Login
 
---import Control.Monad.Reader
 import Control.Lens
-import Control.Applicative
-import Data.Default
-import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
-import JSDOM.FormData as FD
-import JSDOM.Types (File,MonadJSM)
 import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
 homePage :: MonadWidget t m => (Env t) -> Workflow t m T.Text
@@ -114,18 +92,28 @@ homePage dEnv = Workflow $ do
                        _ -> textFromJsonApi $ jsonApiGetListSearch 1
          in postJson target $ Model.Search m s
 
+homeWidget :: MonadWidget t m => m (Event t T.Text)
+homeWidget = do
+  r <- workflow $ homePage def
+  display r
+  return $ updated r
+
+importPage :: (MonadWidget t m) => Env t -> Workflow t m T.Text
 importPage dEnv = Workflow . el "div" $ do
   e <- importPageWidget dEnv
   return ("importPage", homePage dEnv <$ e)
 
+loginPage :: (MonadWidget t m) => Env t -> Workflow t m T.Text
 loginPage dEnv = Workflow . el "div" $ do
   e <- loginPageWidget dEnv
   return ("loginPage", homePage dEnv <$ e)
 
+detailPage :: (MonadWidget t m) => Env t -> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dEdit = Workflow . el "div" $ do
   e <- detailPageWidget dEnv dEdit
   return ("detailPage", homePage dEnv <$ e)
 
+noPage :: (MonadWidget t m) => Env t -> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   e <- noPageWidget dEnv
   return ("noPage", homePage dEnv <$ e)
