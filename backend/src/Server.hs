@@ -116,7 +116,7 @@ jsonImpl e = getPerson e
 
 getPerson :: (MonadIO f) => ServerEnv -> Model.Search -> f [Person]
 getPerson e (Search _ tSearch) = do
-  if T.length tSearch > 3 then do
+  if T.length tSearch > 2 then do
     ps <- getPersonList (genFilter PegawaiNama $ T.words tSearch) e (1 :: Int)
     return $ map toPerson ps
   else return []

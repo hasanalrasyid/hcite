@@ -241,7 +241,7 @@ homePage dEnv = Workflow $ do
                                                  ,(SOwner,"owner")])
                         def
 
-    tiSearch <- textInput def
+    tOwnerSearch <- inputElement def
     eSearchButton <- toButton "button" mempty $ text "Search"
     let eSearch = leftmost [eSearchButton, eStart]
 
@@ -249,19 +249,11 @@ homePage dEnv = Workflow $ do
     let ePostXhrRequest = fmap genSearchReq
                               $ attach (current dTOwner)
                               $ attach (current $ _dropdown_value drModel)
-                              $ tag (current $ _textInput_value tiSearch) eSearch
+                              $ tag (current $ _inputElement_value tOwnerSearch) eSearch
 
     eRefList <- getAndDecodeSimpleRef ePostXhrRequest
     dR <- holdDyn Nothing eRefList
     let dRefListSearch =fromMaybe [] <$> dR
-
-
-    --tiOwner <- textInput def
-    elAttr "datalist" ("id" =: "candidates") $ do
-       elAttr "option" ("value" =: "123") blank
-       elAttr "option" ("value" =: "133") blank
-       elAttr "option" ("value" =: "442") blank
-    tOwnerSearch <- inputElement $ def & (inputElementConfig_elementConfig . initialAttributes) .~ ( "list" =: "candidates" )
 
 
     dropdownBulkAction <- dropdown AssignOwner
@@ -269,7 +261,7 @@ homePage dEnv = Workflow $ do
                                                  ,(DeAssignOwner,"Remove Ownership")
                                                  ])
                         def
-    dTOwner <- dViewOwnerPicker (_inputElement_value tOwnerSearch) (_inputElement_input tOwnerSearch)
+    dTOwner <- dViewOwnerPicker (_inputElement_value tOwnerSearch) (attach (current $ _dropdown_value drModel) $ _inputElement_input tOwnerSearch)
     display dTOwner
     display $ _dropdown_value dropdownBulkAction
     eBulkExecute <- toButton "button" mempty $ text "Execute"
@@ -300,12 +292,12 @@ homePage dEnv = Workflow $ do
 
 
 
-dViewOwnerPicker :: MonadWidget t m =>  Dynamic t T.Text -> Event t T.Text -> m (Dynamic t Int)
+dViewOwnerPicker :: MonadWidget t m =>  Dynamic t T.Text -> Event t (SearchMode,T.Text) -> m (Dynamic t Int)
 dViewOwnerPicker dOwnerSearch eOwnerSearch =
   el "div" $ mdo
-    let eGetOwnerList1 = ffilter (\x -> T.length x > 3) eOwnerSearch
+    let eGetOwnerList1 = ffilter (\(m,x) -> (m == SOwner) && (T.length x > 2)) eOwnerSearch
     eGetOwnerList <- performRequestAsync $ ffor eGetOwnerList1 $ \s ->
-        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search SAuthor s
+        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search SAuthor $ snd s
 
     dGetOwnerList :: Dynamic t [Person] <- holdDyn [] $ fforMaybe eGetOwnerList decodeXhrResponse
     dleSetOwner <- flip simpleList dView dGetOwnerList

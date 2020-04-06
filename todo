@@ -5,7 +5,7 @@ v     Bibtex import
 R - by Search
       implement pagedHome
 v     implement Abstract dynamic
-      implement Search
+v     implement Search
 v       at upper part of Home
 v       as json_data with space as &&.
 v       by author, keyword,
