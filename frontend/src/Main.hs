@@ -103,21 +103,6 @@ body = mdo
     --, unimplementedWidget <$ eUnimplemented
     ]
 
--- di sini, textWidget dan textWidget2 return Event t Int from referenceSerial.
--- Sebab isi textWidget* adalah:
--- v. HomePage
--- v. LoginPage
--- v. DetailPage (bisa static)
--- v. DetailPage (bisa edited)
--- 4. DetailedSearchPage
--- 5. SearchResultPage (seperti HomePage tapi content yang berbeda)
--- v. ImportPage (ini yang paling penting sebenarnya)
--- 7. Full Editor
--- 8. Cosmetics
--- 9. setOwner
---
---
-
   -- Using `dyn` on this gives us an `Event t (Event t Text)`:
   eeDetail <- dyn dWidget
   -- and we can use `switchHold` to turn that into an `Event t Int`:
@@ -250,10 +235,10 @@ homePage dEnv = Workflow $ do
     display (dEnv ^. auth)
     eStart <- getPostBuild
 
-    drModel <- dropdown "abstract"
-                        (constDyn $ Map.fromList [("abstract","abstract")
-                                                 ,("author","author")
-                                                 ,("keywords","keywords")])
+    drModel <- dropdown SAbstract
+                        (constDyn $ Map.fromList [(SAbstract,"abstract")
+                                                 ,(SAuthor,"author")
+                                                 ,(SKeywords,"keywords")])
                         def
 
     tiSearch <- textInput def
@@ -310,7 +295,7 @@ dViewOwnerPicker dOwnerSearch eOwnerSearch =
   el "div" $ mdo
     let eGetOwnerList1 = ffilter (\x -> T.length x > 3) eOwnerSearch
     eGetOwnerList <- performRequestAsync $ ffor eGetOwnerList1 $ \s ->
-        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search "p" s
+        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search SAuthor s
 
     dGetOwnerList :: Dynamic t [Person] <- holdDyn [] $ fforMaybe eGetOwnerList decodeXhrResponse
     dleSetOwner <- flip simpleList dView dGetOwnerList

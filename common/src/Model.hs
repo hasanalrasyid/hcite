@@ -169,9 +169,13 @@ instance FromReference SimpleRef where
                               ( fromMaybe ""    $ referencePages        r)
                               ( fromMaybe ""    $ referencePublisher    r)
 
-data Search = Search       { searchMode :: T.Text
+data SearchMode = SAbstract | SAuthor | SKeywords deriving (Generic,Ord,Eq)
+instance ToJSON SearchMode
+instance FromJSON SearchMode
+
+data Search = Search       { searchMode :: SearchMode
                            , searchTerm :: T.Text
-                           } deriving (Generic,Show)
+                           } deriving (Generic)
 instance ToJSON Search
 instance FromJSON Search
 

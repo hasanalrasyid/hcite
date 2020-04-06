@@ -8,7 +8,7 @@ v     implement Abstract dynamic
       implement Search
 v       at upper part of Home
 v       as json_data with space as &&.
-        by author, keyword,
+v       by author, keyword,
 v       abstract,
         by ownerId
 

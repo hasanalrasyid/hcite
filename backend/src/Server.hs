@@ -149,8 +149,8 @@ getPersonList q e iPage = do
 
 getRecordsList :: (FromReference b, MonadIO f) => [Filter Reference]
                -> ServerEnv -> Int -> f [b]
-getRecordsList q e iPage = do
-  p <- withDBEnv e $ selectList q [ LimitTo resPerPage
+getRecordsList f e iPage = do
+  p <- withDBEnv e $ selectList f [ LimitTo resPerPage
                                   , OffsetBy $ (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
 
@@ -170,12 +170,30 @@ getRecordsByKeyword  e iPage (Search _ tSearch) =
   getRecordsList (genFilter ReferenceKeywords $ map Just $ T.words tSearch) e iPage
 
 getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
-getRecordsByAbstract e iPage (Search _ tSearch) =
-  getRecordsList (genFilter ReferenceAbstract $ map Just $ T.words tSearch) e iPage
+getRecordsByAbstract e iPage (Search mSearch tSearch) =
+  let filterRef = case mSearch of
+                  SAbstract ->
+                    genFilter ReferenceAbstract  $ map Just $ T.words tSearch
+                  SKeywords ->
+                    genFilter ReferenceKeywords $ map Just $ T.words tSearch
+                  SAuthor   ->
+                    genFilter ReferenceAuthor   $   T.words tSearch
+   in getRecordsList filterRef e iPage
 
 getRecordsByOwnerId :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Int -> f [b]
-getRecordsByOwnerId  e iSearch iPage =
-  getRecordsList (genFilter ReferenceAuthor $ T.words "NOT_YET") e iPage
+getRecordsByOwnerId  e iPage iSearch = do
+  ret <- withDBEnv e $ do
+          r <- selectFirst [RelationPRPId ==. (PegawaiKey $ fromIntegral iSearch)] []
+          liftIO $ putStrLn $ show r
+          case r of
+            Nothing -> return []
+            Just rs -> do
+              let refIdList = map fromKeyReference $ relationPRRefIds $ entityVal rs
+              selectList [ReferenceSerial <-. refIdList]
+                  [ LimitTo resPerPage
+                  , OffsetBy $ (iPage - 1) * resPerPage ]
+  liftIO $ putStrLn $ show ret
+  return $ map (fromReference . entityVal) ret
 
 class LikeFilter a where
   genFilter :: EntityField record a -> [a] -> [Filter record]
