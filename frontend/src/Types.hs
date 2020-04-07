@@ -26,16 +26,24 @@ data Nav = Home
          | Login
          deriving (Eq, Enum, Show) -- remember, Enum start from 0
 
-data Env t = Env  { _history :: [String]
-                  , _auth :: Dynamic t (Maybe Token)
-                  , _defXhrReqConfig :: Dynamic t (XhrRequestConfig ())
-               }
+data Env = Env  { _history :: [String]
+                  , _auth :: (Maybe Token)
+                  , _defXhrReqConfig :: (XhrRequestConfig ())
+                }
 
 $(makeLenses ''Env)
 
-instance Reflex t => Default (Env t) where
+instance Reflex t => Default Env where
   def = Env { _history = []
-            , _auth = constDyn Nothing
-            , _defXhrReqConfig = constDyn def
+            , _auth = Nothing
+            , _defXhrReqConfig = def
             }
+
+initEnv :: Env
+initEnv = Env { _history = []
+              , _auth = Nothing
+              , _defXhrReqConfig = def
+              }
+
+
 

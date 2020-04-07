@@ -21,10 +21,9 @@ import Home.Detail
 import Import
 import Login
 
-import Control.Lens
 import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
-homePage :: MonadWidget t m => (Env t) -> Workflow t m T.Text
+homePage :: MonadWidget t m => Dynamic t Env -> Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
@@ -32,7 +31,7 @@ homePage dEnv = Workflow $ do
   let eImport = ffilter (== Import) eNav
   el "div" $ mdo
     text "home"
-    display (dEnv ^. auth)
+    display $ _auth <$> dEnv
     eStart <- getPostBuild
 
     drModel <- dropdown SAbstract
@@ -94,26 +93,26 @@ homePage dEnv = Workflow $ do
 
 homeWidget :: MonadWidget t m => m (Event t T.Text)
 homeWidget = do
-  r <- workflow $ homePage def
+  r <- workflow $ homePage $ constDyn initEnv
   display r
   return $ updated r
 
-importPage :: (MonadWidget t m) => Env t -> Workflow t m T.Text
+importPage :: (MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
 importPage dEnv = Workflow . el "div" $ do
   e <- importPageWidget dEnv
   return ("importPage", homePage dEnv <$ e)
 
-loginPage :: (MonadWidget t m) => Env t -> Workflow t m T.Text
+loginPage :: (MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
 loginPage dEnv = Workflow . el "div" $ do
   e <- loginPageWidget dEnv
   return ("loginPage", homePage dEnv <$ e)
 
-detailPage :: (MonadWidget t m) => Env t -> Dynamic t Int -> Workflow t m T.Text
+detailPage :: (MonadWidget t m) =>Dynamic t Env-> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dEdit = Workflow . el "div" $ do
   e <- detailPageWidget dEnv dEdit
   return ("detailPage", homePage dEnv <$ e)
 
-noPage :: (MonadWidget t m) => Env t -> Workflow t m T.Text
+noPage :: (MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   e <- noPageWidget dEnv
   return ("noPage", homePage dEnv <$ e)

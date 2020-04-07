@@ -15,17 +15,15 @@ import Routing
 import Types
 import Utils
 
-import Control.Lens
-
-importPageWidget :: (MonadWidget t m) => (Env t) -> m (Event t ())
+importPageWidget :: (MonadWidget t m) => Dynamic t Env -> m (Event t ())
 importPageWidget dEnv = do -- Workflow . el "div" $ do
   el "div" $ text "ImportPage"
-  display (dEnv ^. auth)
+  display $ _auth <$> dEnv
   fi <- fileInput def
   eSubmit <- toButton "button" mempty $ text "Upload"
   let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
   efd1 <- performEvent $ fmap (wrapFile "bib") eFi
-  let efd = attachPromptlyDyn (dEnv ^. defXhrReqConfig) efd1
+  let efd = attachPromptlyDyn (_defXhrReqConfig <$> dEnv) efd1
   r <- performRequestAsync $ ffor efd $ \(defXhr,fd) ->
         xhrRequest "POST" (textFromJsonApi jsonApiPutFile) $ defXhr {
                           _xhrRequestConfig_sendData = fd

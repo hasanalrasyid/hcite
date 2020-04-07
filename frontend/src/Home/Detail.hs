@@ -14,12 +14,11 @@ import Model
 import Types
 import Utils
 
-import Control.Lens
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 
-detailPageWidget :: (MonadWidget t m) => (Env t) -> Dynamic t Int -> m (Event t ())
+detailPageWidget :: (MonadWidget t m) => Dynamic t Env -> Dynamic t Int -> m (Event t ())
 detailPageWidget dEnv dSerial = do
-  display (dEnv ^. auth)
+  display $ _auth <$> dEnv
   eBack <- toButton "div" mempty $ text "Back"
   el "div" $ text "You have arrived on page 3"
   let tGetSingle = textFromJsonApi . jsonApiGetSingle

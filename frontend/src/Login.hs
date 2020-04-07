@@ -8,23 +8,16 @@
 module Login where
 import           Reflex.Dom hiding (Home)
 import qualified Data.Map.Strict as Map
-import           Data.Maybe (isJust)
---import           Data.FileEmbed
-
---import Data.Witherable
 
 import Model
 import Types
 import Utils
 import Settings
 
---import Control.Monad.Reader
-import Control.Lens
-
-loginPageWidget :: (MonadWidget t m) => Env t -> m (Event t ())
+loginPageWidget :: (MonadWidget t m) => Dynamic t Env -> m (Event t Env)
 loginPageWidget dEnv = do
   el "div" $ text "LoginPage"
-  display (dEnv ^. auth)
+  display $ _auth <$> dEnv
   username <- inputElement def
   password <- inputElement def
 
@@ -33,16 +26,17 @@ loginPageWidget dEnv = do
         mappend serverBackend $ "auth/signin?login=" <> u <> "&password=" <> p
   let dLoginReq = pure genLoginReq <*> value username <*> value password
   eToken :: Event t (Maybe Token) <- getAndDecode $ tag (current dLoginReq) eSend
-  let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ dEnv ^. defXhrReqConfig) eToken
+  let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ _defXhrReqConfig <$> dEnv) eToken
   dNewXhr <- holdDyn def eNewXhr
   dToken <- holdDyn Nothing eToken
-  let dEnv2 = dEnv & auth .~ dToken
-                   & defXhrReqConfig .~ dNewXhr
-  let okToken = ffilter isJust $ updated dToken
+  let (eEnv2 :: Event t Env) = attachWith setNewEnv (current dToken) $ attach (current dNewXhr) $ updated dEnv
   e <- toButton "button" mempty $ text "Back"
-  let eRet = leftmost [e, () <$ okToken]
-  return eRet
+  let eRet = leftmost [initEnv <$ e, eEnv2]
+  return $ eRet
   where
+    setNewEnv t (x,e) = e { _auth = t
+                          , _defXhrReqConfig = x
+                          }
     putEnvToken :: XhrRequestConfig () -> Maybe Token -> XhrRequestConfig ()
     putEnvToken d Nothing = d
     putEnvToken d (Just t) = d { _xhrRequestConfig_headers = Map.singleton "Authorization" $ token t }
