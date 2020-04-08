@@ -45,9 +45,16 @@ homePage = Workflow $ do
 
     tOwnerSearch <- inputElement def
     eSearchButton <- toButton "button" mempty $ text "Search"
-    let eSearch = leftmost [eSearchButton, eStart]
 
+    eNPage <- flip mapM [1..5] $ \iPage -> mdo
+                toButton "button" mempty $ text $ T.pack $ show iPage
+    dNPage <- holdDyn 1 $ leftmost $ zipWith (<$) [1..] eNPage
+    el "br" blank
+    display dNPage
+    el "br" blank
+    let eSearch = leftmost $ eNPage ++ [eSearchButton, eStart]
     let ePostXhrRequest = fmap genSearchReq
+                              $ attachPromptlyDyn dNPage
                               $ attach (current dTOwner)
                               $ attach (current $ _dropdown_value drModel)
                               $ tag (current $ _inputElement_value tOwnerSearch) eSearch
@@ -74,6 +81,7 @@ homePage = Workflow $ do
     text "bulkAll"
     display $ _inputElement_checked bulkAll
     display dBulk
+
     dleEdit <- flip simpleList (dViewArticle (_inputElement_checkedChange bulkAll)) dRefListSearch
     let dBulk = fmap (map snd . Map.toList) $ joinDynThroughMap $ fmap (\x -> Map.fromList $ zip ([1..] :: [Int]) $ map fst x) dleEdit
     let deEdit = fmap (leftmost . (map snd)) dleEdit
@@ -87,10 +95,10 @@ homePage = Workflow $ do
                              , noPage <$ eNav]
     return ("HomePage", thePage)
     where
-      genSearchReq (o,(m,s)) =
+      genSearchReq (nPage,(o,(m,s))) =
         let target = case m of
-                       SOwner -> textFromJsonApi $ jsonApiGetListOwnerId 1 o
-                       _ -> textFromJsonApi $ jsonApiGetListSearch 1
+                       SOwner -> textFromJsonApi $ jsonApiGetListOwnerId nPage o
+                       _ -> textFromJsonApi $ jsonApiGetListSearch nPage
          in postJson target $ Model.Search m s
 
 homeWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => m (Event t T.Text)
