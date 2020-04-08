@@ -22,6 +22,14 @@ executable frontend
     Reflex.Dom.Contrib.Widgets.EditInPlace
     Reflex.Dom.Contrib.Widgets.CheckboxList
 
+    Home
+    Home.Detail
+    Import
+    Login
+    Navigation
+    Settings
+    Types
+    Utils
   -- other-extensions:
   default-extensions:
     FlexibleInstances
@@ -61,6 +69,15 @@ executable frontend
                      , time
                      , safe
                      , aeson
+
+                     , dependent-map
+                     , dependent-sum
+                     , bytestring
+                     , primitive
+                     , ref-tf
+                     , exception-transformers
+                     , mmorph
+
 
   hs-source-dirs:      src
   default-language:    Haskell2010

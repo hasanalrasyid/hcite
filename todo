@@ -11,6 +11,7 @@ v       as json_data with space as &&.
 v       by author, keyword,
 v       abstract,
 v       by ownerId
+        need to combine ownerId with other modes of search, means SearchModel including int
 
 U - by Details
 v     implement EditRecords
@@ -44,6 +45,7 @@ v implement deAssignOwner
 View based
   Better view
   implement Acknowledgements
+v implement Authorization by LocalStorage
 v implement "Not yet Implemented"
 v implement links: but we need to remove it, because android and gtk cannot handle it well
 v implement Login, tinggal pakai token untuk post data

@@ -23,7 +23,10 @@ import Login
 
 import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
-homePage :: MonadWidget t m => Dynamic t Env -> Workflow t m T.Text
+import Storage.Example
+import Reflex.Dom.Storage.Class
+
+homePage :: (HasStorage t ExampleTag m, MonadWidget t m) => Dynamic t Env -> Workflow t m T.Text
 homePage dEnv = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
@@ -45,7 +48,6 @@ homePage dEnv = Workflow $ do
     eSearchButton <- toButton "button" mempty $ text "Search"
     let eSearch = leftmost [eSearchButton, eStart]
 
-
     let ePostXhrRequest = fmap genSearchReq
                               $ attach (current dTOwner)
                               $ attach (current $ _dropdown_value drModel)
@@ -65,7 +67,9 @@ homePage dEnv = Workflow $ do
     display dTOwner
     display $ _dropdown_value dropdownBulkAction
     eBulkExecute <- toButton "button" mempty $ text "Execute"
-    bulkExecute dEnv dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
+    dAuth <- askStorageTagDef Tag1 Nothing
+    display dAuth
+    bulkExecute dAuth dEnv dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
     --assignOwner dEnv dTOwner (fmap (filter snd) dBulk) eAssignOwner
 
     bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
@@ -91,28 +95,30 @@ homePage dEnv = Workflow $ do
                        _ -> textFromJsonApi $ jsonApiGetListSearch 1
          in postJson target $ Model.Search m s
 
-homeWidget :: MonadWidget t m => m (Event t T.Text)
+homeWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => m (Event t T.Text)
 homeWidget = do
   r <- workflow $ homePage $ constDyn initEnv
   display r
   return $ updated r
 
-importPage :: (MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
+importPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
 importPage dEnv = Workflow . el "div" $ do
   e <- importPageWidget dEnv
   return ("importPage", homePage dEnv <$ e)
 
-loginPage :: (MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
-loginPage dEnv = Workflow . el "div" $ do
-  e <- loginPageWidget dEnv
-  return ("loginPage", homePage dEnv <$ e)
+loginPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
+loginPage dEnv = Workflow . el "div" $ mdo
+  display $ dEnvNew
+  eEnvNew <- loginPageWidget dEnv
+  dEnvNew <- holdDyn initEnv eEnvNew
+  return ("loginPage", homePage dEnvNew <$ eEnvNew)
 
-detailPage :: (MonadWidget t m) =>Dynamic t Env-> Dynamic t Int -> Workflow t m T.Text
+detailPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Dynamic t Int -> Workflow t m T.Text
 detailPage dEnv dEdit = Workflow . el "div" $ do
   e <- detailPageWidget dEnv dEdit
   return ("detailPage", homePage dEnv <$ e)
 
-noPage :: (MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
+noPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
 noPage dEnv = Workflow . el "div" $ do
   e <- noPageWidget dEnv
   return ("noPage", homePage dEnv <$ e)

@@ -144,6 +144,7 @@ instance FromJSON SimpleRef
 
 data Token = Token { token :: T.Text } deriving (Generic,Show)
 instance FromJSON Token
+instance ToJSON Token
 
 data Abstract = Abstract { absSerial   :: Int
                          , absAbstract :: T.Text

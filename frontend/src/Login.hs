@@ -14,7 +14,10 @@ import Types
 import Utils
 import Settings
 
-loginPageWidget :: (MonadWidget t m) => Dynamic t Env -> m (Event t Env)
+import Storage.Example
+import Reflex.Dom.Storage.Class
+
+loginPageWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => Dynamic t Env -> m (Event t Env)
 loginPageWidget dEnv = do
   el "div" $ text "LoginPage"
   display $ _auth <$> dEnv
@@ -29,9 +32,14 @@ loginPageWidget dEnv = do
   let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ _defXhrReqConfig <$> dEnv) eToken
   dNewXhr <- holdDyn def eNewXhr
   dToken <- holdDyn Nothing eToken
+
+  tellStorageInsert Tag1 eToken
+
   let (eEnv2 :: Event t Env) = attachWith setNewEnv (current dToken) $ attach (current dNewXhr) $ updated dEnv
   e <- toButton "button" mempty $ text "Back"
-  let eRet = leftmost [initEnv <$ e, eEnv2]
+  dEnv2 <- holdDyn initEnv eEnv2
+  display dEnv2
+  let eRet = leftmost [eEnv2, initEnv <$ e]
   return $ eRet
   where
     setNewEnv t (x,e) = e { _auth = t

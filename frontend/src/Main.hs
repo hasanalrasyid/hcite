@@ -28,8 +28,21 @@ import Home
 
 --import Control.Monad.Reader
 
+import Reflex.Dom.Storage.Base
+import Reflex.Dom.Storage.Class
+
+import Frontend
+import Control.Monad (void)
+import Storage.Example
+import Types
+
 main :: IO ()
-main = mainWidgetWithHead headElement body
+main = mainWidgetWithHead headElement $ mdo
+  void . runStorageT LocalStorage $ do
+    initializeTag Tag1 Nothing
+    counter
+    foo
+    body
 
 headElement :: MonadWidget t m => m ()
 headElement = do
@@ -53,7 +66,7 @@ headElement = do
         , ("href", l)
       ]) $ return ()
 
-body :: MonadWidget t m => m ()
+body :: (HasStorage t ExampleTag m, MonadWidget t m) => m ()
 body = mdo
   eStart <- getPostBuild
   -- Builds up a `Dynamic` of widgets that return `Event t Text`:

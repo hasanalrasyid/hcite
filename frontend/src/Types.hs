@@ -29,7 +29,7 @@ data Nav = Home
 data Env = Env  { _history :: [String]
                   , _auth :: (Maybe Token)
                   , _defXhrReqConfig :: (XhrRequestConfig ())
-                }
+                } deriving Show
 
 $(makeLenses ''Env)
 
