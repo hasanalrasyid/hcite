@@ -45,6 +45,7 @@ v implement deAssignOwner
 View based
   Better view
   implement Acknowledgements
+  implement Settings
 v implement Authorization by LocalStorage
 v implement "Not yet Implemented"
 v implement links: but we need to remove it, because android and gtk cannot handle it well
