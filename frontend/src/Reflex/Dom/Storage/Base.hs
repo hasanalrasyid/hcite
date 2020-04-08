@@ -222,7 +222,7 @@ sStore :: (MonadJSM m, GKey k, ToJSONTag k Identity)
        -> m ()
 sStore st k v = do
   s <- getStorage st
-  setItem s (toKey (This k)) (encodeTagged k v)
+  setItem s (toKey (Some k)) (encodeTagged k v)
 
 sLoad :: (MonadJSM m, GKey k, FromJSONTag k Identity)
       => StorageType
@@ -230,7 +230,7 @@ sLoad :: (MonadJSM m, GKey k, FromJSONTag k Identity)
       -> m (Maybe (Identity a))
 sLoad st k = do
   s <- getStorage st
-  mt <- getItem s (toKey (This k))
+  mt <- getItem s (toKey (Some k))
   pure $ decodeTagged k =<< mt
 
 sRemove :: (MonadJSM m, GKey k)
@@ -254,7 +254,7 @@ writeToStorage st pdm = do
   let
     change :: k a -> ComposeMaybe Identity a -> m (ComposeMaybe Identity a)
     change k v@(ComposeMaybe (Just a)) = v <$ sStore st k a
-    change k v@(ComposeMaybe Nothing)  = v <$ sRemove st (This k)
+    change k v@(ComposeMaybe Nothing)  = v <$ sRemove st (Some k)
   void . DMap.traverseWithKey change . unPatchDMap $ pdm
 
 readFromStorage :: ( Monad m
@@ -268,7 +268,7 @@ readFromStorage :: ( Monad m
                 -> m (DMap k Identity)
 readFromStorage p st = do
   let
-    readKey (This k) = do
+    readKey (Some k) = do
       mt <- sLoad st k
       pure $ (k DMap.:=>) <$> mt
 
@@ -291,7 +291,7 @@ handleStorageEvents _ _{- st -} = do
     s = fromKey =<< key
   case s of
     Nothing -> pure mempty
-    Just (This k) -> do
+    Just (Some k) -> do
       newValue :: Maybe Text <- getNewValue eS
       case newValue of
         Nothing ->

@@ -12,20 +12,18 @@ import           Data.Maybe (listToMaybe)
 
 import Routing
 
-import Types
 import Utils
 
-importPageWidget :: (MonadWidget t m) => Dynamic t Env -> m (Event t ())
-importPageWidget dEnv = do -- Workflow . el "div" $ do
+importPageWidget :: (MonadWidget t m) =>  m (Event t ())
+importPageWidget = do -- Workflow . el "div" $ do
   el "div" $ text "ImportPage"
-  display $ _auth <$> dEnv
   fi <- fileInput def
   eSubmit <- toButton "button" mempty $ text "Upload"
   let eFi = fmapMaybe listToMaybe $ tag (current $ value fi) eSubmit
-  efd1 <- performEvent $ fmap (wrapFile "bib") eFi
-  let efd = attachPromptlyDyn (_defXhrReqConfig <$> dEnv) efd1
-  r <- performRequestAsync $ ffor efd $ \(defXhr,fd) ->
-        xhrRequest "POST" (textFromJsonApi jsonApiPutFile) $ defXhr {
+  efd <- performEvent $ fmap (wrapFile "bib") eFi
+  r <- performRequestAsync $ ffor efd $ \fd ->
+        let postReq = textFromJsonApi jsonApiPutFile
+         in xhrRequest "POST" postReq $ def {
                           _xhrRequestConfig_sendData = fd
                          }
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse

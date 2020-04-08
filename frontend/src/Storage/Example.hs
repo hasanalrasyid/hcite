@@ -14,15 +14,13 @@ module Storage.Example where
 import Data.Functor.Identity (Identity(..))
 import GHC.Generics
 
-import Data.Dependent.Map (Some(..))
-import Data.Dependent.Sum (ShowTag(..))
+import Data.Some
 import Data.GADT.Show
 import Data.GADT.Compare
 
 import Data.Aeson (ToJSON(..), FromJSON(..))
 
 import Data.GADT.Aeson
-import Types
 import Model
 
 data Foo = Foo { bar :: Bool, baz :: String }
@@ -57,16 +55,16 @@ instance ShowTag ExampleTag Identity where
 -}
 
 instance GKey ExampleTag where
-  toKey (This Tag1) = "tag1"
-  toKey (This Tag2) = "tag2"
+  toKey (Some Tag1) = "tag1"
+  toKey (Some Tag2) = "tag2"
 
   fromKey t =
     case t of
-      "tag1" -> Just (This Tag1)
-      "tag2" -> Just (This Tag2)
+      "tag1" -> Just (Some Tag1)
+      "tag2" -> Just (Some Tag2)
       _ -> Nothing
 
-  keys _ = [This Tag1, This Tag2]
+  keys _ = [Some Tag1, Some Tag2]
 
 instance ToJSONTag ExampleTag Identity where
   toJSONTagged Tag1 (Identity x) = toJSON x

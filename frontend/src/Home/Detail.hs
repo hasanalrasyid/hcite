@@ -11,14 +11,12 @@ import           Reflex.Dom hiding (Home)
 import Routing
 import Model
 
-import Types
 import Utils
 
 import Reflex.Dom.Contrib.Widgets.EditInPlace (editInPlace)
 
-detailPageWidget :: (MonadWidget t m) => Dynamic t Env -> Dynamic t Int -> m (Event t ())
-detailPageWidget dEnv dSerial = do
-  display $ _auth <$> dEnv
+detailPageWidget :: (MonadWidget t m) => Dynamic t Int -> m (Event t ())
+detailPageWidget dSerial = do
   eBack <- toButton "div" mempty $ text "Back"
   el "div" $ text "You have arrived on page 3"
   let tGetSingle = textFromJsonApi . jsonApiGetSingle

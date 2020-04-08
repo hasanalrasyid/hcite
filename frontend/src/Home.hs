@@ -26,15 +26,14 @@ import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 import Storage.Example
 import Reflex.Dom.Storage.Class
 
-homePage :: (HasStorage t ExampleTag m, MonadWidget t m) => Dynamic t Env -> Workflow t m T.Text
-homePage dEnv = Workflow $ do
+homePage :: (HasStorage t ExampleTag m, MonadWidget t m) => Workflow t m T.Text
+homePage = Workflow $ do
   eNav <- bodyNav
   let eHome = ffilter (== Home) eNav
   let eLogin = ffilter (== Login) eNav
   let eImport = ffilter (== Import) eNav
   el "div" $ mdo
     text "home"
-    display $ _auth <$> dEnv
     eStart <- getPostBuild
 
     drModel <- dropdown SAbstract
@@ -69,8 +68,7 @@ homePage dEnv = Workflow $ do
     eBulkExecute <- toButton "button" mempty $ text "Execute"
     dAuth <- askStorageTagDef Tag1 Nothing
     display dAuth
-    bulkExecute dAuth dEnv dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
-    --assignOwner dEnv dTOwner (fmap (filter snd) dBulk) eAssignOwner
+    bulkExecute dAuth dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
 
     bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
     text "bulkAll"
@@ -82,11 +80,11 @@ homePage dEnv = Workflow $ do
         eEdit = switchDyn deEdit
     dEdit <- holdDyn 0 eEdit
 
-    let thePage = leftmost $ [ detailPage dEnv dEdit <$ eEdit
-                             , homePage dEnv         <$ eHome
-                             , loginPage dEnv        <$ eLogin
-                             , importPage dEnv       <$ eImport
-                             , noPage dEnv           <$ eNav]
+    let thePage = leftmost $ [ detailPage dEdit <$ eEdit
+                             , homePage <$ eHome
+                             , loginPage <$ eLogin
+                             , importPage <$ eImport
+                             , noPage <$ eNav]
     return ("HomePage", thePage)
     where
       genSearchReq (o,(m,s)) =
@@ -97,28 +95,26 @@ homePage dEnv = Workflow $ do
 
 homeWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => m (Event t T.Text)
 homeWidget = do
-  r <- workflow $ homePage $ constDyn initEnv
+  r <- workflow homePage
   display r
   return $ updated r
 
-importPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
-importPage dEnv = Workflow . el "div" $ do
-  e <- importPageWidget dEnv
-  return ("importPage", homePage dEnv <$ e)
+importPage :: (HasStorage t ExampleTag m, MonadWidget t m) => Workflow t m T.Text
+importPage = Workflow . el "div" $ do
+  e <- importPageWidget
+  return ("importPage", homePage <$ e)
 
-loginPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
-loginPage dEnv = Workflow . el "div" $ mdo
-  display $ dEnvNew
-  eEnvNew <- loginPageWidget dEnv
-  dEnvNew <- holdDyn initEnv eEnvNew
-  return ("loginPage", homePage dEnvNew <$ eEnvNew)
+loginPage :: (HasStorage t ExampleTag m, MonadWidget t m) => Workflow t m T.Text
+loginPage = Workflow . el "div" $ mdo
+  eEnvNew <- loginPageWidget
+  return ("loginPage", homePage <$ eEnvNew)
 
-detailPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Dynamic t Int -> Workflow t m T.Text
-detailPage dEnv dEdit = Workflow . el "div" $ do
-  e <- detailPageWidget dEnv dEdit
-  return ("detailPage", homePage dEnv <$ e)
+detailPage :: (HasStorage t ExampleTag m, MonadWidget t m) => Dynamic t Int -> Workflow t m T.Text
+detailPage dEdit = Workflow . el "div" $ do
+  e <- detailPageWidget dEdit
+  return ("detailPage", homePage <$ e)
 
-noPage :: (HasStorage t ExampleTag m, MonadWidget t m) =>Dynamic t Env-> Workflow t m T.Text
-noPage dEnv = Workflow . el "div" $ do
-  e <- noPageWidget dEnv
-  return ("noPage", homePage dEnv <$ e)
+noPage :: (HasStorage t ExampleTag m, MonadWidget t m) => Workflow t m T.Text
+noPage = Workflow . el "div" $ do
+  e <- noPageWidget
+  return ("noPage", homePage <$ e)

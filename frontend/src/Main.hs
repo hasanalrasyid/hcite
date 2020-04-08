@@ -6,42 +6,20 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 import           Reflex.Dom hiding (Home)
---import qualified Data.Text as T
 import qualified Data.Map.Strict as Map
---import           Data.FileEmbed
-
---import Data.Witherable
-
---import Reflex.Dom.Xhr
-
---import Language.Javascript.JSaddle.Types
---import Control.Monad.IO.Class
---import Control.Monad
---import Control.Monad.Trans
-
---import Reflex.Bulmex.Modal
---import Reflex.Bulmex.Tag.Bulma
-
---import Proto (toButton,hiddenDynAttrs,bodyNav,Nav(..))
 
 import Home
-
---import Control.Monad.Reader
 
 import Reflex.Dom.Storage.Base
 import Reflex.Dom.Storage.Class
 
-import Frontend
 import Control.Monad (void)
-import Storage.Example
-import Types
+import Storage.Example (ExampleTag(..))
 
 main :: IO ()
 main = mainWidgetWithHead headElement $ mdo
   void . runStorageT LocalStorage $ do
     initializeTag Tag1 Nothing
-    counter
-    foo
     body
 
 headElement :: MonadWidget t m => m ()

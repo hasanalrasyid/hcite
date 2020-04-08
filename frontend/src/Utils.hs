@@ -25,9 +25,6 @@ import Control.Lens
 import Settings
 import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
-import Storage.Example
-import Reflex.Dom.Storage.Class
-import Reflex.Dom.Storage.Base
 import Data.Maybe
 
 hiddenDynAttrs :: Map.Map T.Text T.Text -> Bool -> Map.Map T.Text T.Text
@@ -59,10 +56,9 @@ visible p1 p2 = "style" =: ("display: " <> choose (p1 == p2) "inline" "none")
     choose True  t _ = t
     choose False _ f = f
 
-noPageWidget :: (MonadWidget t m) => Dynamic t Env -> m (Event t ())
-noPageWidget dEnv = do
+noPageWidget :: (MonadWidget t m) => m (Event t ())
+noPageWidget = do
   el "div" $ text "No Page So Far"
-  display $ fmap _auth dEnv
   toButton "button" (constDyn mempty) $ text "Home"
 
 wrapFile :: (Monad m , MonadJSM m) => T.Text -> File -> m FD.FormData
@@ -116,12 +112,12 @@ dViewOwnerPicker eOwnerSearch =
         e <- toButton "div" mempty $ dynText $ fmap personName o
         return $ tag (current $ fmap personId o) e
 
-bulkExecute :: MonadWidget t m => Dynamic t (Maybe Token) -> Dynamic t Env -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t BulkAction -> m ()
-bulkExecute dAuth dEnv dOwner dFilteredBulk eBulkExecute = mdo
-  let efd = attach (current dAuth) $ attach (current $ fmap _defXhrReqConfig dEnv) $ attach (current dOwner) $ attach (current dFilteredBulk) eBulkExecute
+bulkExecute :: MonadWidget t m => Dynamic t (Maybe Token) -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t BulkAction -> m ()
+bulkExecute dAuth dOwner dFilteredBulk eBulkExecute = mdo
+  let efd = attach (current dAuth) $ attach (current dOwner) $ attach (current dFilteredBulk) eBulkExecute
   --dAuth :: Dynamic t (Maybe Token) <- askStorageTagDef Tag1 Nothing
   r <- performRequestAsync $ ffor efd
-        $ \(mAuth,(defXhr,(owner,(lRefCheck,actBulk)))) ->
+        $ \(mAuth,(owner,(lRefCheck,actBulk))) ->
           let (jsonApi,mApi) = case actBulk of
                           AssignOwner -> (jsonApiPutOwner,"PUT")
                           DeAssignOwner -> (jsonApiDeleteOwner,"DELETE")

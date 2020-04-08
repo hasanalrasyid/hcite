@@ -60,7 +60,7 @@ newtype JSONDMap k f = JSONDMap { unJSONDMap :: DMap k f}
 instance (GKey k, ToJSONTag k f) => ToJSON (JSONDMap k f) where
   toJSON dm =
     let
-      toPair (k :=> v) = (toKey (This k), toJSONTagged k v)
+      toPair (k :=> v) = (toKey (Some k), toJSONTagged k v)
     in
       object . fmap toPair . DMap.toList . unJSONDMap $ dm
 
@@ -68,8 +68,8 @@ instance (GCompare k, GKey k, FromJSONTag k f) => FromJSON (JSONDMap k f) where
   parseJSON (Object v) =
     let
       ks = keys (Proxy :: Proxy k)
-      maybeKey (This k) =
-        (\x -> Just (k :=> x)) <$> explicitParseField (parseJSONTagged k) v (toKey (This k)) <|>
+      maybeKey (Some k) =
+        (\x -> Just (k :=> x)) <$> explicitParseField (parseJSONTagged k) v (toKey (Some k)) <|>
         pure Nothing
     in
       JSONDMap . DMap.fromList . catMaybes <$> traverse maybeKey ks
