@@ -24,24 +24,17 @@ import Reflex.Bulmex.Tag.Bulma
 import Utils
 import Types
 
-  {-
-data Nav = Home
-         | Landing
-         | Blog
-         | Import
-         | Kanban
-         | Search
-         | Acknowledgements
-         | Register
-         | Login
-         deriving (Eq, Enum, Show) -- remember, Enum start from 0
--}
-
 showNav :: Nav -> T.Text
 showNav = T.pack . show
 
-navMenu :: [T.Text]
-navMenu = map showNav $ enumFrom $ toEnum 0
+showNavPage :: NavPage -> T.Text
+showNavPage = T.pack . show
+
+navPage :: [T.Text]
+navPage = navMenu showNavPage
+
+navMenu :: (Show a, Enum a) => (a -> T.Text) -> [T.Text]
+navMenu sn = map sn $ enumFrom $ toEnum 0
 
 navMenuImplemented :: [Nav]
 navMenuImplemented = [Home]
@@ -63,7 +56,7 @@ bodyNav = do
 --      </div>
 --    </div>
       evNav <- elDynAttr "div" (activateDynAttrs (( "class" =: "navbar-menu") <> ("id" =: "topNav")) <$> dynToggleTopNav) $ do
-        let (navMenuStart,(navMenuRegister:navMenuLogin:_)) = splitAt 7 navMenu
+        let (navMenuStart,(navMenuRegister:navMenuLogin:_)) = splitAt 7 $ navMenu showNav
         (evNavStart :: [Event t ()]) <- elClass "div" "navbar-start" $ do
           mapM (\t -> toButton "a" (constDyn ("class" =: "navbar-item")) $ text t) $ navMenuStart
           --return $ fmap toEnum $ leftmost $ zipWith (<$) [0..] evNavR0

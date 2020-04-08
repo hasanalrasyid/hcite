@@ -15,6 +15,12 @@ import Data.Default
 
 data BulkAction = AssignOwner | DeAssignOwner deriving (Show,Ord,Eq)
 
+data NavPage = First
+             | Previous
+             | Next
+             | Last
+             deriving (Eq,Show,Enum)
+
 data Nav = Home
          | Landing
          | Blog

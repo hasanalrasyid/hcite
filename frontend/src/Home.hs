@@ -46,13 +46,16 @@ homePage = Workflow $ do
     tOwnerSearch <- inputElement def
     eSearchButton <- toButton "button" mempty $ text "Search"
 
-    eNPage <- flip mapM [1..5] $ \iPage -> mdo
-                toButton "button" mempty $ text $ T.pack $ show iPage
-    dNPage <- holdDyn 1 $ leftmost $ zipWith (<$) [1..] eNPage
+    eNPage <- flip mapM (enumFrom $ toEnum 0) $ \nPage -> mdo
+                e <- toButton "button" mempty $ text $ showNavPage nPage
+                return $ nPage <$ e
+    dNavPage <- holdDyn First $ leftmost $ eNPage
+
     el "br" blank
     display dNPage
     el "br" blank
-    let eSearch = leftmost $ eNPage ++ [eSearchButton, eStart]
+    let eSearch = leftmost $ (map (() <$) eNPage) ++ [eSearchButton, eStart]
+
     let ePostXhrRequest = fmap genSearchReq
                               $ attachPromptlyDyn dNPage
                               $ attach (current dTOwner)
