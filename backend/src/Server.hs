@@ -115,7 +115,7 @@ jsonImpl e = getPerson e
         :<|> getRecordsByAbstract e
 
 getPerson :: (MonadIO f) => ServerEnv -> Model.Search -> f [Person]
-getPerson e (Search _ tSearch) = do
+getPerson e (Search _ tSearch _) = do
   if T.length tSearch > 2 then do
     ps <- getPersonList (genFilter PegawaiNama $ T.words tSearch) e (1 :: Int)
     return $ map toPerson ps
@@ -149,8 +149,12 @@ getPersonList q e iPage = do
 getRecordsList :: (FromReference b, MonadIO f) => [Filter Reference]
                -> ServerEnv -> Int -> f [b]
 getRecordsList f e iPage = do
-  p <- withDBEnv e $ selectList f [ LimitTo resPerPage
-                                  , OffsetBy $ (iPage - 1) * resPerPage ]
+  let pageOffset = case iPage of
+                     0 -> [ Desc ReferenceSerial ]
+                     _ -> []
+  p <- withDBEnv e $ selectList f $ pageOffset ++
+                  [ LimitTo resPerPage
+                  , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
 
   {-
@@ -171,7 +175,7 @@ getRecordsByKeyword  e iPage (Search _ tSearch) =
 -}
 
 getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
-getRecordsByAbstract e iPage (Search mSearch tSearch) =
+getRecordsByAbstract e _ (Search mSearch tSearch iPage) =
   let filterRef = case mSearch of
                   SAbstract ->
                     genFilter ReferenceAbstract  $ map Just $ T.words tSearch
@@ -179,6 +183,8 @@ getRecordsByAbstract e iPage (Search mSearch tSearch) =
                     genFilter ReferenceKeywords $ map Just $ T.words tSearch
                   SAuthor   ->
                     genFilter ReferenceAuthor   $   T.words tSearch
+                  SOwner -> -- Should be unimplemented, so defaulted to No One
+                    genFilter ReferenceAuthor   $ []
    in getRecordsList filterRef e iPage
 
 getRecordsByOwnerId :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Int -> f [b]
@@ -192,7 +198,7 @@ getRecordsByOwnerId  e iPage iSearch = do
               let refIdList = map fromKeyReference $ relationPRRefIds $ entityVal rs
               selectList [ReferenceSerial <-. refIdList]
                   [ LimitTo resPerPage
-                  , OffsetBy $ (iPage - 1) * resPerPage ]
+                  , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * resPerPage ]
   liftIO $ putStrLn $ show ret
   return $ map (fromReference . entityVal) ret
 

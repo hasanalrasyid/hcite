@@ -176,6 +176,7 @@ instance FromJSON SearchMode
 
 data Search = Search       { searchMode :: SearchMode
                            , searchTerm :: T.Text
+                           , searchPage :: Int
                            } deriving (Generic)
 instance ToJSON Search
 instance FromJSON Search

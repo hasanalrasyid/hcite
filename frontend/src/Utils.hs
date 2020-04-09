@@ -99,7 +99,7 @@ dViewOwnerPicker eOwnerSearch =
   el "div" $ mdo
     let eGetOwnerList1 = ffilter (\(m,x) -> (m == SOwner) && (T.length x > 2)) eOwnerSearch
     eGetOwnerList <- performRequestAsync $ ffor eGetOwnerList1 $ \s ->
-        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search SAuthor $ snd s
+        postJson (textFromJsonApi jsonApiGetPerson) $ Model.Search SAuthor (snd s) 0
 
     dGetOwnerList :: Dynamic t [Person] <- holdDyn [] $ fforMaybe eGetOwnerList decodeXhrResponse
     dleSetOwner <- flip simpleList dView dGetOwnerList

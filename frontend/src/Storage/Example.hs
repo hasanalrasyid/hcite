@@ -21,7 +21,6 @@ import Data.GADT.Compare
 import Data.Aeson (ToJSON(..), FromJSON(..))
 
 import Data.GADT.Aeson
-import Model
 import Types
 
 data Foo = Foo { bar :: Bool, baz :: String }
