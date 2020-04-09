@@ -15,6 +15,7 @@ import Settings
 import Storage.Example
 import Reflex.Dom.Storage.Class
 import Data.Maybe
+import Types
 
 loginPageWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => m (Event t ())
 loginPageWidget = do
@@ -31,8 +32,9 @@ loginPageWidget = do
   let (eNewXhr :: Event t (XhrRequestConfig ())) = attachWith putEnvToken (current $ _defXhrReqConfig <$> dEnv) eToken
   dNewXhr <- holdDyn def eNewXhr
   -}
-
-  tellStorageInsert Tag1 eToken
+  oldEnv <- askStorageTagDef Tag1 Nothing
+  let newEnv = genNewEnv <$> attach (current oldEnv) eToken
+  tellStorageInsert Tag1 newEnv
 
   {-
   let (eEnv2 :: Event t Env) = attachWith setNewEnv (current dToken) $ attach (current dNewXhr) $ updated dEnv
@@ -44,6 +46,11 @@ loginPageWidget = do
   let eRet = leftmost [() <$ eEnv2, e]
   return $ eRet
   where
+    genNewEnv (e,t) =
+      let env = case e of
+                  Nothing -> initEnv
+                  Just en -> en
+       in Just $ env & auth .~ t
     {-
     setNewEnv t (x,e) = e { _auth = t
                           , _defXhrReqConfig = x

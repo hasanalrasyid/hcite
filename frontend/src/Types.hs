@@ -4,6 +4,7 @@
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE AllowAmbiguousTypes #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE DeriveGeneric #-}
 
 module Types where
 import           Reflex.Dom hiding (Home)
@@ -12,6 +13,8 @@ import Model
 
 import Control.Lens
 import Data.Default
+import GHC.Generics
+import Data.Aeson
 
 data BulkAction = AssignOwner | DeAssignOwner deriving (Show,Ord,Eq)
 
@@ -34,21 +37,24 @@ data Nav = Home
 
 data Env = Env  { _history :: [String]
                   , _auth :: (Maybe Token)
-                  , _defXhrReqConfig :: (XhrRequestConfig ())
-                } deriving Show
+                  , _currentPage :: Int
+                } deriving (Generic,Show)
 
 $(makeLenses ''Env)
+
+instance ToJSON Env
+instance FromJSON Env
 
 instance Reflex t => Default Env where
   def = Env { _history = []
             , _auth = Nothing
-            , _defXhrReqConfig = def
+            , _currentPage = 1
             }
 
 initEnv :: Env
 initEnv = Env { _history = []
               , _auth = Nothing
-              , _defXhrReqConfig = def
+              , _currentPage = 1
               }
 
 

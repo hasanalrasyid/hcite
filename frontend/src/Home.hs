@@ -25,6 +25,7 @@ import Reflex.Dom.Contrib.Widgets.CheckboxList (genCheckbox)
 
 import Storage.Example
 import Reflex.Dom.Storage.Class
+import Data.Maybe
 
 homePage :: (HasStorage t ExampleTag m, MonadWidget t m) => Workflow t m T.Text
 homePage = Workflow $ do
@@ -52,17 +53,22 @@ homePage = Workflow $ do
     dNavPage <- holdDyn First $ leftmost $ eNPage
 
     el "br" blank
-    display dNPage
+    display dNavPage
     el "br" blank
     let eSearch = leftmost $ (map (() <$) eNPage) ++ [eSearchButton, eStart]
-
+    display dEnv
+    dEnv <- askStorageTagDef Tag1 Nothing
+    let eINavPage = fmap genInavPage $ attach (current dEnv) $ updated dNavPage
+    dINavPage <- holdDyn 1 eINavPage
     let ePostXhrRequest = fmap genSearchReq
-                              $ attachPromptlyDyn dNPage
+                              $ attachPromptlyDyn dINavPage
                               $ attach (current dTOwner)
                               $ attach (current $ _dropdown_value drModel)
                               $ tag (current $ _inputElement_value tOwnerSearch) eSearch
 
     eRefList <- getAndDecodeSimpleRef ePostXhrRequest
+    tellStorageInsert Tag1 $ fmap updateEnv $ attach (current dINavPage) $ tag (current dEnv) $ ffilter isJust eRefList
+
     dR <- holdDyn Nothing eRefList
     let dRefListSearch =fromMaybe [] <$> dR
 
@@ -76,9 +82,7 @@ homePage = Workflow $ do
     display dTOwner
     display $ _dropdown_value dropdownBulkAction
     eBulkExecute <- toButton "button" mempty $ text "Execute"
-    dAuth <- askStorageTagDef Tag1 Nothing
-    display dAuth
-    bulkExecute dAuth dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
+    bulkExecute dEnv dTOwner (fmap (filter snd) dBulk) $ tag (current $ _dropdown_value dropdownBulkAction) eBulkExecute
 
     bulkAll <- genCheckbox text "CheckAll" $ _inputElement_checkedChange bulkAll
     text "bulkAll"
@@ -98,10 +102,26 @@ homePage = Workflow $ do
                              , noPage <$ eNav]
     return ("HomePage", thePage)
     where
-      genSearchReq (nPage,(o,(m,s))) =
+      updateEnv :: (Int,Maybe Env) -> Maybe Env
+      updateEnv (nPage,mEnv) =
+        case mEnv of
+          Nothing -> Just $ initEnv & currentPage .~ nPage
+          Just e  -> Just $ e & currentPage .~ nPage
+      genInavPage :: (Maybe Env,NavPage) -> Int
+      genInavPage (mEnv,nPage) =
+        let cPage = case mEnv of
+                      Nothing -> 1
+                      Just e  -> _currentPage e
+         in case nPage of
+                   First -> 1
+                   Previous -> pred cPage
+                   Next -> succ cPage
+                   Last -> 0
+
+      genSearchReq (iPage,(o,(m,s))) =
         let target = case m of
-                       SOwner -> textFromJsonApi $ jsonApiGetListOwnerId nPage o
-                       _ -> textFromJsonApi $ jsonApiGetListSearch nPage
+                       SOwner -> textFromJsonApi $ jsonApiGetListOwnerId iPage o
+                       _ -> textFromJsonApi $ jsonApiGetListSearch iPage
          in postJson target $ Model.Search m s
 
 homeWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => m (Event t T.Text)

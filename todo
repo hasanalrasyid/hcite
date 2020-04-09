@@ -3,7 +3,7 @@ C- by Import
 v     Bibtex import
 
 R - by Search
-      implement pagedHome
+v     implement pagedHome
 v     implement Abstract dynamic
 v     implement Search
 v       at upper part of Home
@@ -12,6 +12,7 @@ v       by author, keyword,
 v       abstract,
 v       by ownerId
         need to combine ownerId with other modes of search, means SearchModel including int
+        need to add search to last page as 0
 
 U - by Details
 v     implement EditRecords

@@ -112,18 +112,21 @@ dViewOwnerPicker eOwnerSearch =
         e <- toButton "div" mempty $ dynText $ fmap personName o
         return $ tag (current $ fmap personId o) e
 
-bulkExecute :: MonadWidget t m => Dynamic t (Maybe Token) -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t BulkAction -> m ()
-bulkExecute dAuth dOwner dFilteredBulk eBulkExecute = mdo
-  let efd = attach (current dAuth) $ attach (current dOwner) $ attach (current dFilteredBulk) eBulkExecute
+bulkExecute :: MonadWidget t m => Dynamic t (Maybe Env) -> Dynamic t Int -> Dynamic t [(Int,Bool)] -> Event t BulkAction -> m ()
+bulkExecute dEnv dOwner dFilteredBulk eBulkExecute = mdo
+  let efd = attach (current dEnv) $ attach (current dOwner) $ attach (current dFilteredBulk) eBulkExecute
   --dAuth :: Dynamic t (Maybe Token) <- askStorageTagDef Tag1 Nothing
   r <- performRequestAsync $ ffor efd
-        $ \(mAuth,(owner,(lRefCheck,actBulk))) ->
+        $ \(mEnv,(owner,(lRefCheck,actBulk))) ->
           let (jsonApi,mApi) = case actBulk of
                           AssignOwner -> (jsonApiPutOwner,"PUT")
                           DeAssignOwner -> (jsonApiDeleteOwner,"DELETE")
               postJsonReq = postJson (textFromJsonApi jsonApi) $ OwnerLRef owner $ map fst lRefCheck
               postReq = postJsonReq & xhrRequest_method .~ mApi
-          in postReq & xhrRequest_config . xhrRequestConfig_headers <>~ (Map.singleton  "Authorization"  $ fromMaybe "" $ fmap token mAuth)
+              mAuth = case mEnv of
+                        Nothing -> Token ""
+                        Just e  -> fromMaybe (Token "") $ _auth e
+          in postReq & xhrRequest_config . xhrRequestConfig_headers <>~ (Map.singleton  "Authorization"  $ token mAuth)
                 --defXhr ^. xhrRequestConfig_headers
 
   st :: Dynamic t [(T.Text,T.Text)] <- holdDyn [] $ fforMaybe r decodeXhrResponse

@@ -22,6 +22,7 @@ import Data.Aeson (ToJSON(..), FromJSON(..))
 
 import Data.GADT.Aeson
 import Model
+import Types
 
 data Foo = Foo { bar :: Bool, baz :: String }
   deriving (Eq, Ord, Show, Generic)
@@ -30,7 +31,7 @@ instance ToJSON Foo where
 instance FromJSON Foo where
 
 data ExampleTag a where
-  Tag1 :: ExampleTag (Maybe Token)
+  Tag1 :: ExampleTag (Maybe Env)
   Tag2 :: ExampleTag Foo
 
 instance GEq ExampleTag where
