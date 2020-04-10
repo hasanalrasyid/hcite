@@ -18,15 +18,11 @@ type JsonApi =
   :<|>  "api" :> "record" :> (
            "abs" :> Capture "ident" Int :> Get '[JSON] Abstract
       :<|> Capture "ident" Int :> Get '[JSON] Reference
-      :<|> "list" :> (
-                   Capture "page" Int :> Capture "ident" Int :> Post '[JSON] [SimpleRef]
-              :<|> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
-            )
+      :<|> "list" :> Capture "page" Int :> ReqBody '[JSON] Model.Search :> Post '[JSON] [SimpleRef]
     )
 
 ( jsonApiGetPerson :<|>
   jsonApiGetAbstract :<|> jsonApiGetSingle
-  :<|> jsonApiGetListOwnerId
   :<|> jsonApiGetListSearch
   ) = allLinks (Proxy :: Proxy JsonApi)
 

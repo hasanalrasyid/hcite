@@ -119,11 +119,9 @@ homePage = Workflow $ do
                    Last -> 0
          in if (n < 0) then 1 else n
 
-      genSearchReq (iPage,(o,(m,s))) =
-        let target = case m of
-                       SOwner -> textFromJsonApi $ jsonApiGetListOwnerId iPage o
-                       _ -> textFromJsonApi $ jsonApiGetListSearch iPage
-         in postJson target $ Model.Search m s iPage
+      genSearchReq (iPage,(iOwner,(m,s))) =
+        let target =  textFromJsonApi $ jsonApiGetListSearch iPage
+         in postJson target $ Model.Search m s iPage iOwner
 
 homeWidget :: (HasStorage t ExampleTag m, MonadWidget t m) => m (Event t T.Text)
 homeWidget = do

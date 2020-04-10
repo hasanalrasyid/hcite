@@ -18,7 +18,7 @@ import Storage.Example (ExampleTag(..))
 
 main :: IO ()
 main = mainWidgetWithHead headElement $ mdo
-  void . runStorageT LocalStorage $ do
+  void . runStorageT SessionStorage $ do
     initializeTag Tag1 Nothing
     body
 

@@ -111,11 +111,10 @@ authImpl e = hoistServer authApi (runAuthM e) authServerM
 jsonImpl :: ServerEnv -> Server JsonApi
 jsonImpl e = getPerson e
         :<|> getAbstract e :<|> getRecord e
-        :<|> getRecordsByOwnerId e
-        :<|> getRecordsByAbstract e
+        :<|> getRecords e
 
 getPerson :: (MonadIO f) => ServerEnv -> Model.Search -> f [Person]
-getPerson e (Search _ tSearch _) = do
+getPerson e (Search _ tSearch _ _) = do
   if T.length tSearch > 2 then do
     ps <- getPersonList (genFilter PegawaiNama $ T.words tSearch) e (1 :: Int)
     return $ map toPerson ps
@@ -157,40 +156,10 @@ getRecordsList f e iPage = do
                   , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * resPerPage ]
   return $ map (fromReference . entityVal) p
 
-  {-
-getRecords :: (FromReference b, MonadIO f) => ServerEnv -> Int -> f [b]
-getRecords = getRecordsList [] {- do
-  p <- withDBEnv e $ selectList [] [ LimitTo resPerPage
-                                , OffsetBy $ (iPage - 1) * resPerPage ]
-  return $ map (fromReference . entityVal) p
-  -}
-
-getRecordsByAuthor :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
-getRecordsByAuthor   e iPage (Search _ tSearch) =
-  getRecordsList (genFilter ReferenceAuthor $ T.words tSearch) e iPage
-
-getRecordsByKeyword :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
-getRecordsByKeyword  e iPage (Search _ tSearch) =
-  getRecordsList (genFilter ReferenceKeywords $ map Just $ T.words tSearch) e iPage
--}
-
-getRecordsByAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
-getRecordsByAbstract e _ (Search mSearch tSearch iPage) =
-  let filterRef = case mSearch of
-                  SAbstract ->
-                    genFilter ReferenceAbstract  $ map Just $ T.words tSearch
-                  SKeywords ->
-                    genFilter ReferenceKeywords $ map Just $ T.words tSearch
-                  SAuthor   ->
-                    genFilter ReferenceAuthor   $   T.words tSearch
-                  SOwner -> -- Should be unimplemented, so defaulted to No One
-                    genFilter ReferenceAuthor   $ []
-   in getRecordsList filterRef e iPage
-
-getRecordsByOwnerId :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Int -> f [b]
-getRecordsByOwnerId  e iPage iSearch = do
+getRecords :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
+getRecords e _ (Search SOwner _ iPage iOwnerID) = do
   ret <- withDBEnv e $ do
-          r <- selectFirst [RelationPRPId ==. (PegawaiKey $ fromIntegral iSearch)] []
+          r <- selectFirst [RelationPRPId ==. (PegawaiKey $ fromIntegral iOwnerID)] []
           liftIO $ putStrLn $ show r
           case r of
             Nothing -> return []
@@ -201,6 +170,16 @@ getRecordsByOwnerId  e iPage iSearch = do
                   , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * resPerPage ]
   liftIO $ putStrLn $ show ret
   return $ map (fromReference . entityVal) ret
+
+getRecords e _ (Search mSearch tSearch iPage _) =
+  let filterRef = case mSearch of
+                  SAbstract ->
+                    genFilter ReferenceAbstract  $ map Just $ T.words tSearch
+                  SKeywords ->
+                    genFilter ReferenceKeywords $ map Just $ T.words tSearch
+                  _ -> -- SAuthor
+                    genFilter ReferenceAuthor   $   T.words tSearch
+   in getRecordsList filterRef e iPage
 
 class LikeFilter a where
   genFilter :: EntityField record a -> [a] -> [Filter record]
