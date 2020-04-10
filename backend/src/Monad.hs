@@ -30,7 +30,7 @@ withDB q = do
 
 withDBEnv :: MonadIO m
        => AM.ServerEnv -> ReaderT SqlBackend IO a -> m a
-withDBEnv (AM.ServerEnv _ _ pool) q = do
+withDBEnv (AM.ServerEnv _ _ pool _) q = do
   liftIO $ flip runSqlPool pool q
 
 keyReference :: Int -> Key M.Reference

@@ -41,6 +41,7 @@ data ServerEnv = ServerEnv {
 , envAuthConfig  :: !AuthConfig
   -- | DB pool
 , envPool        :: !ConnectionPool
+, envResPerPage  :: !Int
 }
 
 -- | Create new server environment
@@ -58,6 +59,7 @@ newServerEnv cfg = do
         envConfig = cfg
       , envAuthConfig = authConfig
       , envPool = pool
+                      , envResPerPage = resultsPerPage cfg
       }
   return env
 
@@ -112,5 +114,5 @@ authServerM :: ServerT AuthAPI AuthM
 authServerM = authServer
 
 runAuthM :: ServerEnv -> AuthM a -> Handler a
-runAuthM (ServerEnv _ cfg pool) = do
+runAuthM (ServerEnv _ cfg pool _) = do
   Handler . ExceptT . ( runPersistentBackendT cfg pool ) . unAuthM

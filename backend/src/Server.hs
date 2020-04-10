@@ -135,14 +135,11 @@ getRecord e i = do
 getAbstract :: (FromReference b, MonadIO f) => ServerEnv -> Int -> f b
 getAbstract e i = fromReference <$> getRecord e i
 
-resPerPage :: Int
-resPerPage = 5
-
 getPersonList :: (MonadIO f) => [Filter Pegawai]
                -> ServerEnv -> Int -> f [Entity Pegawai]
 getPersonList q e iPage = do
-  p <- withDBEnv e $ selectList q [ LimitTo resPerPage
-                                  , OffsetBy $ (iPage - 1) * resPerPage ]
+  p <- withDBEnv e $ selectList q [ LimitTo $ envResPerPage e
+                                  , OffsetBy $ (iPage - 1) * envResPerPage e]
   return p
 
 getRecordsList :: (FromReference b, MonadIO f) => [Filter Reference]
@@ -152,8 +149,8 @@ getRecordsList f e iPage = do
                      0 -> [ Desc ReferenceSerial ]
                      _ -> []
   p <- withDBEnv e $ selectList f $ pageOffset ++
-                  [ LimitTo resPerPage
-                  , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * resPerPage ]
+                  [ LimitTo $ envResPerPage e
+                  , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * envResPerPage e]
   return $ map (fromReference . entityVal) p
 
 getRecords :: (FromReference b, MonadIO f) => ServerEnv -> Int -> Model.Search -> f [b]
@@ -166,8 +163,8 @@ getRecords e _ (Search SOwner _ iPage iOwnerID) = do
             Just rs -> do
               let refIdList = map fromKeyReference $ relationPRRefIds $ entityVal rs
               selectList [ReferenceSerial <-. refIdList]
-                  [ LimitTo resPerPage
-                  , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * resPerPage ]
+                  [ LimitTo $ envResPerPage e
+                  , OffsetBy $ if iPage <= 0 then 0 else (iPage - 1) * envResPerPage e]
   liftIO $ putStrLn $ show ret
   return $ map (fromReference . entityVal) ret
 

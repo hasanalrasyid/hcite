@@ -34,6 +34,7 @@ data ServerConfig = ServerConfig {
   -- | DB pool size
 , serverDBSize               :: !Int
 , initDB                     :: !Bool
+, resultsPerPage             :: !Int
 }
 
 instance FromJSON ServerConfig where
@@ -47,6 +48,7 @@ instance FromJSON ServerConfig where
     <*> o .: "db-base"
     <*> o .: "db-size"
     <*> o .: "init-db"
+    <*> o .: "results-per-page"
   parseJSON _ = mzero
 
 readConfig :: MonadIO m => FilePath -> m ServerConfig

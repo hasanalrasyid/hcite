@@ -7,3 +7,4 @@ db-pass: ""
 db-base: auth-test
 db-size: 10
 init-db: false
+results-per-page : 10
