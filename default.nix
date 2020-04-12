@@ -58,8 +58,6 @@ reflex-platform.project ({ pkgs, ... }:
   shells = {
     ghc = ["proto-lens"
            "bloodhound"
-           "avl-auth"
-           "validation"
 
            "hs-abci-types"
            "hs-abci-extra"
@@ -86,12 +84,12 @@ reflex-platform.project ({ pkgs, ... }:
       rev = "6a1aacfc18e312ef57552133f13dd1024c178706";
       sha256 = "0zqzxd6x3hlhhhq24pybjy18m0r66d9rddl9f2zk4g5k5g0zl906";
     }) {};
-    avl-auth = self.callCabal2nix "avl-auth" (pkgs.fetchFromGitHub {
+    avl-auth = pkgs.haskell.lib.dontCheck (self.callCabal2nix "avl-auth" (pkgs.fetchFromGitHub {
       owner = "oscoin";
       repo = "avl-auth";
       rev = "dfc468845a82cdd7d759943b20853999bc026505";
       sha256 = "005j98hmzzh9ybd8wb073i47nwvv1hfh844vv4kflba3m8d75d80";
-    }) {};
+    }) {});
     xxhash = self.callCabal2nix "xxhash" (./lib/xxhash-0.0.2) {};
     prometheus = self.callCabal2nix "prometheus" (pkgs.fetchFromGitHub {
       owner = "bitnomial";
