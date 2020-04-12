@@ -33,6 +33,7 @@ reflex-platform.project ({ pkgs, ... }:
     hs-abci-server = ./lib/kepler/hs-abci-server;
     hs-abci-types = ./lib/kepler/hs-abci-types;
     hs-tendermint-client = ./lib/kepler/hs-tendermint-client;
+    hs-iavl-client = ./lib/kepler/hs-iavl-client;
 #   hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
 
 #   hciteservice = ./hciteservice;
@@ -63,9 +64,10 @@ reflex-platform.project ({ pkgs, ... }:
            "hs-abci-types"
            "hs-abci-extra"
            "hs-abci-server"
+           "hs-abci-sdk"
            "hs-tendermint-client"
+           "hs-iavl-client"
 #          "hs-abci-test-utils"
-#          "hs-iavl-client"
 #          "hciteservice"
 
            "common" "backend" "frontend"];
@@ -106,7 +108,7 @@ reflex-platform.project ({ pkgs, ... }:
     proto3-suite = self.callCabal2nix "proto3-suite" (./lib/proto3-suite) {};
 
 
-    hs-iavl-client = self.callCabal2nix "hs-iavl-client" (./lib/kepler/hs-iavl-client) {};
-    validation = self.callHackage "validation" "1.1" {};
+#   hs-iavl-client = self.callCabal2nix "hs-iavl-client" (./lib/kepler/hs-iavl-client) {};
+#   validation = self.callCabal2nix "validation" (./lib/validation-1.1) {};
   };
 })
