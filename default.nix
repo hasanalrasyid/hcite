@@ -17,14 +17,14 @@ reflex-platform.project ({ pkgs, ... }:
     otherlibs = ./otherlibs;
     bulmex = ./lib/bulmex-4.0.0;
 
-    proto3-suite = (builtins.fetchGit{
-        url =  https://github.com/awakesecurity/proto3-suite;
-        rev = "3f6dd6f612cf2eba3c05798926ff924b0d5ab4fa";
-      });
-    proto3-wire = (builtins.fetchGit{
-        url =  https://github.com/awakesecurity/proto3-wire;
-        rev = "23015cf6363d1962fde6bdff0de111f7ec59ab75";
-      });
+#   proto3-suite = (builtins.fetchGit{
+#       url =  https://github.com/awakesecurity/proto3-suite;
+#       rev = "3f6dd6f612cf2eba3c05798926ff924b0d5ab4fa";
+#     });
+#   proto3-wire = (builtins.fetchGit{
+#       url =  https://github.com/awakesecurity/proto3-wire;
+#       rev = "23015cf6363d1962fde6bdff0de111f7ec59ab75";
+#     });
     polysemy = (builtins.fetchGit{
         url = https://github.com/polysemy-research/polysemy;
         rev = "d7d3a938f4c1374161949c2d0aeee542e895e821";
@@ -94,13 +94,12 @@ reflex-platform.project ({ pkgs, ... }:
 
   shells = {
     ghc = ["proto-lens"
+#          "proto3-suite"
            "http2-client-grpc"
            "bloodhound"
            "polysemy"
            "polysemy-plugin"
            "polysemy-zoo"
-           "proto3-wire"
-           "proto3-suite"
            "xxhash"
            "avl-auth"
 
@@ -119,4 +118,18 @@ reflex-platform.project ({ pkgs, ... }:
     doCheck = false;
   };
   withHoogle = false;
+  overrides = self: super: {
+    proto3-wire = self.callCabal2nix "proto3-wire" (pkgs.fetchFromGitHub {
+      owner = "awakesecurity";
+      repo = "proto3-wire";
+      rev = "23015cf6363d1962fde6bdff0de111f7ec59ab75";
+      sha256 = "0x8kd8yrfr85jknvbw59zl77wbd2864wmbvizynsk2jarzlqhqid";
+    }) {};
+    proto3-suite = self.callCabal2nix "proto3-suite" (pkgs.fetchFromGitHub {
+      owner = "awakesecurity";
+      repo = "proto3-suite";
+      rev = "3f6dd6f612cf2eba3c05798926ff924b0d5ab4fa";
+      sha256 = "0g7j7axx9rkrzw32ky9xl08zj34rx4mqafd89lrpnsi8lcq2z06j";
+    }) {};
+  };
 })
