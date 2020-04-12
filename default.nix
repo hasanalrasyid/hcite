@@ -75,6 +75,7 @@ reflex-platform.project ({ pkgs, ... }:
   };
   withHoogle = false;
   overrides = self: super: {
+    phl = pkgs.haskell.lib;
     polysemy = self.callCabal2nix "polysemy" (./lib/polysemy-1.3.0.0) {};
     polysemy-plugin = self.callCabal2nix "polysemy-plugin" (./lib/polysemy-plugin-0.2.5.0) {};
     polysemy-zoo = self.callCabal2nix "polysemy-zoo" (./lib/polysemy-zoo-0.7.0.0) {};
@@ -90,7 +91,8 @@ reflex-platform.project ({ pkgs, ... }:
       rev = "dfc468845a82cdd7d759943b20853999bc026505";
       sha256 = "005j98hmzzh9ybd8wb073i47nwvv1hfh844vv4kflba3m8d75d80";
     }) {});
-    xxhash = self.callCabal2nix "xxhash" (./lib/xxhash-0.0.2) {};
+#   xxhash = self.callCabal2nix "xxhash" (./lib/xxhash-0.0.2) {};
+    xxhash = pkgs.haskell.lib.dontCheck (self.callHackage "xxhash" "0.0.2" {});
     prometheus = self.callCabal2nix "prometheus" (pkgs.fetchFromGitHub {
       owner = "bitnomial";
       repo = "prometheus";
