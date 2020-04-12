@@ -1,0 +1,3 @@
+need to install secp256k1
+git clone https://github.com/bitcoin-core/secp256k1
+./configure --prefix=/home/aku/opt/secp256k1 --enable-endomorphism --enable-module-recovery
