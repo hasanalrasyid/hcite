@@ -6,7 +6,7 @@ packages:
   lib/kepler/hs-abci-server
   lib/kepler/hs-abci-extra
   lib/kepler/hs-tendermint-client
-  lib/kepler/hs-abci-sdk
+--lib/kepler/hs-abci-sdk
 --lib/kepler/hs-abci-test-utils
 --lib/kepler/hs-iavl-client
 --hciteservice/
