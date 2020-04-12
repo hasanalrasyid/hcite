@@ -36,7 +36,7 @@ reflex-platform.project ({ pkgs, ... }:
     hs-iavl-client = ./lib/kepler/hs-iavl-client;
     hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
 
-#   hciteservice = ./hciteservice;
+    hciteservice = ./hciteservice;
 
     doHaddock = false;
     doCheck = false;
@@ -66,7 +66,7 @@ reflex-platform.project ({ pkgs, ... }:
            "hs-tendermint-client"
            "hs-iavl-client"
            "hs-abci-test-utils"
-#          "hciteservice"
+           "hciteservice"
 
            "common" "backend" "frontend"];
     ghcjs = ["common" "frontend"];
@@ -75,7 +75,6 @@ reflex-platform.project ({ pkgs, ... }:
   };
   withHoogle = false;
   overrides = self: super: {
-    phl = pkgs.haskell.lib;
     polysemy = self.callCabal2nix "polysemy" (./lib/polysemy-1.3.0.0) {};
     polysemy-plugin = self.callCabal2nix "polysemy-plugin" (./lib/polysemy-plugin-0.2.5.0) {};
     polysemy-zoo = self.callCabal2nix "polysemy-zoo" (./lib/polysemy-zoo-0.7.0.0) {};

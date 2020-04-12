@@ -9,4 +9,4 @@ packages:
   lib/kepler/hs-iavl-client
   lib/kepler/hs-abci-sdk
   lib/kepler/hs-abci-test-utils
---hciteservice/
+  hciteservice/
