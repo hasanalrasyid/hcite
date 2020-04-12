@@ -1,9 +1,9 @@
-test:
-	nix-shell -A shells.ghc --verbose
 ghc:
 	nix-shell -A shells.ghc --run \
   "cabal --project-file=cabal.project \
     --builddir=dist-ghc new-build all"
+test:
+	nix-shell -A shells.ghc --verbose
 android:
 	nix-shell -A android.frontend --run \
   "rm -f dist-android"
