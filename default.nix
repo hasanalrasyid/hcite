@@ -34,7 +34,7 @@ reflex-platform.project ({ pkgs, ... }:
     hs-abci-types = ./lib/kepler/hs-abci-types;
     hs-tendermint-client = ./lib/kepler/hs-tendermint-client;
     hs-iavl-client = ./lib/kepler/hs-iavl-client;
-#   hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
+    hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
 
 #   hciteservice = ./hciteservice;
 
@@ -65,7 +65,7 @@ reflex-platform.project ({ pkgs, ... }:
            "hs-abci-sdk"
            "hs-tendermint-client"
            "hs-iavl-client"
-#          "hs-abci-test-utils"
+           "hs-abci-test-utils"
 #          "hciteservice"
 
            "common" "backend" "frontend"];

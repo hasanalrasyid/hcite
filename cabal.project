@@ -8,5 +8,5 @@ packages:
   lib/kepler/hs-tendermint-client
   lib/kepler/hs-iavl-client
   lib/kepler/hs-abci-sdk
---lib/kepler/hs-abci-test-utils
+  lib/kepler/hs-abci-test-utils
 --hciteservice/
