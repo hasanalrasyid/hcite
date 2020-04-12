@@ -1,3 +1,5 @@
+test:
+	nix-shell -A shells.ghc --verbose
 ghc:
 	nix-shell -A shells.ghc --run \
   "cabal --project-file=cabal.project \

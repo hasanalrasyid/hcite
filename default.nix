@@ -31,11 +31,17 @@ reflex-platform.project ({ pkgs, ... }:
     });
     polysemy-plugin = (builtins.fetchGit{
         url = https://github.com/polysemy-research/polysemy;
+        rev = "d7d3a938f4c1374161949c2d0aeee542e895e821";
       });
-    bloodhound = (builtins.fetchGit{
-        url = https://github.com/bitemyapp/bloodhound;
-        rev = "c6233c493b1a7c3df8099872bbc1f66c5f25d95f";
+    polysemy-zoo = (builtins.fetchGit{
+        url = https://github.com/polysemy-research/polysemy-zoo;
+        rev = "57c6012e196db7fe1ce7551f1f762cbddc71f095";
       });
+    bloodhound = ./lib/bloodhound;
+#   bloodhound = (builtins.fetchGit{
+#       url = https://github.com/bitemyapp/bloodhound;
+#       rev = "c6233c493b1a7c3df8099872bbc1f66c5f25d95f";
+#     });
     katip = ./lib/katip/katip;
     katip-elasticsearch = ./lib/katip/katip-elasticsearch;
 # override reflex-dom-core...
@@ -59,13 +65,13 @@ reflex-platform.project ({ pkgs, ... }:
 
 
     hs-abci-extra = ./lib/kepler/hs-abci-extra;
-#   hs-abci-sdk = ./lib/kepler/hs-abci-sdk;
+    hs-abci-sdk = ./lib/kepler/hs-abci-sdk;
     hs-abci-server = ./lib/kepler/hs-abci-server;
 #   hs-abci-types = pkgs.callPackage ./hs-abci-types.nix {};
     hs-abci-types = ./lib/kepler/hs-abci-types;
-#   hs-tendermint-client = ./lib/kepler/hs-tendermint-client;
-#   hs-iavl-client = ./lib/kepler/hs-iavl-client;
-#   hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
+    hs-tendermint-client = ./lib/kepler/hs-tendermint-client;
+    hs-iavl-client = ./lib/kepler/hs-iavl-client;
+    hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
 
     hciteservice = ./hciteservice;
 
@@ -92,6 +98,7 @@ reflex-platform.project ({ pkgs, ... }:
            "bloodhound"
            "polysemy"
            "polysemy-plugin"
+           "polysemy-zoo"
            "proto3-wire"
            "proto3-suite"
            "xxhash"
@@ -100,6 +107,10 @@ reflex-platform.project ({ pkgs, ... }:
            "hs-abci-types"
            "hs-abci-extra"
            "hs-abci-server"
+           "hs-abci-sdk"
+           "hs-tendermint-client"
+           "hs-abci-test-utils"
+           "hs-iavl-client"
 #          "hciteservice"
 
            "common" "backend" "frontend"];
