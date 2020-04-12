@@ -22,6 +22,11 @@ executable frontend
     Reflex.Dom.Contrib.Widgets.EditInPlace
     Reflex.Dom.Contrib.Widgets.CheckboxList
 
+    Data.GADT.Aeson
+    Reflex.Dom.Storage.Base
+    Reflex.Dom.Storage.Class
+    Storage.Example
+
     Home
     Home.Detail
     Import
