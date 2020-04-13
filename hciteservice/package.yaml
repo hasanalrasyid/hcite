@@ -37,6 +37,10 @@ default-extensions:
   - StandaloneDeriving
   - ConstraintKinds
 
+dependencies:
+  - common
+  - proto3-wire
+
 library:
   source-dirs: src
   dependencies:
@@ -70,17 +74,17 @@ library:
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
   exposed-modules:
-  - Nameservice.Application
-  - Nameservice.Config
-  - Nameservice.Aeson
-  - Nameservice.Server
-  - Nameservice.Modules.Nameservice
-  - Nameservice.Modules.Nameservice.Messages
-  - Nameservice.Modules.Nameservice.Types
-  - Nameservice.Modules.Nameservice.Store
-  - Nameservice.Modules.Nameservice.Keeper
-  - Nameservice.Modules.Nameservice.Query
-  - Nameservice.Modules.Nameservice.Router
+  - Hciteservice.Application
+  - Hciteservice.Config
+  - Hciteservice.Aeson
+  - Hciteservice.Server
+  - Hciteservice.Modules.Hciteservice
+  - Hciteservice.Modules.Hciteservice.Messages
+  - Hciteservice.Modules.Hciteservice.Types
+  - Hciteservice.Modules.Hciteservice.Store
+  - Hciteservice.Modules.Hciteservice.Keeper
+  - Hciteservice.Modules.Hciteservice.Query
+  - Hciteservice.Modules.Hciteservice.Router
 
 executables:
   hciteservice:
