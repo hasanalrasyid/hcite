@@ -1,5 +1,5 @@
 ghc:
-	nix-shell -A shells.ghc --run \
+	nix-shell -A shells.ghc --show-trace --verbose --run \
   "cabal --project-file=cabal.project \
     --builddir=dist-ghc new-build all"
 test:
@@ -17,3 +17,6 @@ back:
 	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl backend"'
 serv:
 	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl hciteservice"'
+docker:
+	docker build -t hs-abci:test -f Dockerfile.prebake .
+

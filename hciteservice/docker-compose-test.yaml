@@ -29,8 +29,6 @@ services:
      - IAVL_PORT=8090
     restart: always
     entrypoint: /usr/local/bin/hciteservice
-    ports:
-      - "9200"
     expose:
       - "26658"
       - "9200"

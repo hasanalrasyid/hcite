@@ -6,11 +6,12 @@
     keep-derivations = true
   ";
   config.doHaddock = false;
-  }}:
-
-reflex-platform.project ({ pkgs, ... }:
-{
-  packages = {
+  }
+, withHoogle ? false
+}:
+let
+pkgs = reflex-platform.nixpkgs;
+packages = {
     common = ./common;
     backend = ./backend;
     frontend = ./frontend;
@@ -24,12 +25,15 @@ reflex-platform.project ({ pkgs, ... }:
     hs-tendermint-client = ./lib/kepler/hs-tendermint-client;
     hs-iavl-client = ./lib/kepler/hs-iavl-client;
     hs-abci-test-utils =./lib/kepler/hs-abci-test-utils;
-
     hciteservice = ./hciteservice;
-
-    doHaddock = false;
-    doCheck = false;
   };
+this = rec {
+  inherit pkgs project packages;
+};
+project = reflex-platform.project ({ pkgs, ... }:
+{
+  inherit withHoogle;
+  packages = this.packages;
 
   android.frontend = {
     executableName = "frontend";
@@ -56,12 +60,12 @@ reflex-platform.project ({ pkgs, ... }:
            "hs-abci-test-utils"
            "hciteservice"
 
-           "common" "backend" "frontend"];
+           "common" "backend" "frontend"
+           ];
     ghcjs = ["common" "frontend"];
     doHaddock = false;
     doCheck = false;
   };
-  withHoogle = false;
   overrides = self: super: {
     doHaddock = false;
     doCheck = false;
@@ -98,5 +102,9 @@ reflex-platform.project ({ pkgs, ... }:
     katip-elasticsearch = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.doJailbreak (
       self.callHackage "katip-elasticsearch" "0.6.0.0" {}
     ));
+
   };
-})
+});
+in
+this // project
+
