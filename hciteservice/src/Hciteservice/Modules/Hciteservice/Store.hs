@@ -1,4 +1,4 @@
-module Nameservice.Modules.Nameservice.Store
+module Hciteservice.Modules.Hciteservice.Store
   ( Name(..)
   , whoisMap
   ) where
@@ -9,15 +9,15 @@ import           Data.Proxy
 import           Data.String.Conversions               (cs)
 import           Data.Text                             (Text)
 import           GHC.TypeLits                          (symbolVal)
-import           Nameservice.Modules.Nameservice.Types
+import           Hciteservice.Modules.Hciteservice.Types
 import qualified Tendermint.SDK.BaseApp                as BaseApp
 import qualified Tendermint.SDK.BaseApp.Store.Map      as M
 
-data NameserviceNamespace
+data HciteserviceNamespace
 
-store :: BaseApp.Store NameserviceNamespace
+store :: BaseApp.Store HciteserviceNamespace
 store = BaseApp.makeStore $
-  BaseApp.KeyRoot $ cs . symbolVal $ Proxy @NameserviceName
+  BaseApp.KeyRoot $ cs . symbolVal $ Proxy @HciteserviceName
 
 newtype Name = Name {unName :: Text} deriving (Eq, Show, A.ToJSON, A.FromJSON)
 
@@ -31,8 +31,8 @@ data WhoisMapKey = WhoisMapKey
 instance BaseApp.RawKey WhoisMapKey where
     rawKey = iso (const "whoisMap") (const WhoisMapKey)
 
-instance BaseApp.IsKey WhoisMapKey NameserviceNamespace where
-  type Value WhoisMapKey NameserviceNamespace = M.Map Name Whois
+instance BaseApp.IsKey WhoisMapKey HciteserviceNamespace where
+  type Value WhoisMapKey HciteserviceNamespace = M.Map Name Whois
 
 whoisMap :: M.Map Name Whois
 whoisMap = M.makeMap WhoisMapKey store

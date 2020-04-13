@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Nameservice.Config
+module Hciteservice.Config
   ( AppConfig(..)
   , baseAppContext
   , prometheusServerThreadId

@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 
-module Nameservice.Modules.Nameservice.Types where
+module Hciteservice.Modules.Hciteservice.Types where
 
 import           Data.Aeson                   as A
 import           Data.Bifunctor               (bimap)
@@ -8,7 +8,7 @@ import           Data.String.Conversions      (cs)
 import           Data.Text                    (Text)
 import           Data.Word                    (Word64)
 import           GHC.Generics                 (Generic)
-import           Nameservice.Aeson            (defaultNameserviceOptions)
+import           Hciteservice.Aeson            (defaultHciteserviceOptions)
 import           Proto3.Suite                 (Message, Named, fromByteString,
                                                toLazyByteString)
 import qualified Tendermint.SDK.BaseApp       as BaseApp
@@ -19,7 +19,7 @@ import           Tendermint.SDK.Types.Address (Address)
 
 --------------------------------------------------------------------------------
 
-type NameserviceName = "hciteservice"
+type HciteserviceName = "hciteservice"
 
 --------------------------------------------------------------------------------
 
@@ -58,12 +58,12 @@ instance HasCodec Whois where
 -- Exceptions
 --------------------------------------------------------------------------------
 
-data NameserviceError =
+data HciteserviceError =
     InsufficientBid Text
   | UnauthorizedSet Text
   | InvalidDelete Text
 
-instance BaseApp.IsAppError NameserviceError where
+instance BaseApp.IsAppError HciteserviceError where
   makeAppError (InsufficientBid msg) =
     BaseApp.AppError
       { appErrorCode = 1
@@ -94,7 +94,7 @@ data Faucetted = Faucetted
   } deriving (Eq, Show, Generic)
 
 faucettedAesonOptions :: A.Options
-faucettedAesonOptions = defaultNameserviceOptions "faucetted"
+faucettedAesonOptions = defaultHciteserviceOptions "faucetted"
 
 instance ToJSON Faucetted where
   toJSON = A.genericToJSON faucettedAesonOptions
@@ -111,7 +111,7 @@ data NameClaimed = NameClaimed
   } deriving (Eq, Show, Generic)
 
 nameClaimedAesonOptions :: A.Options
-nameClaimedAesonOptions = defaultNameserviceOptions "nameClaimed"
+nameClaimedAesonOptions = defaultHciteserviceOptions "nameClaimed"
 
 instance ToJSON NameClaimed where
   toJSON = A.genericToJSON nameClaimedAesonOptions
@@ -127,7 +127,7 @@ data NameRemapped = NameRemapped
   } deriving (Eq, Show, Generic)
 
 nameRemappedAesonOptions :: A.Options
-nameRemappedAesonOptions = defaultNameserviceOptions "nameRemapped"
+nameRemappedAesonOptions = defaultHciteserviceOptions "nameRemapped"
 
 instance ToJSON NameRemapped where
   toJSON = A.genericToJSON nameRemappedAesonOptions
@@ -141,7 +141,7 @@ data NameDeleted = NameDeleted
   } deriving (Eq, Show, Generic)
 
 nameDeletedAesonOptions :: A.Options
-nameDeletedAesonOptions = defaultNameserviceOptions "nameDeleted"
+nameDeletedAesonOptions = defaultHciteserviceOptions "nameDeleted"
 
 instance ToJSON NameDeleted where
   toJSON = A.genericToJSON nameDeletedAesonOptions

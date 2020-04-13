@@ -1,4 +1,4 @@
-module Nameservice.Modules.Nameservice.Messages
+module Hciteservice.Modules.Hciteservice.Messages
   ( SetNameMsg(..)
   , BuyNameMsg(..)
   , DeleteNameMsg(..)

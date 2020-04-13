@@ -1,13 +1,13 @@
-module Nameservice.Modules.Nameservice.Router
+module Hciteservice.Modules.Hciteservice.Router
   ( MessageApi
   , messageHandlers
   ) where
 
-import           Nameservice.Modules.Nameservice.Keeper   (NameserviceEffs,
+import           Hciteservice.Modules.Hciteservice.Keeper   (HciteserviceEffs,
                                                            buyName, deleteName,
                                                            faucetAccount,
                                                            setName)
-import           Nameservice.Modules.Nameservice.Messages
+import           Hciteservice.Modules.Hciteservice.Messages
 import           Polysemy                                 (Members, Sem)
 import           Servant.API                              ((:<|>) (..))
 import           Tendermint.SDK.BaseApp                   ((:~>), BaseEffs,
@@ -26,13 +26,13 @@ type MessageApi =
   :<|> TypedMessage FaucetAccountMsg :~> Return ()
 
 messageHandlers
-  :: Members NameserviceEffs r
+  :: Members HciteserviceEffs r
   => Members BaseEffs r
   => RouteTx MessageApi r
 messageHandlers = buyNameH :<|> setNameH :<|> deleteNameH :<|> faucetH
 
 buyNameH
-  :: Members NameserviceEffs r
+  :: Members HciteserviceEffs r
   => Members BaseEffs r
   => RoutingTx BuyNameMsg
   -> Sem r ()
@@ -41,7 +41,7 @@ buyNameH (RoutingTx Tx{txMsg=Msg{msgData}}) = do
   withTimer "buy_duration_seconds" $ buyName msgData
 
 setNameH
-  :: Members NameserviceEffs r
+  :: Members HciteserviceEffs r
   => Members BaseEffs r
   => RoutingTx SetNameMsg
   -> Sem r ()
@@ -50,7 +50,7 @@ setNameH (RoutingTx Tx{txMsg=Msg{msgData}}) = do
   withTimer "set_duration_seconds" $ setName msgData
 
 deleteNameH
-  :: Members NameserviceEffs r
+  :: Members HciteserviceEffs r
   => Members BaseEffs r
   => RoutingTx DeleteNameMsg
   -> Sem r ()
@@ -59,7 +59,7 @@ deleteNameH (RoutingTx Tx{txMsg=Msg{msgData}}) = do
   withTimer "delete_duration_seconds" $ deleteName msgData
 
 faucetH
-  :: Members NameserviceEffs r
+  :: Members HciteserviceEffs r
   => RoutingTx FaucetAccountMsg
   -> Sem r ()
 faucetH (RoutingTx Tx{txMsg=Msg{msgData}}) =

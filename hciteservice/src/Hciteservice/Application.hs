@@ -1,10 +1,10 @@
-module Nameservice.Application
-  ( NameserviceModules
+module Hciteservice.Application
+  ( HciteserviceModules
   , handlersContext
   ) where
 
 import           Data.Proxy
-import qualified Nameservice.Modules.Nameservice as N
+import qualified Hciteservice.Modules.Hciteservice as N
 import           Tendermint.SDK.Application      (HandlersContext (..),
                                                   ModuleList (..),
                                                   baseAppAnteHandler)
@@ -14,13 +14,13 @@ import qualified Tendermint.SDK.Modules.Auth     as A
 import qualified Tendermint.SDK.Modules.Bank     as B
 
 
-type NameserviceModules =
-   '[ N.Nameservice
+type HciteserviceModules =
+   '[ N.Hciteservice
     , B.Bank
     , A.Auth
     ]
 
-handlersContext :: HandlersContext Secp256k1 NameserviceModules BA.CoreEffs
+handlersContext :: HandlersContext Secp256k1 HciteserviceModules BA.CoreEffs
 handlersContext = HandlersContext
   { signatureAlgP = Proxy @Secp256k1
   , modules = nameserviceModules

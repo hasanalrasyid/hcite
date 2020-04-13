@@ -1,8 +1,8 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Nameservice.Modules.Nameservice.Keeper
-  ( NameserviceEffs
-  , NameserviceKeeper(..)
+module Hciteservice.Modules.Hciteservice.Keeper
+  ( HciteserviceEffs
+  , HciteserviceKeeper(..)
   , nameserviceCoinId
   , setName
   , deleteName
@@ -12,9 +12,9 @@ module Nameservice.Modules.Nameservice.Keeper
   , eval
   ) where
 
-import           Nameservice.Modules.Nameservice.Messages
-import           Nameservice.Modules.Nameservice.Store
-import           Nameservice.Modules.Nameservice.Types
+import           Hciteservice.Modules.Hciteservice.Messages
+import           Hciteservice.Modules.Hciteservice.Store
+import           Hciteservice.Modules.Hciteservice.Types
 import           Polysemy                                 (Member, Members, Sem,
                                                            interpret, makeSem)
 import           Polysemy.Error                           (Error, mapError,
@@ -26,16 +26,16 @@ import           Tendermint.SDK.Modules.Auth              (Coin (..), CoinId)
 import           Tendermint.SDK.Modules.Bank              (BankEffs, burn, mint,
                                                            transfer)
 
-data NameserviceKeeper m a where
-  FaucetAccount :: FaucetAccountMsg -> NameserviceKeeper m ()
-  BuyName :: BuyNameMsg -> NameserviceKeeper m ()
-  DeleteName :: DeleteNameMsg -> NameserviceKeeper m ()
-  SetName :: SetNameMsg -> NameserviceKeeper m ()
-  GetWhois :: Name -> NameserviceKeeper m (Maybe Whois)
+data HciteserviceKeeper m a where
+  FaucetAccount :: FaucetAccountMsg -> HciteserviceKeeper m ()
+  BuyName :: BuyNameMsg -> HciteserviceKeeper m ()
+  DeleteName :: DeleteNameMsg -> HciteserviceKeeper m ()
+  SetName :: SetNameMsg -> HciteserviceKeeper m ()
+  GetWhois :: Name -> HciteserviceKeeper m (Maybe Whois)
 
-makeSem ''NameserviceKeeper
+makeSem ''HciteserviceKeeper
 
-type NameserviceEffs = '[NameserviceKeeper, Error NameserviceError]
+type HciteserviceEffs = '[HciteserviceKeeper, Error HciteserviceError]
 
 nameserviceCoinId :: CoinId
 nameserviceCoinId = "hciteservice"
@@ -44,17 +44,17 @@ eval
   :: Members BaseApp.TxEffs r
   => Members BankEffs r
   => Members BaseApp.BaseEffs r
-  => forall a. Sem (NameserviceKeeper ': Error NameserviceError ': r) a
+  => forall a. Sem (HciteserviceKeeper ': Error HciteserviceError ': r) a
   -> Sem r a
-eval = mapError BaseApp.makeAppError . evalNameservice
+eval = mapError BaseApp.makeAppError . evalHciteservice
   where
-    evalNameservice
+    evalHciteservice
       :: Members BaseApp.TxEffs r
       => Members BaseApp.BaseEffs r
       => Members BankEffs r
-      => Member (Error NameserviceError) r
-      => Sem (NameserviceKeeper ': r) a -> Sem r a
-    evalNameservice =
+      => Member (Error HciteserviceError) r
+      => Sem (HciteserviceKeeper ': r) a -> Sem r a
+    evalHciteservice =
       interpret (\case
           FaucetAccount msg -> faucetAccountF msg
           BuyName msg -> buyNameF msg
@@ -86,7 +86,7 @@ faucetAccountF FaucetAccountMsg{..} = do
 setNameF
   :: Members BaseApp.TxEffs r
   => Members BaseApp.BaseEffs r
-  => Member (Error NameserviceError) r
+  => Member (Error HciteserviceError) r
   => SetNameMsg
   -> Sem r ()
 setNameF SetNameMsg{..} = do
@@ -110,7 +110,7 @@ deleteNameF
   :: Members BaseApp.TxEffs r
   => Members BaseApp.BaseEffs r
   => Members BankEffs r
-  => Member (Error NameserviceError) r
+  => Member (Error HciteserviceError) r
   => DeleteNameMsg
   -> Sem r ()
 deleteNameF DeleteNameMsg{..} = do
@@ -133,7 +133,7 @@ buyNameF
   :: Members BaseApp.TxEffs r
   => Members BankEffs r
   => Members BaseApp.BaseEffs r
-  => Member (Error NameserviceError) r
+  => Member (Error HciteserviceError) r
   => BuyNameMsg
   -> Sem r ()
 -- ^ did it succeed
@@ -173,7 +173,7 @@ buyNameF msg = do
 
       buyClaimedName
         :: Members BaseApp.TxEffs r
-        => Member (Error NameserviceError) r
+        => Member (Error HciteserviceError) r
         => Members BaseApp.BaseEffs r
         => Members BankEffs r
         => BuyNameMsg

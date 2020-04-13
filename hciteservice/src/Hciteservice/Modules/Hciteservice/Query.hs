@@ -1,10 +1,10 @@
-module Nameservice.Modules.Nameservice.Query
+module Hciteservice.Modules.Hciteservice.Query
   ( QueryApi
   , querier
   ) where
 
-import           Nameservice.Modules.Nameservice.Store
-import           Nameservice.Modules.Nameservice.Types
+import           Hciteservice.Modules.Hciteservice.Store
+import           Hciteservice.Modules.Hciteservice.Types
 import           Polysemy                              (Members)
 import           Servant.API                           ((:>))
 import qualified Tendermint.SDK.BaseApp                as BaseApp

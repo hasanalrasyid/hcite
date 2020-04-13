@@ -1,10 +1,10 @@
-module Nameservice.Server (makeAndServeApplication) where
+module Hciteservice.Server (makeAndServeApplication) where
 import           Control.Lens                              ((^?), _Just)
 import           Data.Foldable                             (fold)
 import           Data.IORef                                (writeIORef)
 import           Data.Monoid                               (Endo (..))
-import           Nameservice.Application                   (handlersContext)
-import           Nameservice.Config                        (AppConfig (..))
+import           Hciteservice.Application                   (handlersContext)
+import           Hciteservice.Config                        (AppConfig (..))
 import           Network.ABCI.Server                       (serveApp)
 import           Network.ABCI.Server.App                   (Middleware)
 import qualified Network.ABCI.Server.Middleware.Logger     as Logger
