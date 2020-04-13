@@ -7,4 +7,4 @@ RUN apt-get update && apt-get install --assume-yes protobuf-compiler libsecp256k
 RUN ln -s /lib/x86_64-linux-gnu/libncurses.so.5.9 /lib/x86_64-linux-gnu/libncurses.so.6 \
   && ln -s /lib/x86_64-linux-gnu/libncurses.so.5.9 /lib/x86_64-linux-gnu/libtinfo.so.6
 #COPY .ci-bins/* /usr/local/bin/
-COPY dist-ghc/build/x86_64-linux/ghc-8.6.5/hciteservice-0.1.0.0/x/gen-protos-exe/build/gen-protos-exe/gen-protos-exe dist-ghc/build/x86_64-linux/ghc-8.6.5/hciteservice-0.1.0.0/x/hciteservice/build/hciteservice/hciteservice dist-ghc/build/x86_64-linux/ghc-8.6.5/hciteservice-0.1.0.0/x/interact/build/interact/interact /usr/local/bin
+COPY dist-ghc/build/x86_64-linux/ghc-8.6.5/hciteservice-0.1.0.0/x/gen-protos-exe/build/gen-protos-exe/gen-protos-exe dist-ghc/build/x86_64-linux/ghc-8.6.5/hciteservice-0.1.0.0/x/hciteservice/build/hciteservice/hciteservice dist-ghc/build/x86_64-linux/ghc-8.6.5/hciteservice-0.1.0.0/x/interact/build/interact/interact /usr/local/bin/

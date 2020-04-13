@@ -14,8 +14,8 @@ import           Data.Text                         (Text)
 import qualified Faker.Lorem                       as Lorem
 import qualified Faker.Name                        as Name
 import qualified Faker.Utils                       as Utils
-import           Nameservice.Application
-import qualified Nameservice.Modules.Nameservice   as N
+import           Hciteservice.Application
+import qualified Hciteservice.Modules.Hciteservice   as N
 import qualified Network.Tendermint.Client         as RPC
 import           Servant.API                       ((:<|>) (..))
 import           Tendermint.SDK.Application.Module (ApplicationC, ApplicationD,
@@ -40,6 +40,8 @@ import           Tendermint.Utils.User             (makeSignerFromUser,
 import           Test.RandomStrings                (onlyWith, randomASCII,
                                                     randomString)
 
+import Model
+
 --------------------------------------------------------------------------------
 -- Actions
 --------------------------------------------------------------------------------
@@ -53,7 +55,7 @@ createName s name val = buyName s name val 0
 
 buyName :: Signer -> Text -> Text -> Auth.Amount -> IO ()
 buyName s@(Signer addr _) name newVal amount =
-  runAction_ s buy $ N.BuyNameMsg amount name newVal addr
+  runAction_ s buy $ N.BuyNameMsg amount name newVal addr $ def {referenceTitle = "buyName" <> name <> "_val_" <> newVal }
 
 deleteName :: Signer -> Text -> IO ()
 deleteName s@(Signer addr _) name =
@@ -106,7 +108,7 @@ getAccount
 _ :<|> _ :<|> getAccount =
   genClientQ (Proxy :: Proxy m) queryApiP def
   where
-    queryApiP :: Proxy (ApplicationQ NameserviceModules)
+    queryApiP :: Proxy (ApplicationQ HciteserviceModules)
     queryApiP = Proxy
 
  --------------------------------------------------------------------------------
@@ -141,7 +143,7 @@ type TxClientM = ReaderT ClientConfig IO
 runTxClientM :: TxClientM a -> IO a
 runTxClientM m = runReaderT m txClientConfig
 
--- Nameservice Client
+-- Hciteservice Client
 buy
   :: TxOpts
   -> N.BuyNameMsg
@@ -167,9 +169,9 @@ faucet
   EmptyTxClient =
     genClientT (Proxy @TxClientM) txApiCP txApiDP defaultClientTxOpts
     where
-      txApiCP :: Proxy (ApplicationC NameserviceModules)
+      txApiCP :: Proxy (ApplicationC HciteserviceModules)
       txApiCP = Proxy
-      txApiDP :: Proxy (ApplicationD NameserviceModules)
+      txApiDP :: Proxy (ApplicationD HciteserviceModules)
       txApiDP = Proxy
 
 

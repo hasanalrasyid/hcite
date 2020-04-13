@@ -8,10 +8,10 @@ module Protogen (messagesProtoFile, whoisProtoFile) where
 import           Data.Aeson.Casing                        (snakeCase)
 --import qualified Data.ByteString.Lazy                     as BL
 import           GHC.Exts                                 (Proxy#, proxy#)
-import           Nameservice.Modules.Nameservice.Messages (BuyNameMessage (..),
+import           Hciteservice.Modules.Hciteservice.Messages (BuyNameMessage (..),
                                                            DeleteNameMsg (..),
                                                            SetNameMsg (..))
-import           Nameservice.Modules.Nameservice.Types    (WhoisMessage (..))
+import           Hciteservice.Modules.Hciteservice.Types    (WhoisMessage (..))
 import           Proto3.Suite                             (DotProtoDefinition,
 --                                                         Message,
 --                                                         fromByteString,
