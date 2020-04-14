@@ -60,8 +60,13 @@ eval = mapError BaseApp.makeAppError . evalHciteservice
           BuyName msg -> buyNameF msg
           DeleteName msg -> deleteNameF msg
           SetName msg -> setNameF msg
-          GetWhois name -> M.lookup name whoisMap
+          GetWhois name -> getWhoisF name -- M.lookup name whoisMap
         )
+
+getWhoisF
+  :: Members BaseApp.TxEffs r
+  => Name -> Sem r (Maybe Whois)
+getWhoisF name = M.lookup name whoisMap
 
 --------------------------------------------------------------------------------
 

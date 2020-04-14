@@ -23,13 +23,13 @@ type HciteserviceModules =
 handlersContext :: HandlersContext Secp256k1 HciteserviceModules BA.CoreEffs
 handlersContext = HandlersContext
   { signatureAlgP = Proxy @Secp256k1
-  , modules = nameserviceModules
+  , modules = hciteModules
   , compileToCore  = BA.defaultCompileToCore
   , anteHandler = baseAppAnteHandler
   }
   where
-  nameserviceModules =
-       N.nameserviceModule
+  hciteModules =
+       N.hciteModule
     :+ B.bankModule
     :+ A.authModule
     :+ NilModules

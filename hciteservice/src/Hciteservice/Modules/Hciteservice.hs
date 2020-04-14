@@ -3,7 +3,7 @@ module Hciteservice.Modules.Hciteservice
   (
     -- * Module
     Hciteservice
-  , nameserviceModule
+  , hciteModule
   , module           Hciteservice.Modules.Hciteservice.Keeper
   , module           Hciteservice.Modules.Hciteservice.Messages
   , module           Hciteservice.Modules.Hciteservice.Store
@@ -31,10 +31,10 @@ import           Tendermint.SDK.Modules.Bank              (Bank)
 type Hciteservice =
   Module HciteserviceName MessageApi MessageApi QueryApi HciteserviceEffs '[Bank]
 
-nameserviceModule
+hciteModule
   :: Members (ModuleEffs Hciteservice) r
   => Hciteservice r
-nameserviceModule = Module
+hciteModule = Module
   { moduleTxDeliverer = messageHandlers
   , moduleTxChecker = defaultCheckTx (Proxy :: Proxy MessageApi) (Proxy :: Proxy r)
   , moduleQuerier = querier

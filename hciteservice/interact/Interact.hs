@@ -86,6 +86,8 @@ actionBlock (s1, s2) = do
   putStrLn "4=============="
   setName s2 name genSVal
   putStrLn "5=============="
+  theWhois <- retrieveWhois name
+  putStrLn $ "6=================" ++ show theWhois
   deleteName s2 name
 
 --------------------------------------------------------------------------------
@@ -108,11 +110,40 @@ getAccount
   :: QueryArgs Address
   -> RPC.TendermintM (QueryClientResponse Auth.Account)
 
-_ :<|> _ :<|> getAccount =
+getWhois
+  :: QueryArgs N.Name
+  -> RPC.TendermintM (QueryClientResponse N.Whois)
+
+  {-
+getBalance
+  :: QueryArgs Address
+  -> Auth.CoinId
+  -> RPC.TendermintM (QueryClientResponse Auth.Coin)
+
+getWhois :<|> getBalance :<|> getAccount =
+-}
+getWhois :<|> _ :<|> getAccount =
   genClientQ (Proxy :: Proxy m) queryApiP def
   where
     queryApiP :: Proxy (ApplicationQ HciteserviceModules)
     queryApiP = Proxy
+
+retrieveWhois
+  :: Text -> IO (Maybe N.Whois)
+retrieveWhois n = do
+  resp <- queryAction $ getWhois $ (QueryArgs False (N.Name n) (-1))
+  case resp of
+    QueryError e ->
+      if appErrorCode e == 2
+        then pure Nothing
+        else error $ "Unknown nonce error: " <> show (appErrorMessage e)
+    QueryResponse QueryResult {queryResultData} ->
+      pure $Just queryResultData
+
+queryAction
+  :: RPC.TendermintM a -> IO a
+queryAction =
+  RPC.runTendermintM rpcConfig
 
  --------------------------------------------------------------------------------
 -- Tx Client

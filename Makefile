@@ -19,4 +19,6 @@ back:
 	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl backend"'
 serv:
 	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl hciteservice"'
+int:
+	nix-shell -A shells.ghc --run 'ghcid -W -c "cabal new-repl hciteservice:exe:interact"'
 
