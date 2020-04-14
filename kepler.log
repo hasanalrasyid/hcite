@@ -13,3 +13,10 @@ project.ghc.hciteservice
 
 docker load < result
 docker run -ti hcite/complicatedservice "/bin/sh"
+
+mkdir /tmp/dist-ghc
+mkdir /tmp/dist-newstyle
+mount -o bind /tmp/dist-ghc dist-ghc
+mount -o bind /tmp/dist-newstyle dist-newstyle
+
+after make, we can have it restart the container hciteservice

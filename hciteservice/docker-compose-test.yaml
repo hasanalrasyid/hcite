@@ -17,10 +17,10 @@ services:
     ports:
       - "26656-26657:26656-26657"
   hciteservice:
-    build:
-      context: ../.
-      dockerfile: Dockerfile.prebake
-    image: hs-abci:test
+    image: hasanalrasyid/hcite:dev
+    volumes:
+        - temp-storage:/compiled
+        - nix-storage:/nix/store
     depends_on:
       - iavl
     environment:
@@ -28,7 +28,9 @@ services:
      - IAVL_HOST=iavl
      - IAVL_PORT=8090
     restart: always
-    entrypoint: /usr/local/bin/hciteservice
+    #we use this temporary while building
+    #entrypoint: /bin/hciteservice
+    entrypoint: /compiled/hciteservice
     expose:
       - "26658"
       - "9200"
@@ -47,3 +49,15 @@ volumes:
                   o: bind
                   type: none
                   device: /tmp/tendermint-storage
+  temp-storage:
+          driver: local
+          driver_opts:
+                  o: bind
+                  type: none
+                  device: /tmp/compiled
+  nix-storage:
+          driver: local
+          driver_opts:
+                  o: bind
+                  type: none
+                  device: /nix/store

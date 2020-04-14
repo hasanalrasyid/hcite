@@ -6,10 +6,10 @@ let
 in
 pkgs.dockerTools.buildImage {
   name = "hasanalrasyid/hcite";
-  tag = "latest";
+  tag = "dev";
 
   contents =  [ pkgs.busybox
-                project.ghc.hciteservice
+                pkgs.protobuf
               ];
 
   config = {

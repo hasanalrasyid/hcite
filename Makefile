@@ -1,7 +1,9 @@
+CompiledFiles := ${shell find dist-ghc/ -type f |grep '\(interact\|gen-protos-exe\|hciteservice\)$$'}
 ghc:
 	nix-shell -A shells.ghc --show-trace --verbose --run \
   "cabal --project-file=cabal.project \
     --builddir=dist-ghc new-build all"
+	cp -f $(CompiledFiles) compiled
 test:
 	nix-shell -A shells.ghc --verbose
 android:
