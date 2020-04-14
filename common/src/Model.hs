@@ -37,6 +37,7 @@ import qualified Data.Text as T
 --import System.Environment (getArgs)
 
 import GHC.Generics
+import Data.Default
 
 -- | Taken from http://www.yesodweb.com/book/persistent.
 
@@ -121,7 +122,7 @@ Reference json
      version               Int sqltype=mediumint(8)  default=1
      Primary serial
      UniqueUrl url
-     deriving Eq Show
+     deriving Eq Show Generic
 
 RelationPR
      pId    PegawaiId
@@ -212,3 +213,63 @@ initialModel uri = Model
     , previousPanel = "landing"
     }
 
+instance Default Reference where
+  def = let today = fromGregorian 24 6 26
+            totime = TimeOfDay 0 0 0
+         in Reference
+                "author              "
+                Nothing -- "address             "
+                Nothing -- "corporateAuthor     "
+                ("firstAuthor         ")
+                0 -- "authorCount         "
+                "title               "
+                Nothing -- "origTitle           "
+                Nothing -- (Just "publication         ")
+                Nothing -- (Just "abbrevJournal       ")
+                Nothing -- "year                "
+                Nothing -- (Just "volume              ")
+                Nothing -- (Just 1) -- "volumeNumeric       "
+                Nothing -- (Just "issue               ")
+                Nothing -- (Just "pages               ")
+                Nothing -- (Just 1 ) -- "firstPage           "
+                Nothing -- -- "keywords            "
+                (Just "abstract            ")
+                Nothing -- (Just "edition             ")
+                Nothing -- "" -- "editor              "
+                Nothing -- (Just "publisher           ")
+                Nothing -- (Just "place               ")
+                Nothing -- (Just "medium              ")
+                Nothing -- ("seriesEditor        ")
+                Nothing -- ("seriesTitle         ")
+                Nothing -- (Just "abbrevSeriesTitle   ")
+                Nothing -- (Just "seriesVolume        ")
+                Nothing -- (Just 1) -- "seriesVolumeNumeric "
+                Nothing -- (Just "seriesIssue         ")
+                Nothing -- (Just "issn                ")
+                Nothing -- (Just "isbn                ")
+                Nothing -- (Just "language            ")
+                Nothing -- (Just "summaryLanguage     ")
+                Nothing -- (Just "area                ")
+                Nothing -- (Just "type             ")
+                Nothing -- "thesisId            "
+                Nothing -- "expedition          "
+                Nothing -- "doi                 "
+                Nothing -- "conference          "
+                "" -- "url                 "
+                ""  -- "callNumber          "
+                "" -- "location            "
+                Nothing -- "contributionId      "
+                "no" -- "onlinePublication   "
+                Nothing -- "onlineCitation      "
+                Nothing -- "file                "
+                Nothing -- "notes               "
+                0 -- 1 -- "serial              "
+                Nothing -- (Just 1) -- "origRecord          "
+                "no" -- "approved            "
+                Nothing -- "createdDate         "
+                Nothing -- "createdTime         "
+                (Just "Dede Enan (dede@fi.itb.ac.id)")
+                (Just today) -- "modifiedDate        "
+                (Just totime) -- "modifiedTime        "
+                (Just "Admin FMIPA Publications (admin@pubs.fmipa.itb.ac.id)")
+                1 -- "version             "

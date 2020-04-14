@@ -40,6 +40,8 @@ import           Tendermint.Utils.User             (makeSignerFromUser,
 import           Test.RandomStrings                (onlyWith, randomASCII,
                                                     randomString)
 
+import Model
+
 --------------------------------------------------------------------------------
 -- Actions
 --------------------------------------------------------------------------------
@@ -53,7 +55,7 @@ createName s name val = buyName s name val 0
 
 buyName :: Signer -> Text -> Text -> Auth.Amount -> IO ()
 buyName s@(Signer addr _) name newVal amount =
-  runAction_ s buy $ N.BuyNameMsg amount name newVal addr
+  runAction_ s buy $ N.BuyNameMsg amount name newVal addr $ def {referenceTitle = "buyName" <> name <> "_val_" <> newVal }
 
 deleteName :: Signer -> Text -> IO ()
 deleteName s@(Signer addr _) name =
@@ -77,10 +79,15 @@ actionBlock (s1, s2) = do
   genBVal <- genWords
   genBAmt <- genAmount
   genSVal <- genWords
+  putStrLn "1============================="
   faucetAccount s2 genBAmt
+  putStrLn "2============================="
   createName s1 name genCVal
+  putStrLn "3============================="
   buyName s2 name genBVal genBAmt
+  putStrLn "4============================="
   setName s2 name genSVal
+  putStrLn "5============================="
   deleteName s2 name
 
 --------------------------------------------------------------------------------
