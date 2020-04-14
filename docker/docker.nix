@@ -2,6 +2,7 @@
 }:
 let
   pkgs = hcite.pkgs;
+  project = hcite.project;
   packages = hcite.packages;
 #let
 #  hciteservice = pkgs.haskellPackages.callCabal2nix "hciteservice" (./hciteservice) {};
@@ -11,7 +12,7 @@ let
 ### frontend = import ./frontend/default.nix { };
 in
 pkgs.dockerTools.buildImage {
-  name = "hcite/complicatedservice";
+  name = "hasanalrasyid/hcite";
   tag = "latest";
 
   fromImage = pkgs.dockerTools.pullImage {
@@ -20,7 +21,9 @@ pkgs.dockerTools.buildImage {
       sha256 = "05wcg38vsygjzf59cspfbb7cq98c7x18kz2yym6rbdgx960a0kyq";
   };
 
-  contents = [packages.hciteservice];
+  contents =  [ pkgs.busybox
+                project.ghc.hciteservice
+              ];
 
   config = {
     Cmd = [ "/bin/bash" ];

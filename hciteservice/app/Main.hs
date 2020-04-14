@@ -5,10 +5,10 @@ import           Control.Exception                   (bracket)
 import           Control.Lens                        ((^.))
 import           Data.IORef                          (readIORef)
 import qualified Katip                               as K
-import           Nameservice.Config                  (baseAppContext,
+import           Hciteservice.Config                  (baseAppContext,
                                                       makeAppConfig,
                                                       prometheusServerThreadId)
-import           Nameservice.Server                  (makeAndServeApplication)
+import           Hciteservice.Server                  (makeAndServeApplication)
 import qualified Tendermint.SDK.BaseApp              as BaseApp
 import qualified Tendermint.SDK.BaseApp.Logger.Katip as KL
 

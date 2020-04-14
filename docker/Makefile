@@ -1,2 +1,2 @@
 docker:
-	nix-build docker.nix
+	nix-build --show-trace --verbose docker.nix

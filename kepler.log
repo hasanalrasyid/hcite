@@ -4,3 +4,12 @@ katip-elasticsearch v0.6.0.0
 
 kepler:
 commit: 3bff814bead4394f1fef072e61f012fe7c9ffcd3
+
+cd docker
+nix repl docker.nix
+:l ./hcite
+project.<tab><tab>
+project.ghc.hciteservice
+
+docker load < result
+docker run -ti hcite/complicatedservice "/bin/sh"

@@ -66,13 +66,43 @@ project = reflex-platform.project ({ pkgs, ... }:
     doHaddock = false;
     doCheck = false;
   };
+  shellToolOverrides = ghc: super: {
+    inherit (pkgs) protobuf;
+    };
   overrides = self: super: {
     doHaddock = false;
     doCheck = false;
+    proto-lens-setup = pkgs.haskell.lib.dontCheck (
+      self.callHackage "proto-lens-setup" "0.4.0.2" {}
+    );
     polysemy = self.callCabal2nix "polysemy" (./lib/polysemy-1.3.0.0) {};
     polysemy-plugin = self.callCabal2nix "polysemy-plugin" (./lib/polysemy-plugin-0.2.5.0) {};
     polysemy-zoo = self.callCabal2nix "polysemy-zoo" (./lib/polysemy-zoo-0.7.0.0) {};
 
+    hs-tendermint-client = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.dontHaddock (
+      super.hs-tendermint-client
+    ));
+    hs-iavl-client = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.dontHaddock (
+      super.hs-iavl-client.overrideDerivation (oldAttrs: rec {
+        buildInputs = oldAttrs.buildInputs ++ [
+          pkgs.protobuf
+        ];
+      })
+    ));
+    hs-abci-sdk= pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.dontHaddock (
+      super.hs-abci-sdk.overrideDerivation (oldAttrs: rec {
+        buildInputs = oldAttrs.buildInputs ++ [
+          pkgs.protobuf
+        ];
+      })
+    ));
+    hs-abci-types = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.dontHaddock (
+      super.hs-abci-types.overrideDerivation (oldAttrs: rec {
+        buildInputs = oldAttrs.buildInputs ++ [
+          pkgs.protobuf
+        ];
+      })
+    ));
     bloodhound =  pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.doJailbreak (
       self.callHackage "bloodhound" "0.16.0.0" {}
     ));
