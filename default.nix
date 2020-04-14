@@ -79,6 +79,9 @@ project = reflex-platform.project ({ pkgs, ... }:
     polysemy-plugin = self.callCabal2nix "polysemy-plugin" (./lib/polysemy-plugin-0.2.5.0) {};
     polysemy-zoo = self.callCabal2nix "polysemy-zoo" (./lib/polysemy-zoo-0.7.0.0) {};
 
+    hciteservice = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.dontHaddock (
+      super.hciteservice
+    ));
     hs-tendermint-client = pkgs.haskell.lib.dontCheck (pkgs.haskell.lib.dontHaddock (
       super.hs-tendermint-client
     ));

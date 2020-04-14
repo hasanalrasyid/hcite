@@ -15,11 +15,11 @@ pkgs.dockerTools.buildImage {
   name = "hasanalrasyid/hcite";
   tag = "latest";
 
-  fromImage = pkgs.dockerTools.pullImage {
-      imageName = "alpine";
-      imageDigest = "sha256:e1871801d30885a610511c867de0d6baca7ed4e6a2573d506bbec7fd3b03873f";
-      sha256 = "05wcg38vsygjzf59cspfbb7cq98c7x18kz2yym6rbdgx960a0kyq";
-  };
+# fromImage = pkgs.dockerTools.pullImage {
+#     imageName = "alpine";
+#     imageDigest = "sha256:cb8a924afdf0229ef7515d9e5b3024e23b3eb03ddbba287f4a19c6ac90b8d221";
+#     sha256 = "0c1hvm2ck57kq5pwa29v3qjj1mqn2yx2dgkx2iizxqdym77f97dz";
+# };
 
   contents =  [ pkgs.busybox
                 project.ghc.hciteservice
