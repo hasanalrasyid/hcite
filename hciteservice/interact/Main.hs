@@ -10,8 +10,12 @@ import           Text.Read                (read)
 main :: IO ()
 main = do
   mThreads <- lookupEnv "INTERACT_THREAD_COUNT"
+  skipLoop <- lookupEnv "SKIP_LOOP"
+  let isSkipped = maybe 0 read skipLoop :: Int
   let threads = maybe 1 read mThreads :: Int
   usersForThreads <- replicateM threads makeRandomUsers
   putStrLn $ "Running nameservice interaction with #threads: " <> show threads
-  forever $ forConcurrently_ [0..(threads-1)] $ \i ->
-    actionBlock $ usersForThreads !! i
+  case isSkipped of
+    0 -> actionBlock $ head usersForThreads
+    _ -> forever $ forConcurrently_ [0..(threads-1)] $ \i ->
+            actionBlock $ usersForThreads !! i

@@ -1,0 +1,457 @@
+Running nameservice interaction with #threads: 1
+==============="Lera Grant"==="eveniet magnam doloribus ut consequatur veniam et facere alias et"==="ut"===Amount {unAmount = 511}==="quo soluta omnis enim"
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "height": "-1",
+        "path": "/auth/accounts",
+        "data": "e008f6c6dfdb3aedc695f158e6eddf460809069b",
+        "prove": false
+    },
+    "method": "abci_query",
+    "id": 4706690913294976308
+}
+RPC Response
+{
+    "result": {
+        "response": {
+            "log": "Resource not found.",
+            "proof": null,
+            "height": "0",
+            "value": null,
+            "codespace": "router",
+            "key": null,
+            "code": 2,
+            "index": "0",
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 4706690913294976000
+}
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "tx": "CjgKDUZhdWNldEFjY291bnQSJwoU4Aj2xt/bOu3GlfFY5u3fRggJBpsSDGhjaXRlc2VydmljZRj/AxpBen8oyv5Djt62n/DOH5+P5gAZ1J1XPoowT1qCizmacODgKmpy0emnVACkgf9ZWX+ta4F6abtXP9vCpSwwKyXh3QAiDGhjaXRlc2VydmljZSgB"
+    },
+    "method": "broadcast_tx_commit",
+    "id": 2808307318504131648
+}
+RPC Response
+{
+    "result": {
+        "height": "51",
+        "hash": "282A0505B0CC92EA3F131AE47732F82474FF52DDA5D2F57E9ECCBFC03C4C2201",
+        "check_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [],
+            "code": 0,
+            "info": ""
+        },
+        "deliver_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [
+                {
+                    "attributes": [
+                        {
+                            "value": "4Aj2xt/bOu3GlfFY5u3fRggJBps=",
+                            "key": "ZmF1Y2V0dGVkQWNjb3VudA=="
+                        },
+                        {
+                            "value": "CgxoY2l0ZXNlcnZpY2U=",
+                            "key": "ZmF1Y2V0dGVkQ29pbklk"
+                        },
+                        {
+                            "value": "CP8D",
+                            "key": "ZmF1Y2V0dGVkQW1vdW50"
+                        }
+                    ],
+                    "type": "faucetted"
+                }
+            ],
+            "code": 0,
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 2808307318504131584
+}
+2==============
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "height": "-1",
+        "path": "/auth/accounts",
+        "data": "e1318171580e7a95f806da3554116c195cce44f7",
+        "prove": false
+    },
+    "method": "abci_query",
+    "id": 1807802788318898441
+}
+RPC Response
+{
+    "result": {
+        "response": {
+            "log": "Resource not found.",
+            "proof": null,
+            "height": "0",
+            "value": null,
+            "codespace": "router",
+            "key": null,
+            "code": 2,
+            "index": "0",
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 1807802788318898432
+}
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "tx": "CnAKB0J1eU5hbWUSZRIKTGVyYSBHcmFudBpBZXZlbmlldCBtYWduYW0gZG9sb3JpYnVzIHV0IGNvbnNlcXVhdHVyIHZlbmlhbSBldCBmYWNlcmUgYWxpYXMgZXQiFOExgXFYDnqV+AbaNVQRbBlczkT3GkEv0pihDt7hLuVODNyQ202rh3LLJ/PZtnuUwFyPaaHfwY+A+JULkqn5p9CSUVzBymnK1PfeSWNurkUoDED/uk9WACIMaGNpdGVzZXJ2aWNlKAE="
+    },
+    "method": "broadcast_tx_commit",
+    "id": 9129657235552926667
+}
+RPC Response
+{
+    "result": {
+        "height": "52",
+        "hash": "B282BED1C8DF5D80E1EC844BAA6CACC8A18ACC6C5982929814441394744DC693",
+        "check_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [],
+            "code": 0,
+            "info": ""
+        },
+        "deliver_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [
+                {
+                    "attributes": [
+                        {
+                            "value": "4TGBcVgOepX4Bto1VBFsGVzORPc=",
+                            "key": "bmFtZUNsYWltZWRPd25lcg=="
+                        },
+                        {
+                            "value": "TGVyYSBHcmFudA==",
+                            "key": "bmFtZUNsYWltZWROYW1l"
+                        },
+                        {
+                            "value": "ZXZlbmlldCBtYWduYW0gZG9sb3JpYnVzIHV0IGNvbnNlcXVhdHVyIHZlbmlhbSBldCBmYWNlcmUgYWxpYXMgZXQ=",
+                            "key": "bmFtZUNsYWltZWRWYWx1ZQ=="
+                        },
+                        {
+                            "value": null,
+                            "key": "bmFtZUNsYWltZWRCaWQ="
+                        }
+                    ],
+                    "type": "nameClaimed"
+                }
+            ],
+            "code": 0,
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 9129657235552926720
+}
+3==============
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "height": "-1",
+        "path": "/auth/accounts",
+        "data": "e008f6c6dfdb3aedc695f158e6eddf460809069b",
+        "prove": false
+    },
+    "method": "abci_query",
+    "id": 5470795334397708895
+}
+RPC Response
+{
+    "result": {
+        "response": {
+            "log": "",
+            "proof": null,
+            "height": "0",
+            "value": "ChUKDgoMaGNpdGVzZXJ2aWNlEgMI/wMQAQ==",
+            "codespace": "",
+            "key": "YXV0aGFjY291bnRz4Aj2xt/bOu3GlfFY5u3fRggJBps=",
+            "code": 0,
+            "index": "0",
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 5470795334397709312
+}
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "tx": "CjQKB0J1eU5hbWUSKQj/AxIKTGVyYSBHcmFudBoCdXQiFOAI9sbf2zrtxpXxWObt30YICQabGkE2ECQf1Ptyrr0jn8GIO23jbN3XzxoKF6/j+rFoCP6wEemyiSh8YE/nwru7LLnpt5Ueu1Lo8sYU+CdL450nytjrASIMaGNpdGVzZXJ2aWNlKAI="
+    },
+    "method": "broadcast_tx_commit",
+    "id": 1863645419477128637
+}
+RPC Response
+{
+    "result": {
+        "height": "53",
+        "hash": "6A9114E2B72CC99929D2C23E528D5F11B5B79E4C072C9BBD83F4525CF8825F1E",
+        "check_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [],
+            "code": 0,
+            "info": ""
+        },
+        "deliver_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [
+                {
+                    "attributes": [
+                        {
+                            "value": "CgxoY2l0ZXNlcnZpY2U=",
+                            "key": "dHJhbnNmZXJFdmVudENvaW5JZA=="
+                        },
+                        {
+                            "value": "CP8D",
+                            "key": "dHJhbnNmZXJFdmVudEFtb3VudA=="
+                        },
+                        {
+                            "value": "4TGBcVgOepX4Bto1VBFsGVzORPc=",
+                            "key": "dHJhbnNmZXJFdmVudFRv"
+                        },
+                        {
+                            "value": "4Aj2xt/bOu3GlfFY5u3fRggJBps=",
+                            "key": "dHJhbnNmZXJFdmVudEZyb20="
+                        }
+                    ],
+                    "type": "transferEvent"
+                },
+                {
+                    "attributes": [
+                        {
+                            "value": "4Aj2xt/bOu3GlfFY5u3fRggJBps=",
+                            "key": "bmFtZUNsYWltZWRPd25lcg=="
+                        },
+                        {
+                            "value": "TGVyYSBHcmFudA==",
+                            "key": "bmFtZUNsYWltZWROYW1l"
+                        },
+                        {
+                            "value": "dXQ=",
+                            "key": "bmFtZUNsYWltZWRWYWx1ZQ=="
+                        },
+                        {
+                            "value": "CP8D",
+                            "key": "bmFtZUNsYWltZWRCaWQ="
+                        }
+                    ],
+                    "type": "nameClaimed"
+                }
+            ],
+            "code": 0,
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 1863645419477128704
+}
+4==============
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "height": "-1",
+        "path": "/auth/accounts",
+        "data": "e008f6c6dfdb3aedc695f158e6eddf460809069b",
+        "prove": false
+    },
+    "method": "abci_query",
+    "id": 7388157024095494561
+}
+RPC Response
+{
+    "result": {
+        "response": {
+            "log": "",
+            "proof": null,
+            "height": "0",
+            "value": "ChIKDgoMaGNpdGVzZXJ2aWNlEgAQAg==",
+            "codespace": "",
+            "key": "YXV0aGFjY291bnRz4Aj2xt/bOu3GlfFY5u3fRggJBps=",
+            "code": 0,
+            "index": "0",
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 7388157024095494144
+}
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "tx": "CkQKB1NldE5hbWUSOQoKTGVyYSBHcmFudBIU4Aj2xt/bOu3GlfFY5u3fRggJBpsaFXF1byBzb2x1dGEgb21uaXMgZW5pbRpBQX9qwtxNwLNPqK5T4ASexdxLf3PhKkJzJEbmwIJK+8eN/IEPpxrxmNUGvzn5kqcN46nazkTxuQe71ucwynVrrAAiDGhjaXRlc2VydmljZSgD"
+    },
+    "method": "broadcast_tx_commit",
+    "id": 8549648588760003641
+}
+RPC Response
+{
+    "result": {
+        "height": "54",
+        "hash": "4F8AB6D8407DBD9A626011074E01853FA43B1551EDC07170AB0DFB8114FB0F26",
+        "check_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [],
+            "code": 0,
+            "info": ""
+        },
+        "deliver_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [
+                {
+                    "attributes": [
+                        {
+                            "value": "TGVyYSBHcmFudA==",
+                            "key": "bmFtZVJlbWFwcGVkTmFtZQ=="
+                        },
+                        {
+                            "value": "dXQ=",
+                            "key": "bmFtZVJlbWFwcGVkT2xkVmFsdWU="
+                        },
+                        {
+                            "value": "cXVvIHNvbHV0YSBvbW5pcyBlbmlt",
+                            "key": "bmFtZVJlbWFwcGVkTmV3VmFsdWU="
+                        }
+                    ],
+                    "type": "nameRemapped"
+                }
+            ],
+            "code": 0,
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 8549648588760003584
+}
+5==============
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "height": "-1",
+        "path": "/auth/accounts",
+        "data": "e008f6c6dfdb3aedc695f158e6eddf460809069b",
+        "prove": false
+    },
+    "method": "abci_query",
+    "id": 7395818992410603043
+}
+RPC Response
+{
+    "result": {
+        "response": {
+            "log": "",
+            "proof": null,
+            "height": "0",
+            "value": "ChIKDgoMaGNpdGVzZXJ2aWNlEgAQAw==",
+            "codespace": "",
+            "key": "YXV0aGFjY291bnRz4Aj2xt/bOu3GlfFY5u3fRggJBps=",
+            "code": 0,
+            "index": "0",
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 7395818992410603520
+}
+RPC Request
+{
+    "jsonrpc": "2.0",
+    "params": {
+        "tx": "CjAKCkRlbGV0ZU5hbWUSIgoU4Aj2xt/bOu3GlfFY5u3fRggJBpsSCkxlcmEgR3JhbnQaQRaAMiZpfupeDh399nci5NngubWvKT+SKnOdmTe3AhAC+/sdVadeJzBBtfVIfi9VWvnS+VQTBYEoE/74uyjH4hYBIgxoY2l0ZXNlcnZpY2UoBA=="
+    },
+    "method": "broadcast_tx_commit",
+    "id": 5407326546048193166
+}
+RPC Response
+{
+    "result": {
+        "height": "55",
+        "hash": "8C9949B9762011E5989E392B3121BDC304199308360DA4A91BF5DD71AEB94392",
+        "check_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [],
+            "code": 0,
+            "info": ""
+        },
+        "deliver_tx": {
+            "log": "",
+            "gasUsed": "0",
+            "data": null,
+            "gasWanted": "0",
+            "codespace": "",
+            "events": [
+                {
+                    "attributes": [
+                        {
+                            "value": "TGVyYSBHcmFudA==",
+                            "key": "bmFtZURlbGV0ZWROYW1l"
+                        }
+                    ],
+                    "type": "nameDeleted"
+                }
+            ],
+            "code": 0,
+            "info": ""
+        }
+    },
+    "jsonrpc": "2.0",
+    "id": 5407326546048193536
+}

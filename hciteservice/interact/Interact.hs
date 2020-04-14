@@ -39,7 +39,7 @@ import           Tendermint.Utils.User             (makeSignerFromUser,
                                                     makeUser)
 import           Test.RandomStrings                (onlyWith, randomASCII,
                                                     randomString)
-
+import Data.List (intercalate)
 --------------------------------------------------------------------------------
 -- Actions
 --------------------------------------------------------------------------------
@@ -77,10 +77,15 @@ actionBlock (s1, s2) = do
   genBVal <- genWords
   genBAmt <- genAmount
   genSVal <- genWords
+  putStrLn $ "===============" ++ (intercalate "===" [show name,show genCVal,show genBVal,show genBAmt,show genSVal])
   faucetAccount s2 genBAmt
+  putStrLn "2=============="
   createName s1 name genCVal
+  putStrLn "3=============="
   buyName s2 name genBVal genBAmt
+  putStrLn "4=============="
   setName s2 name genSVal
+  putStrLn "5=============="
   deleteName s2 name
 
 --------------------------------------------------------------------------------
