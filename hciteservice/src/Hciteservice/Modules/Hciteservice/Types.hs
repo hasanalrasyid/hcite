@@ -16,27 +16,38 @@ import           Tendermint.SDK.Codec         (HasCodec (..))
 import           Tendermint.SDK.Modules.Auth  (Amount (..), CoinId (..))
 import           Tendermint.SDK.Modules.Bank  ()
 import           Tendermint.SDK.Types.Address (Address)
-
+--import Proto3.Suite.Class
 --------------------------------------------------------------------------------
 
 type HciteserviceName = "hciteservice"
 
 --------------------------------------------------------------------------------
 
-
 data Whois = Whois
   { whoisValue :: Text
   , whoisOwner :: Address
   , whoisPrice :: Amount
+  , whoisTitle :: Text
   } deriving (Eq, Show)
+
+--instance MessageField [Address]
+--instance HasDefault [Address]
+--instance Primitive [Address] where
+--  encodePrimitive n l = mconcat $ map (encodePrimitive n) l
+--  decodePrimitive = []
+--
+--instance Named [Address]
 
 data WhoisMessage = WhoisMessage
   { whoisMessageValue :: Text
   , whoisMessageOwner :: Address
   , whoisMessagePrice :: Word64
+  , whoisMessageTitle :: Text
   } deriving (Eq, Show, Generic)
 instance Message WhoisMessage
 instance Named WhoisMessage
+
+
 
 instance HasCodec Whois where
   encode Whois {..} =
@@ -44,6 +55,7 @@ instance HasCodec Whois where
           { whoisMessageValue = whoisValue
           , whoisMessageOwner = whoisOwner
           , whoisMessagePrice = unAmount whoisPrice
+          , whoisMessageTitle = whoisTitle
           }
     in cs . toLazyByteString $ whoisMessage
   decode =
@@ -51,6 +63,7 @@ instance HasCodec Whois where
           { whoisValue = whoisMessageValue
           , whoisOwner = whoisMessageOwner
           , whoisPrice = Amount whoisMessagePrice
+          , whoisTitle = whoisMessageTitle
           }
     in bimap (cs . show) toWhois . fromByteString @WhoisMessage
 

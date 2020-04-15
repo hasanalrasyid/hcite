@@ -124,6 +124,7 @@ data BuyNameMsg = BuyNameMsg
   , buyNameName  :: Text
   , buyNameValue :: Text
   , buyNameBuyer :: Address
+  , buyNameTitle :: Text
   } deriving (Eq, Show)
 
 data BuyNameMessage = BuyNameMessage
@@ -131,6 +132,7 @@ data BuyNameMessage = BuyNameMessage
   , buyNameMessageName  :: Text
   , buyNameMessageValue :: Text
   , buyNameMessageBuyer :: Address
+  , buyNameMessageTitle :: Text
   } deriving (Eq, Show, Generic)
 instance Message BuyNameMessage
 instance Named BuyNameMessage
@@ -145,6 +147,7 @@ instance HasCodec BuyNameMsg where
           , buyNameMessageName = buyNameName
           , buyNameMessageValue = buyNameValue
           , buyNameMessageBuyer = buyNameBuyer
+          , buyNameMessageTitle = buyNameTitle
           }
     in cs . toLazyByteString $ buyNameMessage
   decode =
@@ -153,6 +156,7 @@ instance HasCodec BuyNameMsg where
           , buyNameName = buyNameMessageName
           , buyNameValue = buyNameMessageValue
           , buyNameBuyer = buyNameMessageBuyer
+          , buyNameTitle = buyNameMessageTitle
           }
     in bimap (formatMessageParseError . coerceProto3Error) toBuyName
        . fromByteString @BuyNameMessage

@@ -49,12 +49,12 @@ faucetAccount :: Signer -> Auth.Amount -> IO ()
 faucetAccount s@(Signer addr _) amount =
   runAction_ s faucet $ N.FaucetAccountMsg addr N.hciteCoinId amount
 
-createName :: Signer -> Text -> Text -> IO ()
-createName s name val = buyName s name val 0
+createName :: Signer -> Text -> Text -> Text -> IO ()
+createName s name val title = buyName s name val title 0
 
-buyName :: Signer -> Text -> Text -> Auth.Amount -> IO ()
-buyName s@(Signer addr _) name newVal amount =
-  runAction_ s buy $ N.BuyNameMsg amount name newVal addr
+buyName :: Signer -> Text -> Text -> Text -> Auth.Amount -> IO ()
+buyName s@(Signer addr _) name newVal title amount =
+  runAction_ s buy $ N.BuyNameMsg amount name newVal addr title
 
 deleteName :: Signer -> Text -> IO ()
 deleteName s@(Signer addr _) name =
@@ -82,9 +82,9 @@ actionBlock (s1, s2) = do
   putStrLn $ "===============" ++ (intercalate "===" [show name,show genCVal,show genBVal,show genBAmt,show genSVal])
   faucetAccount s2 genBAmt
   putStrLn "2=============="
-  createName s1 name genCVal
+  createName s1 name genCVal "initiate title"
   putStrLn "3=============="
-  buyName s2 name genBVal genBAmt
+  buyName s2 name genBVal "this is the title" genBAmt
   putStrLn "4=============="
   setName s2 name genSVal
   putStrLn "5=============="

@@ -60,7 +60,7 @@ eval = mapError BaseApp.makeAppError . evalHciteservice
           BuyName msg -> buyNameF msg
           DeleteName msg -> deleteNameF msg
           SetName msg -> setNameF msg
-          GetWhois name -> getWhoisF name -- M.lookup name whoisMap
+          GetWhois name -> getWhoisF name
         )
 
 getWhoisF
@@ -165,6 +165,7 @@ buyNameF msg = do
               { whoisOwner = buyNameBuyer
               , whoisValue = buyNameValue
               , whoisPrice = buyNameBid
+              , whoisTitle = buyNameTitle
               }
         M.insert (Name buyNameName) whois whoisMap
         let event = NameClaimed
