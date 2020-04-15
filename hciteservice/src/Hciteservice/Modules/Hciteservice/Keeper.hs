@@ -166,6 +166,7 @@ buyNameF msg = do
               , whoisValue = buyNameValue
               , whoisPrice = buyNameBid
               , whoisTitle = buyNameTitle
+              , whoisReference = buyNameReference
               }
         M.insert (Name buyNameName) whois whoisMap
         let event = NameClaimed

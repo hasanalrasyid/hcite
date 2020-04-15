@@ -25,6 +25,8 @@ import           Tendermint.SDK.Types.Message (HasMessageType (..), Msg (..),
                                                formatMessageParseError,
                                                isAuthorCheck, nonEmptyCheck)
 
+import Hciteservice.Modules.Hciteservice.Types
+
 -- @NOTE: .proto genration will use these type names as is
 -- only field names stripped of prefixes during generation
 data FaucetAccountMsg = FaucetAccountMsg
@@ -125,6 +127,7 @@ data BuyNameMsg = BuyNameMsg
   , buyNameValue :: Text
   , buyNameBuyer :: Address
   , buyNameTitle :: Text
+  , buyNameReference :: HCiteReference
   } deriving (Eq, Show)
 
 data BuyNameMessage = BuyNameMessage
@@ -133,6 +136,7 @@ data BuyNameMessage = BuyNameMessage
   , buyNameMessageValue :: Text
   , buyNameMessageBuyer :: Address
   , buyNameMessageTitle :: Text
+  , buyNameMessageReference :: HCiteReference
   } deriving (Eq, Show, Generic)
 instance Message BuyNameMessage
 instance Named BuyNameMessage
@@ -148,6 +152,7 @@ instance HasCodec BuyNameMsg where
           , buyNameMessageValue = buyNameValue
           , buyNameMessageBuyer = buyNameBuyer
           , buyNameMessageTitle = buyNameTitle
+          , buyNameMessageReference = buyNameReference
           }
     in cs . toLazyByteString $ buyNameMessage
   decode =
@@ -157,6 +162,7 @@ instance HasCodec BuyNameMsg where
           , buyNameValue = buyNameMessageValue
           , buyNameBuyer = buyNameMessageBuyer
           , buyNameTitle = buyNameMessageTitle
+          , buyNameReference = buyNameMessageReference
           }
     in bimap (formatMessageParseError . coerceProto3Error) toBuyName
        . fromByteString @BuyNameMessage

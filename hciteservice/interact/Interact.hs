@@ -54,7 +54,7 @@ createName s name val title = buyName s name val title 0
 
 buyName :: Signer -> Text -> Text -> Text -> Auth.Amount -> IO ()
 buyName s@(Signer addr _) name newVal title amount =
-  runAction_ s buy $ N.BuyNameMsg amount name newVal addr title
+  runAction_ s buy $ N.BuyNameMsg amount name newVal addr title def
 
 deleteName :: Signer -> Text -> IO ()
 deleteName s@(Signer addr _) name =

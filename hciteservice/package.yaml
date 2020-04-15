@@ -44,6 +44,7 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+    - bytestring
     - aeson
     - aeson-casing
     - base >= 4.7 && < 5

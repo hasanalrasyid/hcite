@@ -16,11 +16,15 @@ import           Tendermint.SDK.Codec         (HasCodec (..))
 import           Tendermint.SDK.Modules.Auth  (Amount (..), CoinId (..))
 import           Tendermint.SDK.Modules.Bank  ()
 import           Tendermint.SDK.Types.Address (Address)
---import Proto3.Suite.Class
+
+import Proto3.Suite.Class
+import Proto3.Wire.Decode as Decode
+import Data.ByteString (ByteString)
+import Model
 --------------------------------------------------------------------------------
 
 type HciteserviceName = "hciteservice"
-
+type HCiteReference = Reference
 --------------------------------------------------------------------------------
 
 data Whois = Whois
@@ -28,7 +32,20 @@ data Whois = Whois
   , whoisOwner :: Address
   , whoisPrice :: Amount
   , whoisTitle :: Text
+  , whoisReference :: HCiteReference
   } deriving (Eq, Show)
+
+instance MessageField HCiteReference
+instance HasDefault HCiteReference
+instance Named HCiteReference
+instance Primitive HCiteReference where
+  encodePrimitive n r = encodePrimitive n $ referenceTitle r
+  decodePrimitive = referenceFromBytes <$> Decode.byteString
+
+referenceFromBytes
+  :: ByteString
+  -> HCiteReference
+referenceFromBytes _ = def
 
 --instance MessageField [Address]
 --instance HasDefault [Address]
@@ -43,6 +60,7 @@ data WhoisMessage = WhoisMessage
   , whoisMessageOwner :: Address
   , whoisMessagePrice :: Word64
   , whoisMessageTitle :: Text
+  , whoisMessageReference :: Reference
   } deriving (Eq, Show, Generic)
 instance Message WhoisMessage
 instance Named WhoisMessage
@@ -56,6 +74,7 @@ instance HasCodec Whois where
           , whoisMessageOwner = whoisOwner
           , whoisMessagePrice = unAmount whoisPrice
           , whoisMessageTitle = whoisTitle
+          , whoisMessageReference = whoisReference
           }
     in cs . toLazyByteString $ whoisMessage
   decode =
@@ -64,6 +83,7 @@ instance HasCodec Whois where
           , whoisOwner = whoisMessageOwner
           , whoisPrice = Amount whoisMessagePrice
           , whoisTitle = whoisMessageTitle
+          , whoisReference = whoisMessageReference
           }
     in bimap (cs . show) toWhois . fromByteString @WhoisMessage
 
