@@ -1,5 +1,6 @@
 CompiledFiles := ${shell find dist-ghc/ -type f |grep '\(interact\|gen-protos-exe\|hciteservice\)$$'}
 ghc:
+	hpack --force hciteservice/package.yaml
 	nix-shell -A shells.ghc --show-trace --verbose --run \
   "cabal --project-file=cabal.project \
     --builddir=dist-ghc new-build all"

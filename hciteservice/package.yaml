@@ -44,6 +44,13 @@ dependencies:
 library:
   source-dirs: src
   dependencies:
+    - hs-abci-test-utils
+    - hs-tendermint-client
+    - random-strings
+    - data-default-class
+    - faker
+    - mtl
+
     - bytestring
     - aeson
     - aeson-casing
@@ -75,6 +82,8 @@ library:
   - -Wincomplete-uni-patterns
   - -Wredundant-constraints
   exposed-modules:
+  - Interact
+
   - Hciteservice.Application
   - Hciteservice.Config
   - Hciteservice.Aeson
@@ -131,14 +140,8 @@ executables:
     dependencies:
     - async
     - base
-    - data-default-class
-    - faker
-    - mtl
     - hciteservice
     - hs-abci-sdk
-    - hs-abci-test-utils
-    - hs-tendermint-client
-    - random-strings
     - servant
     - string-conversions
     - text

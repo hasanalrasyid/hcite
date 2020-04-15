@@ -20,3 +20,5 @@ mount -o bind /tmp/dist-ghc dist-ghc
 mount -o bind /tmp/dist-newstyle dist-newstyle
 
 after make, we can have it restart the container hciteservice
+
+nix-env -i /nix/store/n79ph6b6zxx5kvzj1k6mj5hgcasfqhja-hpack-0.32.0/bin/hpack
