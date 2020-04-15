@@ -10,7 +10,7 @@ import           Data.Default.Class                (def)
 import           Data.Proxy
 import           Data.String                       (fromString)
 import           Data.String.Conversions           (cs)
-import           Data.Text                         (Text)
+import           Data.Text                         (Text,pack)
 import qualified Faker.Lorem                       as Lorem
 import qualified Faker.Name                        as Name
 import qualified Faker.Utils                       as Utils
@@ -24,7 +24,7 @@ import           Tendermint.SDK.BaseApp.Errors     (AppError (..))
 import           Tendermint.SDK.BaseApp.Query      (QueryArgs (..),
                                                     QueryResult (..))
 import qualified Tendermint.SDK.Modules.Auth       as Auth
-import           Tendermint.SDK.Types.Address      (Address)
+import           Tendermint.SDK.Types.Address      (Address (..))
 import           Tendermint.Utils.Client           (ClientConfig (..),
                                                     EmptyTxClient (..),
                                                     HasQueryClient (..),
@@ -40,13 +40,14 @@ import           Tendermint.Utils.User             (makeSignerFromUser,
 import           Test.RandomStrings                (onlyWith, randomASCII,
                                                     randomString)
 import Data.List (intercalate)
+import System.Environment
 --------------------------------------------------------------------------------
 -- Actions
 --------------------------------------------------------------------------------
 
 faucetAccount :: Signer -> Auth.Amount -> IO ()
 faucetAccount s@(Signer addr _) amount =
-  runAction_ s faucet $ N.FaucetAccountMsg addr N.nameserviceCoinId amount
+  runAction_ s faucet $ N.FaucetAccountMsg addr N.hciteCoinId amount
 
 createName :: Signer -> Text -> Text -> IO ()
 createName s name val = buyName s name val 0
@@ -72,6 +73,7 @@ runAction_ s f = void . assertTx . runTxClientM . f (TxOpts 0 s)
 
 actionBlock :: (Signer, Signer) -> IO ()
 actionBlock (s1, s2) = do
+  (sAddress:sName:_) <- getArgs
   name <- genName
   genCVal <- genWords
   genBVal <- genWords
@@ -87,8 +89,22 @@ actionBlock (s1, s2) = do
   setName s2 name genSVal
   putStrLn "5=============="
   theWhois <- retrieveWhois name
+  theWhois2 <- retrieveWhois $ pack sName
   putStrLn $ "6=================" ++ show theWhois
-  deleteName s2 name
+  theBalance  <- retrieveBalance "hciteservice"
+                  $ fmap N.whoisOwner theWhois
+  theBalance2 <- retrieveBalance "hciteservice"
+               -- $ Just $ Address "0x46861b9183554254aac5a20ac6498e3b502da90d"
+                  $ Just $ Address $ fromString sAddress
+  putStrLn $ unlines [ "7================="
+                     , show name
+                     , show sName
+                     , show theWhois
+                     , show theWhois2
+                     , show theBalance
+                     ]
+    ++ show theBalance2
+  deleteName s2 "quia"
 
 --------------------------------------------------------------------------------
 -- Users
@@ -114,31 +130,49 @@ getWhois
   :: QueryArgs N.Name
   -> RPC.TendermintM (QueryClientResponse N.Whois)
 
-  {-
 getBalance
   :: QueryArgs Address
   -> Auth.CoinId
   -> RPC.TendermintM (QueryClientResponse Auth.Coin)
 
+  {-
+getWhois     <- Module.Hciteservice.Keeper
+getBalance   <- Tendermint.SDK.Modules.Bank.Keeper
+getAccount   <- Tendermint.SDK.Modules.Auth.Keeper
+  -}
 getWhois :<|> getBalance :<|> getAccount =
--}
-getWhois :<|> _ :<|> getAccount =
   genClientQ (Proxy :: Proxy m) queryApiP def
   where
     queryApiP :: Proxy (ApplicationQ HciteserviceModules)
     queryApiP = Proxy
 
-retrieveWhois
-  :: Text -> IO (Maybe N.Whois)
-retrieveWhois n = do
-  resp <- queryAction $ getWhois $ (QueryArgs False (N.Name n) (-1))
+retrieveBalance
+  :: Auth.CoinId
+  -> Maybe Address
+  -> IO (Maybe Auth.Coin)
+retrieveBalance _   Nothing = return Nothing
+retrieveBalance cId (Just addr) = do
+  resp <- queryAction $ getBalance (QueryArgs False addr (-1)) cId
   case resp of
     QueryError e ->
       if appErrorCode e == 2
         then pure Nothing
         else error $ "Unknown nonce error: " <> show (appErrorMessage e)
     QueryResponse QueryResult {queryResultData} ->
-      pure $Just queryResultData
+      pure $ Just queryResultData
+
+
+retrieveWhois
+  :: Text -> IO (Maybe N.Whois)
+retrieveWhois n = do
+  resp <- queryAction $ getWhois (QueryArgs False (N.Name n) (-1))
+  case resp of
+    QueryError e ->
+      if appErrorCode e == 2
+        then pure Nothing
+        else error $ "Unknown nonce error: " <> show (appErrorMessage e)
+    QueryResponse QueryResult {queryResultData} ->
+      pure $ Just queryResultData
 
 queryAction
   :: RPC.TendermintM a -> IO a
@@ -198,6 +232,11 @@ faucet
   -> N.FaucetAccountMsg
   -> TxClientM (TxClientResponse () ())
 
+
+-- This is for transactions that needs user authorization
+-- usually related with CUD of CRUD
+-- genClientT for transaction (need authorization/Signer)
+-- genClientQ for query (no auth)
 (buy :<|> set :<|> delete :<|> faucet) :<|>
   (_ :<|> _) :<|>
   EmptyTxClient =

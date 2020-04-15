@@ -3,7 +3,7 @@
 module Hciteservice.Modules.Hciteservice.Keeper
   ( HciteserviceEffs
   , HciteserviceKeeper(..)
-  , nameserviceCoinId
+  , hciteCoinId
   , setName
   , deleteName
   , buyName
@@ -37,8 +37,8 @@ makeSem ''HciteserviceKeeper
 
 type HciteserviceEffs = '[HciteserviceKeeper, Error HciteserviceError]
 
-nameserviceCoinId :: CoinId
-nameserviceCoinId = "hciteservice"
+hciteCoinId :: CoinId
+hciteCoinId = "hciteservice"
 
 eval
   :: Members BaseApp.TxEffs r
@@ -126,7 +126,7 @@ deleteNameF DeleteNameMsg{..} = do
       if whoisOwner /= deleteNameOwner
         then throw $ InvalidDelete "Deleter must be the owner."
         else do
-          mint deleteNameOwner (Coin nameserviceCoinId whoisPrice)
+          mint deleteNameOwner (Coin hciteCoinId whoisPrice)
           M.delete (Name deleteNameName) whoisMap
           let event = NameDeleted
                 { nameDeletedName = deleteNameName
@@ -160,7 +160,7 @@ buyNameF msg = do
         => BuyNameMsg
         -> Sem r ()
       buyUnclaimedName BuyNameMsg{..} = do
-        burn buyNameBuyer (Coin nameserviceCoinId buyNameBid)
+        burn buyNameBuyer (Coin hciteCoinId buyNameBid)
         let whois = Whois
               { whoisOwner = buyNameBuyer
               , whoisValue = buyNameValue
@@ -188,7 +188,7 @@ buyNameF msg = do
         let Whois{ whoisPrice = forsalePrice, whoisOwner = previousOwner } = currentWhois
         in if buyNameBid > forsalePrice
              then do
-               transfer buyNameBuyer (Coin nameserviceCoinId buyNameBid) previousOwner
+               transfer buyNameBuyer (Coin hciteCoinId buyNameBid) previousOwner
                -- update new owner, price and value based on BuyName
                let whois' = currentWhois
                      { whoisOwner = buyNameBuyer
