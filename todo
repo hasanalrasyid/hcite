@@ -1,10 +1,45 @@
+===========================================================
 HCiteService
+
+CRUD for Reference
+C- by Import
+      Bibtex import
+
+R- by Search
+
+U- by insert and decommission
+
+D- never deletes, just decommission
+
+CRUD for Person
+C-
+
+R-
+
+U- by insert
+
+D-
+
+CRUD for Interconnect Person and Reference
+C- buy
+
+R
+
+U
+
+D
+
+
 - implement gas
 - implement reference
 - generate signer
 - load signer from file key
   - with password
 
+
+
+==========================================================
+FOR MYSQL BACKEND
 CRUD of Reference
 C- by Import
 v     Bibtex import
