@@ -1,7 +1,9 @@
 ===========================================================
 HCiteService
 
-CRUD for Reference
+CRUD for Reference (Name)
+keyed uniquely by referenceSerial(Int), for graph, we need it as Address
+
 C- by Import
       Bibtex import
 
@@ -11,7 +13,35 @@ U- by insert and decommission
 
 D- never deletes, just decommission
 
-CRUD for Person
+CRUD for Person (Owner :: Address)
+keyed uniquely by Address (and as a Signer),
+it means we have another set of data, that is Person.
+to hold the Person details of Owner :: Address.
+And we have map between 1 Address -> 1 Person
+
+In conclusion, we have:
+1 Address -> 1 Person
+1 Address -> 1 Reference
+so we can build a graph of
+Graph Address       Address
+      Reference     Person
+
+because internally, the graph have same constituents (Address),
+it means, we can make relation 1 person to many reference, or
+1 reference to many person.
+And we can load this relation as a graph.
+for the moment, we have 2 schemes:
+  internally, we save it as a Store.Map AddressRef [AddressPerson].
+  Then, on every update (or init), we load it as a Graph.
+  Question remains:
+  How to initiate all Connect when HCiteService starts?
+  How to update Connect every after update Map?
+  Probably, we need to update sdk to implement it in every time Consensus reached.
+
+Conclusion for the moment:
+- implement Store.Map AddressRef [AddressPerson]
+
+
 C-
 
 R-
@@ -20,7 +50,31 @@ U- by insert
 
 D-
 
-CRUD for Interconnect Person and Reference
+one owner can have many names.
+one person can have many reference.
+actually, vice versa, and we need query in both direction.
+
+
+CRUD for Interconnect Person and Reference,
+this is the real whois.
+It connects PersonIds and ReferenceId.
+The map is:
+single referenceId to Many PersonId.
+or
+single personId to Many ReferenceId
+we can use these alternatives:
+- Tendermint.SDK.BaseApp.Store.Map as Map
+- ALGA: https://nobrakal.github.io/alga-tutorial/#an-example-a-social-network
+- Data.Relation: https://github.com/haskell-works/relation/blob/master/test/Data/RelationSpec.hs
+
+basically we can use Store.Map right away, but maybe we can improve to ALGA.
+Data.Relation provide input as a Map, maybe different with Haskell's Map.
+Thus, it will different and complexity would be equal with ALGA.
+Thus, we can right away go to ALGA.
+
+1. Implementation on map:
+
+
 C- buy
 
 R
