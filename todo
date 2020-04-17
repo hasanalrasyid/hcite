@@ -39,7 +39,8 @@ for the moment, we have 2 schemes:
   Probably, we need to update sdk to implement it in every time Consensus reached.
 
 Conclusion for the moment:
-- implement Store.Map AddressRef [AddressPerson]
+- implement Store.Map AddressRef [AddressPerson] -- this is Whois
+- we need multiple Modules, because the have their own store schemes.
 
 
 C-

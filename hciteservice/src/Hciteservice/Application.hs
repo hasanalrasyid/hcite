@@ -5,6 +5,7 @@ module Hciteservice.Application
 
 import           Data.Proxy
 import qualified Hciteservice.Modules.Hciteservice as N
+import qualified Hciteservice.Modules.Person as P
 import           Tendermint.SDK.Application      (HandlersContext (..),
                                                   ModuleList (..),
                                                   baseAppAnteHandler)
@@ -16,6 +17,7 @@ import qualified Tendermint.SDK.Modules.Bank     as B
 
 type HciteserviceModules =
    '[ N.Hciteservice
+    , P.Person
     , B.Bank
     , A.Auth
     ]

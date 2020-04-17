@@ -58,7 +58,7 @@ Pegawai
      tglData            UTCTime sqltype=datetime
      fpid                T.Text  sqltype=varchar(10)
      statSpkwt          Int     sqltype=int(1)
-  deriving Show
+  deriving Show Eq Generic
 
 ThesisType
   thesis T.Text
@@ -129,6 +129,8 @@ RelationPR
      refIds   [ReferenceId]
   deriving Show
 |]
+
+type Personnel = Pegawai
 
 data SimpleRef = SimpleRef { refSerial      :: Int
                            , refAuthor      :: T.Text
@@ -213,10 +215,33 @@ initialModel uri = Model
     , previousPanel = "landing"
     }
 
+instance Default Day where
+  def = fromGregorian 26 1 2
+instance Default UTCTime where
+  def = UTCTime def 0
+instance Default TimeOfDay where
+  def = TimeOfDay 0 0 0
+
+instance Default Pegawai where
+  def = Pegawai
+                ""      --  nama                T.Text  sqltype=varchar(100)
+                ""      --  nip                 T.Text  sqltype=varchar(50)
+                0       --  kodeAbsen          Int     sqltype=int(20)
+                ""      --  unit                T.Text  sqltype=varchar(25)
+                ""      --  email               T.Text  sqltype=varchar(50)
+                ""      --  telp                T.Text  sqltype=varchar(100)
+                ""      --  password            T.Text  sqltype=varchar(50)
+                def     --  tglLahir           Day     sqltype=date
+                0       --  status              Int     sqltype=smallint(5)
+                0       --  golongan            Int     sqltype=smallint(5)
+                0       --  statusAktif        Int     sqltype=smallint(2)
+                ""      --  foto                T.Text  sqltype=varchar(200)
+                def     --  tglData            UTCTime sqltype=datetime
+                ""      --  fpid                T.Text  sqltype=varchar(10)
+                0       --  statSpkwt          Int     sqltype=int(1)
+
 instance Default Reference where
-  def = let today = fromGregorian 24 6 26
-            totime = TimeOfDay 0 0 0
-         in Reference
+  def = Reference
                 "author              "
                 Nothing -- "address             "
                 Nothing -- "corporateAuthor     "
@@ -269,7 +294,7 @@ instance Default Reference where
                 Nothing -- "createdDate         "
                 Nothing -- "createdTime         "
                 (Just "Dede Enan (dede@fi.itb.ac.id)")
-                (Just today) -- "modifiedDate        "
-                (Just totime) -- "modifiedTime        "
+                (Just def) -- "modifiedDate        "
+                (Just def) -- "modifiedTime        "
                 (Just "Admin FMIPA Publications (admin@pubs.fmipa.itb.ac.id)")
                 1 -- "version             "

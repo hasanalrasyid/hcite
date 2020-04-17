@@ -50,6 +50,7 @@ library:
     - data-default-class
     - faker
     - mtl
+    - time
 
     - bytestring
     - aeson
@@ -95,6 +96,14 @@ library:
   - Hciteservice.Modules.Hciteservice.Keeper
   - Hciteservice.Modules.Hciteservice.Query
   - Hciteservice.Modules.Hciteservice.Router
+
+  - Hciteservice.Modules.Person
+  - Hciteservice.Modules.Person.Keeper
+  - Hciteservice.Modules.Person.Messages
+  - Hciteservice.Modules.Person.Query
+  - Hciteservice.Modules.Person.Router
+  - Hciteservice.Modules.Person.Store
+  - Hciteservice.Modules.Person.Types
 
 executables:
   hciteservice:
