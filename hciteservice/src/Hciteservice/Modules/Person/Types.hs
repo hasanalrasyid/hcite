@@ -27,6 +27,9 @@ type PersonName = "person"
 type HCiteReference = M.Reference
 --------------------------------------------------------------------------------
 
+superAdmin :: Address
+superAdmin = Address "0xaaaaaaaaaaf141fa887c8abc3b4c5b4b9854d5d20d8d15adfffd9e7cfddde8bc"
+
 data Person = Person
   { obsoletedBy :: Maybe Address
   , unPerson :: M.Personnel} deriving (Eq,Show,Generic)
@@ -152,6 +155,7 @@ data PersonError =
     InsufficientBid Text
   | UnauthorizedSet Text
   | InvalidDelete Text
+  | InvalidCreate Text
 
 instance BaseApp.IsAppError PersonError where
   makeAppError (InsufficientBid msg) =
@@ -169,6 +173,12 @@ instance BaseApp.IsAppError PersonError where
   makeAppError (InvalidDelete msg) =
     BaseApp.AppError
       { appErrorCode = 3
+      , appErrorCodespace = "hciteservice"
+      , appErrorMessage = msg
+      }
+  makeAppError (InvalidCreate msg) =
+    BaseApp.AppError
+      { appErrorCode = 4
       , appErrorCodespace = "hciteservice"
       , appErrorMessage = msg
       }

@@ -4,11 +4,11 @@ module Hciteservice.Modules.Person.Keeper
   ( HciteserviceEffs
   , PersonKeeper(..)
   , hciteCoinId
-  , setName
-  , deleteName
-  , buyName
-  , faucetAccount
-  , getWhois
+--, setName
+--, deleteName
+--, buyName
+--, faucetAccount
+--, getWhois
   , eval
   ) where
 
@@ -33,7 +33,7 @@ data PersonKeeper m a where
   CreatePerson :: CreatePersonMsg -> PersonKeeper m ()
   RetrievePerson :: Address -> PersonKeeper m (Maybe Person)
   UpdatePerson :: UpdatePersonMsg -> PersonKeeper m ()
-  DeletePerson :: DeletePersonMsg -> PersonKeeper m ()
+--  DeletePerson :: DeletePersonMsg -> PersonKeeper m ()
 --  SetAddress :: SetNameMsg -> PersonKeeper m ()
 
 makeSem ''PersonKeeper
@@ -59,11 +59,13 @@ eval = mapError BaseApp.makeAppError . evalHciteservice
       => Sem (PersonKeeper ': r) a -> Sem r a
     evalHciteservice =
       interpret (\case
-          FaucetAccount msg -> faucetAccountF msg
-          BuyAddress msg -> buyNameF msg
-          DeleteAddress msg -> deleteNameF msg
-          SetAddress msg -> setNameF msg
-          GetPerson addr -> getPersonF addr
+--          FaucetAccount msg -> faucetAccountF msg
+--          BuyAddress msg -> buyNameF msg
+--          DeleteAddress msg -> deleteNameF msg
+--          SetAddress msg -> setNameF msg
+          CreatePerson msg -> createPersonF msg
+          RetrievePerson addr -> getPersonF addr
+          UpdatePerson msg -> updatePersonF msg
         )
 
 getPersonF
@@ -72,7 +74,128 @@ getPersonF
 getPersonF addr = M.lookup addr personMap
 
 --------------------------------------------------------------------------------
+updatePersonF
+  :: Members BaseApp.TxEffs r
+  => Members BankEffs r
+  => Members BaseApp.BaseEffs r
+  => Member (Error PersonError) r
+  => UpdatePersonMsg
+  -> Sem r ()
+-- ^ did it succeed
+updatePersonF msg = do
+  let personAddress = updatePersonOldAddress msg
+  let personNewAddress = updatePersonNewAddress msg
+  mPerson <- M.lookup personAddress personMap
+  case mPerson of
+    Nothing -> throw $ InvalidDelete "Can't update non-existant Personnel data."
+    Just currentPerson -> do
+          M.delete personAddress personMap
+          M.insert personAddress (currentPerson {obsoletedBy = Just personNewAddress}) personMap
+          M.insert personNewAddress (updatePersonNewDetail msg) personMap
+--        BaseApp.emit event
+--        BaseApp.logEvent event
 
+
+createPersonF
+  :: Members BaseApp.TxEffs r
+  => Members BankEffs r
+  => Members BaseApp.BaseEffs r
+  => Member (Error PersonError) r
+  => CreatePersonMsg
+  -> Sem r ()
+-- ^ did it succeed
+createPersonF msg = do
+  let address = createPersonAddress msg
+  mPerson <- M.lookup address personMap
+  case mPerson of
+    Just _ ->throw $ InvalidCreate "Can't recreate existant Person data, try to update"
+    Nothing -> createPersonRecord msg
+      where
+        createPersonRecord
+          :: Members BaseApp.TxEffs r
+          => Members BaseApp.BaseEffs r
+          => Members BankEffs r
+          => CreatePersonMsg
+          -> Sem r ()
+        createPersonRecord CreatePersonMsg{..} = do
+          transfer createPersonOperator (Coin hciteCoinId (fromInteger $ toInteger 1)) superAdmin
+          if True then return ()
+                  else burn createPersonOperator (Coin hciteCoinId (fromInteger $ toInteger 1))
+          M.insert address createPersonDetail personMap
+          let event = NameClaimed
+                { nameClaimedOwner = address
+                , nameClaimedName = "Dummy"
+                , nameClaimedValue = "Dummy"
+                , nameClaimedBid = (fromInteger $ toInteger 1)
+                }
+          BaseApp.emit event
+          BaseApp.logEvent event
+  {-
+  let name = buyNameAddress msg
+  mWhois <- M.lookup (Address name) personMap
+  case mWhois of
+    -- The name is unclaimed, go ahead and debit the account
+    -- and create it.
+    Nothing    -> buyUnclaimedAddress msg
+    -- The name is currently claimed, we will transfer the
+    -- funds and ownership
+    Just whois -> buyClaimedAddress msg whois
+    where
+      buyUnclaimedName
+        :: Members BaseApp.TxEffs r
+        => Members BaseApp.BaseEffs r
+        => Members BankEffs r
+        => BuyNameMsg
+        -> Sem r ()
+      buyUnclaimedAddress BuyNameMsg{..} = do
+        burn buyNameBuyer (Coin hciteCoinId buyNameBid)
+        let whois = Whois
+              { whoisOwner = buyNameBuyer
+              , whoisValue = buyNameValue
+              , whoisPrice = buyNameBid
+              , whoisTitle = buyNameTitle
+              , whoisReference = buyNameReference
+              }
+        M.insert (Address buyNameName) whois whoisMap
+        let event = NameClaimed
+              { nameClaimedOwner = buyNameBuyer
+              , nameClaimedAddress = buyNameName
+              , nameClaimedValue = buyNameValue
+              , nameClaimedBid = buyNameBid
+              }
+        BaseApp.emit event
+        BaseApp.logEvent event
+
+      buyClaimedName
+        :: Members BaseApp.TxEffs r
+        => Member (Error PersonError) r
+        => Members BaseApp.BaseEffs r
+        => Members BankEffs r
+        => BuyNameMsg
+        -> Whois
+        -> Sem r ()
+      buyClaimedAddress BuyNameMsg{..} currentWhois =
+        let Whois{ whoisPrice = forsalePrice, whoisOwner = previousOwner } = currentWhois
+        in if buyNameBid > forsalePrice
+             then do
+               transfer buyNameBuyer (Coin hciteCoinId buyNameBid) previousOwner
+               -- update new owner, price and value based on BuyName
+               let whois' = currentWhois
+                     { whoisOwner = buyNameBuyer
+                     , whoisPrice = buyNameBid
+                     , whoisValue = buyNameValue
+                     }
+               M.insert (Address buyNameName) whois' whoisMap
+               let event = NameClaimed
+                     { nameClaimedOwner = buyNameBuyer
+                     , nameClaimedAddress = buyNameName
+                     , nameClaimedValue = buyNameValue
+                     , nameClaimedBid = buyNameBid
+                     }
+               BaseApp.emit event
+               BaseApp.logEvent event
+             else throw (InsufficientBid "Bid must exceed the price.")
+-}
 --------------------------------------------------------------------------------
 
 faucetAccountF
@@ -91,6 +214,7 @@ faucetAccountF FaucetAccountMsg{..} = do
   BaseApp.emit event
   BaseApp.logEvent event
 
+  {-
 setNameF
   :: Members BaseApp.TxEffs r
   => Members BaseApp.BaseEffs r
@@ -210,4 +334,4 @@ buyNameF msg = do
                BaseApp.emit event
                BaseApp.logEvent event
              else throw (InsufficientBid "Bid must exceed the price.")
-
+-}

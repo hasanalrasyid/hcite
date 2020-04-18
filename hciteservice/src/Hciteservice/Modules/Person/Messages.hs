@@ -2,6 +2,8 @@ module Hciteservice.Modules.Person.Messages
   ( SetNameMsg(..)
   , BuyNameMsg(..)
   , DeleteNameMsg(..)
+  , UpdatePersonMsg(..)
+  , CreatePersonMsg(..)
   , FaucetAccountMsg(..)
   , BuyNameMessage(..)
   ) where
@@ -95,9 +97,16 @@ instance ValidateMessage SetNameMsg where
         ]
 
 --------------------------------------------------------------------------------
-data DeletePersonMsg = DeletePersonMsg
-  { oldAddress :: Address
-  , newAddress :: Address
+data UpdatePersonMsg = UpdatePersonMsg
+  { updatePersonOldAddress :: Address
+  , updatePersonNewAddress :: Address
+  , updatePersonNewDetail :: Person
+  } deriving (Eq, Show, Generic)
+
+data CreatePersonMsg = CreatePersonMsg
+  { createPersonOperator :: Address
+  , createPersonAddress :: Address
+  , createPersonDetail  :: Person
   } deriving (Eq, Show, Generic)
 
 data DeleteNameMsg = DeleteNameMsg
