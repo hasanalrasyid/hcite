@@ -4,9 +4,8 @@ module Hciteservice.Modules.Person.Router
   ) where
 
 import           Hciteservice.Modules.Person.Keeper   (HciteserviceEffs,
-                                                     buyName, deleteName,
-                                                     faucetAccount,
-                                                     setName)
+                                                     createPerson,retrievePerson,
+                                                     updatePerson)
 import           Hciteservice.Modules.Person.Messages
 import           Polysemy                                 (Members, Sem)
 import           Servant.API                              ((:<|>) (..))
@@ -18,21 +17,38 @@ import           Tendermint.SDK.BaseApp                   ((:~>), BaseEffs,
 import           Tendermint.SDK.Types.Message             (Msg (..))
 import           Tendermint.SDK.Types.Transaction         (Tx (..))
 
-
+{-
 type MessageApi =
        TypedMessage BuyNameMsg :~> Return ()
   :<|> TypedMessage SetNameMsg :~> Return ()
   :<|> TypedMessage DeleteNameMsg :~> Return ()
   :<|> TypedMessage FaucetAccountMsg :~> Return ()
+-}
+
+type MessageApi =
+       TypedMessage CreatePersonMsg  :~>  Return ()
+  :<|> TypedMessage Address :~>  Return ()
+  :<|> TypedMessage UpdatePersonMsg     :~>  Return ()
 
 messageHandlers
-  :: Members HciteserviceEffs r
+  :: Members PersonEffs r
   => Members BaseEffs r
   => RouteTx MessageApi r
-messageHandlers = buyNameH :<|> setNameH :<|> deleteNameH :<|> faucetH
+messageHandlers = createPersonH :<|> retrievePersonH :<|> updatePersonH
+--messageHandlers = buyNameH :<|> setNameH :<|> deleteNameH :<|> faucetH
 
+createPersonH
+  :: Members PersonEffs r
+  => Members BaseEffs r
+  => RoutingTx CreatePersonMsg
+  -> Sem r ()
+createPersonH (RoutingTx Tx{txMsg=Msg{msgData}}) = do
+  incCount "create_total"
+  withTimer "create_duration_seconds" $ createPerson msgData
+
+{-
 buyNameH
-  :: Members HciteserviceEffs r
+  :: Members PersonEffs r
   => Members BaseEffs r
   => RoutingTx BuyNameMsg
   -> Sem r ()
@@ -41,7 +57,7 @@ buyNameH (RoutingTx Tx{txMsg=Msg{msgData}}) = do
   withTimer "buy_duration_seconds" $ buyName msgData
 
 setNameH
-  :: Members HciteserviceEffs r
+  :: Members PersonEffs r
   => Members BaseEffs r
   => RoutingTx SetNameMsg
   -> Sem r ()
@@ -64,3 +80,4 @@ faucetH
   -> Sem r ()
 faucetH (RoutingTx Tx{txMsg=Msg{msgData}}) =
   faucetAccount msgData
+  -}
